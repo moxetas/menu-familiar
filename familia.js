@@ -10,6 +10,7 @@
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
+const FAMILIA_VERSION = 6;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -22,6 +23,10 @@ const Familia = (() => {
   let flushing = false;
   let retryTimer = null;
   let announce = null;   // mensaje para el primer dato que llegue tras conectarse
+  let lastEvent = 0;     // cuándo llegó lo último del servidor (también los avisos de «sigo aquí»)
+  let lastSync = 0;      // cuándo se recibió o envió el último cambio
+  let hiddenAt = 0;
+  let flushTimer = null;
 
   function load() { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } }
   function persist() { try { localStorage.setItem(LS, JSON.stringify(info)); } catch (e) { /* sin espacio */ } }
@@ -117,6 +122,7 @@ const Familia = (() => {
       if (res.status === 401 || res.status === 403) setStatus('denied');
       else if (res.ok) {
         ok = true;
+        lastSync = Date.now();
         // Quita lo enviado, salvo que haya vuelto a cambiar mientras tanto
         for (const [p, v] of Object.entries(batch)) if (info.pending && stable(info.pending[p]) === stable(v)) delete info.pending[p];
         persist();
@@ -126,6 +132,9 @@ const Familia = (() => {
     }
     flushing = false;
     if (ok && count(info.pending)) flush();
+    // Sin cobertura (en el súper pasa): vuelve a intentarlo dentro de un rato
+    else if (!ok && status !== 'denied') { clearTimeout(flushTimer); flushTimer = setTimeout(flush, 6000); }
+    setStatus(status);
   }
 
   // ---------- Recibir cambios de los demás ----------
@@ -134,7 +143,9 @@ const Familia = (() => {
     if (!info.code) return;
     disconnect();
     setStatus(navigator.onLine === false ? 'offline' : 'connecting');
+    lastEvent = Date.now();
     es = new EventSource(url());
+    es.addEventListener('keep-alive', () => { lastEvent = Date.now(); });
     es.addEventListener('put', (e) => onEvent(e, false));
     es.addEventListener('patch', (e) => onEvent(e, true));
     es.addEventListener('cancel', () => { setStatus('denied'); disconnect(); });
@@ -163,6 +174,8 @@ const Familia = (() => {
     let msg;
     try { msg = JSON.parse(e.data); } catch (err) { return; }
     if (!msg) return;
+    lastEvent = Date.now();
+    lastSync = Date.now();
     const { path, data } = msg;
     if (!isPatch && (path === '/' || path === '')) {
       // Copia completa (al conectarse o reconectarse)
@@ -200,8 +213,9 @@ const Familia = (() => {
     persist();
   }
 
-  const busy = () => $('#sheet').classList.contains('open')
-    || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
+  // Con una hoja abierta se espera a que se cierre. Escribiendo en la pantalla no hace falta esperar:
+  // la lista se redibuja sin tocar el campo de texto.
+  const busy = () => $('#sheet').classList.contains('open');
 
   // Muestra en pantalla la versión de la familia, si el usuario no está a mitad de algo
   function apply() {
@@ -237,9 +251,24 @@ const Familia = (() => {
     offline: '📴 Sin conexión. Los cambios se enviarán cuando vuelva.',
     denied: '⛔ Firebase no deja entrar. Revisa las reglas de la base de datos.',
   };
+  const hhmm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  function statusText() {
+    const extra = [];
+    if (lastSync) extra.push(`última vez a las ${hhmm(lastSync)}`);
+    const n = count(info.pending);
+    if (n) extra.push(`${n} ${n === 1 ? 'cambio' : 'cambios'} por enviar`);
+    return TEXTOS[status] + (extra.length ? ` (${extra.join(', ')})` : '');
+  }
   function setStatus(s) {
     status = s;
-    document.querySelectorAll('[data-fam-status]').forEach((el) => { el.textContent = TEXTOS[s]; });
+    document.querySelectorAll('[data-fam-status]').forEach((el) => { el.textContent = statusText(); });
+  }
+
+  // Vuelve a conectar desde cero y envía lo pendiente
+  function resync() {
+    if (!info.code) return;
+    connect();
+    flush();
   }
 
   // ---------- Código de familia ----------
@@ -303,9 +332,10 @@ const Familia = (() => {
     }
     return `<div class="card">
       <p><strong>👨‍👩‍👧 Compartido con la familia</strong></p>
-      <p class="small" data-fam-status>${TEXTOS[status]}</p>
+      <p class="small" data-fam-status>${statusText()}</p>
+      <p class="muted small">Código que termina en <strong>${esc(info.code.slice(-4))}</strong>. Tiene que ser el mismo en todos los móviles.</p>
       <div class="row">
-        <button type="button" class="btn small grow" data-fam="share">Enviar código</button>
+        <button type="button" class="btn small grow" data-fam="sync">🔄 Sincronizar ahora</button>
         <button type="button" class="btn small grow" data-fam="show">Ver código</button>
       </div>
     </div>`;
@@ -313,7 +343,7 @@ const Familia = (() => {
 
   function bind(root) {
     root.querySelectorAll('[data-fam]').forEach((b) => {
-      b.onclick = () => ({ create, join: openJoin, share: shareCode, show: openShow })[b.dataset.fam]();
+      b.onclick = () => ({ create, join: openJoin, share: shareCode, show: openShow, sync: () => { resync(); toast('Sincronizando…'); } })[b.dataset.fam]();
     });
   }
 
@@ -348,7 +378,7 @@ const Familia = (() => {
       <div class="sheet-head"><h3>Código de familia</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
       <p class="muted small">Envíalo a los demás de casa. En su app tienen que ir a «Mis platos» → «Tengo un código» y pegarlo.</p>
       <div class="code-box">${esc(info.code)}</div>
-      <p class="small" data-fam-status>${TEXTOS[status]}</p>
+      <p class="small" data-fam-status>${statusText()}</p>
       <button type="button" class="btn primary" id="fam-share">Enviar código por WhatsApp…</button>
       <button type="button" class="btn danger" id="fam-leave">Dejar de compartir en este móvil</button>
     `);
@@ -371,15 +401,21 @@ const Familia = (() => {
     flush();
   }
 
-  window.addEventListener('online', () => { if (info.code) { if (!es) connect(); flush(); } });
+  window.addEventListener('online', resync);
   window.addEventListener('offline', () => { if (info.code) setStatus('offline'); });
+  // El iPhone corta la conexión cuando la app pasa a segundo plano, a veces sin avisar.
+  // Al volver, se conecta otra vez desde cero, que es rápido y trae todo lo que haya cambiado.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && info.code) {
-      if (!es || es.readyState === EventSource.CLOSED) connect();
-      flush();
-    }
+    if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+    if (!info.code) return;
+    if (!es || es.readyState === EventSource.CLOSED || Date.now() - hiddenAt > 3000) resync();
+    else flush();
   });
-  document.addEventListener('focusout', retry);
+  window.addEventListener('pageshow', (e) => { if (e.persisted) resync(); });
+  // Firebase manda un «sigo aquí» cada medio minuto. Si deja de llegar, la conexión está muerta.
+  setInterval(() => {
+    if (info.code && document.visibilityState === 'visible' && Date.now() - lastEvent > 75000) resync();
+  }, 15000);
 
   return { start, changed, retry, card, bind, openJoin, get active() { return !!info.code; } };
 })();

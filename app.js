@@ -3,6 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
+const APP_VERSION = 6;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -199,9 +200,13 @@ function render() {
   const main = $('#view');
   const actions = $('#actions');
   actions.innerHTML = '';
+  // Si se sigue en la misma pestaña, las que tienen un campo para escribir solo redibujan la lista,
+  // para no borrar lo que se está tecleando ni cerrar el teclado
+  const same = main.dataset.tab === view.tab;
+  main.dataset.tab = view.tab;
   if (view.tab === 'semana') renderWeek(main, actions);
-  else if (view.tab === 'compra') renderShopping(main, actions);
-  else if (view.tab === 'platos') renderDishes(main);
+  else if (view.tab === 'compra') renderShopping(main, actions, same);
+  else if (view.tab === 'platos') renderDishes(main, same);
   else renderIdeas(main);
 }
 
@@ -413,21 +418,47 @@ function addDish(name, cat, when) {
   return d;
 }
 
-function renderDishes(main) {
+function renderDishes(main, same) {
+  // El formulario de arriba solo se dibuja al entrar en la pestaña; el resto se redibuja con cada cambio
+  if (!same || !$('#add')) {
+    const cat = view.newCat || 'auto';
+    main.innerHTML = `
+      <form class="card" id="add">
+        <label class="field">Añadir un plato
+          <input type="text" id="add-name" placeholder="Ej.: Lentejas con chorizo" autocomplete="off" enterkeyhint="done">
+        </label>
+        <div class="chips" id="add-cats">${chip('auto', '🪄 Adivinar', cat)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, cat)).join('')}</div>
+        <div class="row">
+          <button type="submit" class="btn primary grow">Añadir</button>
+          <button type="button" class="btn grow" id="bulk">Pegar una lista</button>
+        </div>
+      </form>
+      <div class="region" id="dish-region"></div>`;
+    const pressCat = (v) => main.querySelectorAll('#add-cats .chip').forEach((x) => x.setAttribute('aria-pressed', x.dataset.v === v));
+    main.querySelectorAll('#add-cats .chip').forEach((b) => b.onclick = () => { view.newCat = b.dataset.v; pressCat(b.dataset.v); });
+    $('#add').onsubmit = (e) => {
+      e.preventDefault();
+      const name = $('#add-name').value.trim();
+      if (!name) return;
+      if (state.dishes.some((x) => norm(x.name) === norm(name))) { toast('Ese plato ya está'); return; }
+      const c = (view.newCat || 'auto') === 'auto' ? guessCat(name) : view.newCat;
+      addDish(name, c, 'ambos');
+      save();
+      view.newCat = 'auto';
+      pressCat('auto');
+      $('#add-name').value = '';
+      render();
+      $('#add-name').focus();
+      toast(`${CAT[c].emoji} Añadido a ${CAT[c].nombre}`);
+    };
+    $('#bulk').onclick = openBulk;
+  }
+
   const groups = CATEGORIAS.map((c) => ({ c, items: state.dishes.filter((d) => d.cat === c.id).sort((a, b) => a.name.localeCompare(b.name, 'es')) }));
-  let cat = view.newCat || 'auto';
-  main.innerHTML = `
-    <form class="card" id="add">
-      <label class="field">Añadir un plato
-        <input type="text" id="add-name" placeholder="Ej.: Lentejas con chorizo" autocomplete="off" enterkeyhint="done">
-      </label>
-      <div class="chips" id="add-cats">${chip('auto', '🪄 Adivinar', cat)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, cat)).join('')}</div>
-      <div class="row">
-        <button type="submit" class="btn primary grow">Añadir</button>
-        <button type="button" class="btn grow" id="bulk">Pegar una lista</button>
-      </div>
-    </form>
-    <p class="muted small">${state.dishes.length ? `${state.dishes.length} platos. Toca uno para cambiar su color, marcarlo como favorito o borrarlo.` : 'Todavía no hay platos. Puedes escribirlos uno a uno o pegar una lista entera.'}</p>
+  const meals = state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0];
+  const region = $('#dish-region');
+  region.innerHTML = `
+    <p class="muted small">${state.dishes.length ? `${state.dishes.length} platos. Toca uno para cambiar su color, sus ingredientes, marcarlo como favorito o borrarlo.` : 'Todavía no hay platos. Puedes escribirlos uno a uno o pegar una lista entera.'}</p>
     ${groups.filter((g) => g.items.length).map((g) => `
       <section class="group c-${g.c.id}">
         <div class="group-head"><span class="dot"></span>${g.c.emoji} ${esc(g.c.nombre)} <span class="count">${g.items.length}</span></div>
@@ -439,9 +470,9 @@ function renderDishes(main) {
     <div class="card">
       <label class="field">Qué planificar</label>
       <div class="chips" id="set-meals">
-        ${chip('ambas', 'Comida y cena', state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0])}
-        ${chip('comida', 'Solo comida', state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0])}
-        ${chip('cena', 'Solo cena', state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0])}
+        ${chip('ambas', 'Comida y cena', meals)}
+        ${chip('comida', 'Solo comida', meals)}
+        ${chip('cena', 'Solo cena', meals)}
       </div>
       <label class="field">Ideas nuevas en cada menú semanal</label>
       <div class="chips" id="set-new">${[0, 1, 2, 3].map((n) => chip(String(n), n === 0 ? 'Ninguna' : String(n), String(state.settings.nuevos))).join('')}</div>
@@ -449,33 +480,16 @@ function renderDishes(main) {
         <button type="button" class="btn small grow" id="export">Compartir mi lista</button>
         ${state.dismissed.length ? `<button type="button" class="btn small grow" id="undismiss">Recuperar ideas descartadas (${state.dismissed.length})</button>` : ''}
       </div>
-    </div>`;
+    </div>
+    <p class="muted small" style="text-align:center">Versión ${APP_VERSION}${typeof FAMILIA_VERSION !== 'undefined' && FAMILIA_VERSION === APP_VERSION ? '' : ' · ⚠️ a medio actualizar: cierra la app y ábrela otra vez'}</p>`;
 
-  Familia.bind(main);
-  main.querySelectorAll('#add-cats .chip').forEach((b) => b.onclick = () => {
-    view.newCat = b.dataset.v;
-    main.querySelectorAll('#add-cats .chip').forEach((x) => x.setAttribute('aria-pressed', x === b));
-  });
-  $('#add').onsubmit = (e) => {
-    e.preventDefault();
-    const name = $('#add-name').value.trim();
-    if (!name) return;
-    if (state.dishes.some((x) => norm(x.name) === norm(name))) { toast('Ese plato ya está'); return; }
-    const c = (view.newCat || 'auto') === 'auto' ? guessCat(name) : view.newCat;
-    addDish(name, c, 'ambos');
-    save();
-    view.newCat = 'auto';
-    render();
-    $('#add-name').focus();
-    toast(`${CAT[c].emoji} Añadido a ${CAT[c].nombre}`);
-  };
-  $('#bulk').onclick = openBulk;
-  main.querySelectorAll('.group .dish').forEach((b) => b.onclick = () => openDish(b.dataset.id));
-  main.querySelectorAll('#set-meals .chip').forEach((b) => b.onclick = () => {
+  Familia.bind(region);
+  region.querySelectorAll('.group .dish').forEach((b) => b.onclick = () => openDish(b.dataset.id));
+  region.querySelectorAll('#set-meals .chip').forEach((b) => b.onclick = () => {
     state.settings.meals = b.dataset.v === 'ambas' ? ['comida', 'cena'] : [b.dataset.v];
     save(); render();
   });
-  main.querySelectorAll('#set-new .chip').forEach((b) => b.onclick = () => { state.settings.nuevos = Number(b.dataset.v); save(); render(); });
+  region.querySelectorAll('#set-new .chip').forEach((b) => b.onclick = () => { state.settings.nuevos = Number(b.dataset.v); save(); render(); });
   $('#export').onclick = exportList;
   $('#undismiss')?.addEventListener('click', () => { state.dismissed = []; save(); render(); toast('Esas ideas pueden volver a salir'); });
 }

@@ -341,6 +341,7 @@ textarea.short { min-height: 96px; }
 
 /* ---------- Familia ---------- */
 .stack { display: grid; gap: 10px; }
+.region { display: grid; gap: 14px; }
 .code-box {
   padding: 16px;
   border-radius: 12px;

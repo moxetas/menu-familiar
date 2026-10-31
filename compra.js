@@ -53,24 +53,44 @@ function addItem(name, from) {
 
 const byName = (a, b) => a.name.localeCompare(b.name, 'es');
 
-function renderShopping(main, actions) {
+function renderShopping(main, actions, same) {
   const pending = state.shopping.filter((i) => !i.done);
   const done = state.shopping.filter((i) => i.done).sort(byName);
   if (pending.length) actions.innerHTML = '<button type="button" class="pill-btn" id="share-list">Compartir</button>';
+  $('#share-list')?.addEventListener('click', shareList);
+
+  // El campo de arriba solo se dibuja al entrar en la pestaña, para no borrar lo que se escribe
+  if (!same || !$('#shop-add')) {
+    main.innerHTML = `
+      <form class="card" id="shop-add">
+        <label class="field">Añadir a la lista
+          <input type="text" id="shop-name" placeholder="Ej.: leche, pan, tomates" autocomplete="off" enterkeyhint="done">
+        </label>
+        <div class="row">
+          <button type="submit" class="btn primary grow">Añadir</button>
+          <button type="button" class="btn grow" id="from-menu">🍽️ Sacar del menú</button>
+        </div>
+      </form>
+      <div class="region" id="shop-list"></div>`;
+    $('#shop-add').onsubmit = (e) => {
+      e.preventDefault();
+      const names = parseList($('#shop-name').value);
+      if (!names.length) return;
+      names.forEach((n) => addItem(n));
+      save();
+      $('#shop-name').value = '';
+      render();
+      $('#shop-name').focus();
+      toast(names.length === 1 ? `${SEC[guessSection(names[0])].emoji} Apuntado` : `Apuntadas ${names.length} cosas`);
+    };
+    $('#from-menu').onclick = () => openFromMenu(view.week);
+  }
+
   const groups = SECCIONES
     .map((s) => ({ s, items: pending.filter((i) => (SEC[i.sec] ? i.sec : 'otros') === s.id).sort(byName) }))
     .filter((g) => g.items.length);
-
-  main.innerHTML = `
-    <form class="card" id="shop-add">
-      <label class="field">Añadir a la lista
-        <input type="text" id="shop-name" placeholder="Ej.: leche, pan, tomates" autocomplete="off" enterkeyhint="done">
-      </label>
-      <div class="row">
-        <button type="submit" class="btn primary grow">Añadir</button>
-        <button type="button" class="btn grow" id="from-menu">🍽️ Sacar del menú</button>
-      </div>
-    </form>
+  const list = $('#shop-list');
+  list.innerHTML = `
     ${!state.shopping.length ? `
       <div class="card empty-state">
         <div class="big">🛒</div>
@@ -91,26 +111,14 @@ function renderShopping(main, actions) {
       </section>` : ''}
   `;
 
-  $('#shop-add').onsubmit = (e) => {
-    e.preventDefault();
-    const names = parseList($('#shop-name').value);
-    if (!names.length) return;
-    names.forEach((n) => addItem(n));
-    save();
-    render();
-    $('#shop-name').focus();
-    toast(names.length === 1 ? `${SEC[guessSection(names[0])].emoji} Apuntado` : `Apuntadas ${names.length} cosas`);
-  };
-  $('#from-menu').onclick = () => openFromMenu(view.week);
-  $('#share-list')?.addEventListener('click', shareList);
-  main.querySelectorAll('[data-toggle]').forEach((b) => b.onclick = () => {
+  list.querySelectorAll('[data-toggle]').forEach((b) => b.onclick = () => {
     const it = state.shopping.find((x) => x.id === b.dataset.toggle);
     if (!it) return;
     it.done = !it.done;
     save();
     render();
   });
-  main.querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => openItem(b.dataset.edit));
+  list.querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => openItem(b.dataset.edit));
   $('#clear-done')?.addEventListener('click', () => {
     state.shopping = state.shopping.filter((i) => !i.done);
     save();

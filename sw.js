@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v4';
+const CACHE = 'menu-familiar-v6';
 const FILES = [
   './',
   'index.html',
@@ -16,7 +16,10 @@ const FILES = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' para no guardar copias viejas que el navegador tenga a mano
+  event.waitUntil(caches.open(CACHE)
+    .then((cache) => cache.addAll(FILES.map((f) => new Request(f, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -27,15 +30,17 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Primero la red, para que los cambios lleguen en cuanto haya conexión; sin conexión, la copia guardada
+// Primero la red (preguntando siempre al servidor si hay versión nueva); sin conexión, la copia guardada
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
-    fetch(req)
+    fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, copy));
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(req, copy));
+        }
         return res;
       })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('index.html')))
