@@ -1,6 +1,6 @@
 {
   "name": "Menú familiar",
-  "short_name": "Menú",
+  "short_name": "Menú familiar",
   "description": "Planifica las comidas de la semana por colores.",
   "lang": "es",
   "start_url": "./",
