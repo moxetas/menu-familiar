@@ -281,6 +281,64 @@ label.field { display: grid; gap: 6px; font-weight: 600; font-size: 0.92rem; }
 .empty-state { text-align: center; padding: 28px 16px; }
 .empty-state .big { font-size: 2.6rem; }
 
+/* ---------- Lista de la compra ---------- */
+.item {
+  display: flex;
+  align-items: stretch;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.item-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.tick {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.item-text { display: grid; }
+.item-name { font-weight: 600; }
+.item-from { font-size: 0.8rem; color: var(--muted); }
+.item-edit {
+  width: 48px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+.item.done { box-shadow: none; background: transparent; outline: 1px solid var(--line); outline-offset: -1px; }
+.item.done .item-name { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+.item.done .tick { background: var(--verdura); border-color: var(--verdura); color: var(--surface); }
+
+.from-dish {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-left: 6px solid var(--c);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.from-title { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.chip.have { opacity: 0.6; }
+.btn:disabled { opacity: 0.5; }
+textarea.short { min-height: 96px; }
+
 /* ---------- Familia ---------- */
 .stack { display: grid; gap: 10px; }
 .code-box {
@@ -304,7 +362,7 @@ label.field { display: grid; gap: 6px; font-weight: 600; font-size: 0.92rem; }
   left: 0; right: 0; bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: var(--surface);
   border-top: 1px solid var(--line);
@@ -318,7 +376,7 @@ label.field { display: grid; gap: 6px; font-weight: 600; font-size: 0.92rem; }
   border-radius: 12px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 600;
 }
 .tabs .tab-ic { font-size: 1.3rem; filter: grayscale(1); opacity: 0.7; }

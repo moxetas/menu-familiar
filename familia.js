@@ -41,6 +41,7 @@ const Familia = (() => {
       plan: s.plan,
       dismissed: Object.fromEntries(s.dismissed.map((n) => [fbKey(n), n])),
       settings: s.settings,
+      shopping: Object.fromEntries((s.shopping || []).map((i) => [i.id, i])),
     });
   }
 
@@ -52,6 +53,7 @@ const Familia = (() => {
       plan: r.plan || {},
       dismissed: Object.values(r.dismissed || {}),
       settings: { ...d.settings, ...(r.settings || {}) },
+      shopping: Object.entries(r.shopping || {}).map(([id, x]) => ({ ...x, id })),
     };
   }
 
@@ -71,6 +73,7 @@ const Familia = (() => {
     walk(a.dishes, b.dishes, 'dishes/', 1);
     walk(a.plan, b.plan, 'plan/', 2);
     walk(a.dismissed, b.dismissed, 'dismissed/', 1);
+    walk(a.shopping, b.shopping, 'shopping/', 1);
     if (stable(a.settings) !== stable(b.settings)) out.settings = b.settings ?? null;
     return out;
   }
@@ -189,6 +192,8 @@ const Familia = (() => {
     }
     for (const [k, n] of Object.entries(mine.dismissed || {})) if (!remote.dismissed?.[k]) add[`dismissed/${k}`] = n;
     if (!remote.settings) add.settings = mine.settings;
+    const items = new Set(theirs.shopping.map((i) => norm(i.name)));
+    for (const [id, i] of Object.entries(mine.shopping || {})) if (!items.has(norm(i.name))) add[`shopping/${id}`] = i;
     for (const [p, v] of Object.entries(add)) remote = setPath(remote, p, v);
     info.pending = { ...(info.pending || {}), ...add };
     info.needsMerge = false;
@@ -209,13 +214,14 @@ const Familia = (() => {
     state.plan = next.plan;
     state.dismissed = next.dismissed;
     state.settings = next.settings;
+    state.shopping = next.shopping;
     base = shape(state);
     info.base = base;
     persist();
     saveLocal();
     const changedNow = stable(base) !== before;
     if (changedNow || announce) render();
-    if (announce) { toast(announce); announce = null; } else if (changedNow) toast('Menú actualizado desde otro móvil');
+    if (announce) { toast(announce); announce = null; } else if (changedNow) toast('Actualizado desde otro móvil');
   }
 
   function retry() {
@@ -288,7 +294,7 @@ const Familia = (() => {
     if (!info.code) {
       return `<div class="card">
         <p><strong>👨‍👩‍👧 Compartir con la familia</strong></p>
-        <p class="muted small">Conecta los móviles de casa: los platos y los menús serán los mismos en todos, y lo que cambie uno lo verán los demás.</p>
+        <p class="muted small">Conecta los móviles de casa: los platos, los menús y la lista de la compra serán los mismos en todos, y lo que cambie uno lo verán los demás.</p>
         <div class="row">
           <button type="button" class="btn primary grow" data-fam="create">Crear código de familia</button>
           <button type="button" class="btn grow" data-fam="join">Tengo un código</button>

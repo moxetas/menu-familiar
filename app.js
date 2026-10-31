@@ -11,6 +11,7 @@ function defaults() {
     dishes: [],          // { id, name, cat, when: 'ambos' | 'comida' | 'cena', fav }
     plan: {},            // { 'AAAA-MM-DD': { comida: { name, cat, nuevo }, cena: {...} } }
     dismissed: [],       // ideas que no se quieren volver a ver
+    shopping: [],        // lista de la compra: { id, name, sec, done, from }
     settings: { meals: ['comida', 'cena'], nuevos: 1 },
   };
 }
@@ -199,6 +200,7 @@ function render() {
   const actions = $('#actions');
   actions.innerHTML = '';
   if (view.tab === 'semana') renderWeek(main, actions);
+  else if (view.tab === 'compra') renderShopping(main, actions);
   else if (view.tab === 'platos') renderDishes(main);
   else renderIdeas(main);
 }
@@ -249,7 +251,8 @@ function renderWeek(main, actions) {
         <button type="button" class="btn primary grow" id="fill">${filled ? 'Rellenar huecos' : '🎲 Hacer el menú'}</button>
         ${filled ? '<button type="button" class="btn grow" id="redo">Rehacer semana</button>' : ''}
       </div>
-      ${filled ? legend(counts) : ''}`;
+      ${filled ? legend(counts) : ''}
+      ${filled ? '<button type="button" class="pill-btn" id="to-shop" style="justify-self:start">🛒 Pasar a la lista de la compra</button>' : ''}`;
   }
 
   html += days.map((d) => {
@@ -276,6 +279,7 @@ function renderWeek(main, actions) {
   $('#go-dishes')?.addEventListener('click', () => go('platos'));
   $('#examples')?.addEventListener('click', loadExamples);
   $('#join-family')?.addEventListener('click', Familia.openJoin);
+  $('#to-shop')?.addEventListener('click', () => { const w = view.week; go('compra'); openFromMenu(w); });
   $('#fill')?.addEventListener('click', () => { fillWeek(days, false); render(); toast('Menú listo. Toca un plato para cambiarlo.'); });
   $('#redo')?.addEventListener('click', () => {
     if (!confirm('¿Rehacer toda la semana? Se cambiarán todos los platos.')) return;
@@ -403,6 +407,8 @@ function addDish(name, cat, when) {
   const ex = state.dishes.find((x) => norm(x.name) === norm(name));
   if (ex) return ex;
   const d = { id: uid(), name: cap(name.trim()), cat, when: when || 'ambos', fav: false };
+  const ing = catalogIngredients(name);
+  if (ing) d.ingredients = ing;
   state.dishes.push(d);
   return d;
 }
@@ -512,6 +518,9 @@ function openDish(id) {
       <label class="field">Cuándo</label>
       <div class="chips" id="ed-when">${chip('ambos', 'Comida o cena', d.when)}${chip('comida', 'Solo comida', d.when)}${chip('cena', 'Solo cena', d.when)}</div>
       <div class="chips"><button type="button" class="chip" id="ed-fav" aria-pressed="${!!d.fav}">⭐ Favorito (sale más a menudo)</button></div>
+      <label class="field">Ingredientes <span class="muted small" style="font-weight:400">para la lista de la compra</span>
+        <textarea id="ed-ing" class="short" placeholder="Uno por línea o separados por comas">${esc((d.ingredients || []).join('\n'))}</textarea>
+      </label>
       <div class="row">
         <button type="button" class="btn primary grow" id="ed-ok">Guardar</button>
         <button type="button" class="btn danger" id="ed-del">Borrar</button>
@@ -529,6 +538,8 @@ function openDish(id) {
     };
   };
   const keepName = () => {
+    const t = $('#ed-ing');
+    if (t) { const list = parseList(t.value); if (list.length) d.ingredients = list; else delete d.ingredients; }
     const v = $('#ed-name')?.value.trim();
     if (!v) return;
     const old = d.name;
