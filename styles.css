@@ -342,6 +342,19 @@ textarea.short { min-height: 96px; }
 /* ---------- Familia ---------- */
 .stack { display: grid; gap: 10px; }
 .region { display: grid; gap: 14px; }
+.diag {
+  margin: 0;
+  padding: 12px;
+  max-height: 45vh;
+  overflow: auto;
+  border-radius: 12px;
+  background: var(--surface);
+  font: 0.72rem/1.45 ui-monospace, "SF Mono", Menlo, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+}
 .code-box {
   padding: 16px;
   border-radius: 12px;

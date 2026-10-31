@@ -10,7 +10,7 @@
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 6;
+const FAMILIA_VERSION = 7;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -27,6 +27,11 @@ const Familia = (() => {
   let lastSync = 0;      // cuándo se recibió o envió el último cambio
   let hiddenAt = 0;
   let flushTimer = null;
+  const log = [];        // registro de lo que pasa, para el diagnóstico
+  function note(s) {
+    log.push(`${new Date().toLocaleTimeString('es-ES')} ${s}`);
+    if (log.length > 40) log.shift();
+  }
 
   function load() { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } }
   function persist() { try { localStorage.setItem(LS, JSON.stringify(info)); } catch (e) { /* sin espacio */ } }
@@ -119,6 +124,8 @@ const Familia = (() => {
     let ok = false;
     try {
       const res = await fetch(url(), { method: 'PATCH', body: JSON.stringify(batch) });
+      const answer = res.ok ? '' : ` ${(await res.text().catch(() => '')).slice(0, 300)}`;
+      note(`envío [${Object.keys(batch).join(', ').slice(0, 200)}] → ${res.status}${answer}`);
       if (res.status === 401 || res.status === 403) setStatus('denied');
       else if (res.ok) {
         ok = true;
@@ -128,6 +135,7 @@ const Familia = (() => {
         persist();
       }
     } catch (e) {
+      note(`envío falló: ${e && e.message}`);
       setStatus('offline');
     }
     flushing = false;
@@ -144,12 +152,14 @@ const Familia = (() => {
     disconnect();
     setStatus(navigator.onLine === false ? 'offline' : 'connecting');
     lastEvent = Date.now();
+    note('conectando');
     es = new EventSource(url());
     es.addEventListener('keep-alive', () => { lastEvent = Date.now(); });
     es.addEventListener('put', (e) => onEvent(e, false));
     es.addEventListener('patch', (e) => onEvent(e, true));
-    es.addEventListener('cancel', () => { setStatus('denied'); disconnect(); });
+    es.addEventListener('cancel', (e) => { note(`cancel ${e.data}`); setStatus('denied'); disconnect(); });
     es.onerror = () => {
+      note(`error de conexión (estado ${es ? es.readyState : '-'})`);
       if (!es || es.readyState !== EventSource.CLOSED) { if (status !== 'denied') setStatus(navigator.onLine === false ? 'offline' : 'connecting'); return; }
       // La conexión se ha cerrado del todo: averigua si es por permisos o por falta de cobertura
       disconnect();
@@ -177,6 +187,7 @@ const Familia = (() => {
     lastEvent = Date.now();
     lastSync = Date.now();
     const { path, data } = msg;
+    note(`${isPatch ? 'patch' : 'put'} ${path} ${data && typeof data === 'object' ? `{${Object.keys(data).join(', ').slice(0, 160)}}` : JSON.stringify(data)}`);
     if (!isPatch && (path === '/' || path === '')) {
       // Copia completa (al conectarse o reconectarse)
       remote = data && typeof data === 'object' ? clone(data) : {};
@@ -337,13 +348,14 @@ const Familia = (() => {
       <div class="row">
         <button type="button" class="btn small grow" data-fam="sync">🔄 Sincronizar ahora</button>
         <button type="button" class="btn small grow" data-fam="show">Ver código</button>
+        <button type="button" class="btn small grow" data-fam="diag">🩺 Diagnóstico</button>
       </div>
     </div>`;
   }
 
   function bind(root) {
     root.querySelectorAll('[data-fam]').forEach((b) => {
-      b.onclick = () => ({ create, join: openJoin, share: shareCode, show: openShow, sync: () => { resync(); toast('Sincronizando…'); } })[b.dataset.fam]();
+      b.onclick = () => ({ create, join: openJoin, share: shareCode, show: openShow, diag: openDiag, sync: () => { resync(); toast('Sincronizando…'); } })[b.dataset.fam]();
     });
   }
 
@@ -392,11 +404,56 @@ const Familia = (() => {
     };
   }
 
+  // ---------- Diagnóstico ----------
+
+  function diagnostic() {
+    const names = (list) => list.map((i) => i.name + (i.done ? ' ✓' : '')).join(', ');
+    const r = fromShape(remote || {});
+    const ago = (t) => (t ? `hace ${Math.round((Date.now() - t) / 1000)} s` : 'nunca');
+    return [
+      `Menú familiar · versión ${FAMILIA_VERSION}/${typeof APP_VERSION !== 'undefined' ? APP_VERSION : '?'}`,
+      `Código: …-${info.code ? info.code.slice(-4) : '(ninguno)'}`,
+      `Estado: ${status} · conexión ${es ? ['abriendo', 'abierta', 'cerrada'][es.readyState] : 'sin abrir'} · último dato del servidor ${ago(lastEvent)}`,
+      `Pendientes de enviar: ${count(info.pending)} ${count(info.pending) ? JSON.stringify(Object.keys(info.pending)) : ''}`,
+      remote
+        ? `En Firebase: ${r.dishes.length} platos, ${Object.keys(r.plan).length} días de menú, ${r.shopping.length} en la lista (${names(r.shopping)})`
+        : 'En Firebase: todavía no ha llegado nada',
+      `En este móvil: ${state.dishes.length} platos, ${Object.keys(state.plan).length} días de menú, ${state.shopping.length} en la lista (${names(state.shopping)})`,
+      `Base: ${base ? `${count(base.shopping)} en la lista${base.shopping ? '' : ' (sin lista)'}` : 'ninguna'}`,
+      `Navegador: ${navigator.userAgent.replace(/^Mozilla\/5\.0 /, '').slice(0, 120)}`,
+      '',
+      'Registro:',
+      ...log,
+    ].join('\n');
+  }
+
+  function openDiag() {
+    openSheet(`
+      <div class="sheet-head"><h3>Diagnóstico</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+      <p class="muted small">Si algo no se sincroniza, copia esto y pégaselo a quien te ayuda con la app.</p>
+      <pre class="diag" id="diag-text">${esc(diagnostic())}</pre>
+      <div class="row">
+        <button type="button" class="btn primary grow" id="diag-copy">Copiar</button>
+        <button type="button" class="btn grow" id="diag-again">Actualizar</button>
+      </div>
+    `);
+    $('#diag-copy').onclick = async () => {
+      const text = diagnostic();
+      try {
+        if (navigator.share) await navigator.share({ text });
+        else { await navigator.clipboard.writeText(text); toast('Copiado'); }
+      } catch (e) { if (e && e.name !== 'AbortError') toast('No se ha podido copiar'); }
+    };
+    $('#diag-again').onclick = () => { $('#diag-text').textContent = diagnostic(); };
+  }
+
   // ---------- Arranque ----------
 
   function start() {
     if (!info.code) return;
     if (!base) { base = shape(state); info.base = base; persist(); }
+    // La familia se creó antes de que existiera la lista de la compra: lo apuntado en este móvil se envía
+    if (!base.shopping) { base.shopping = {}; info.base = base; persist(); changed(); }
     connect();
     flush();
   }
