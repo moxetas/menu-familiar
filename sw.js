@@ -1,11 +1,12 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v2';
+const CACHE = 'menu-familiar-v3';
 const FILES = [
   './',
   'index.html',
   'styles.css',
   'platos.js',
+  'familia.js',
   'app.js',
   'manifest.webmanifest',
   'icons/icon-192.png',

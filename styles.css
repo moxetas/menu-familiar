@@ -281,6 +281,23 @@ label.field { display: grid; gap: 6px; font-weight: 600; font-size: 0.92rem; }
 .empty-state { text-align: center; padding: 28px 16px; }
 .empty-state .big { font-size: 2.6rem; }
 
+/* ---------- Familia ---------- */
+.stack { display: grid; gap: 10px; }
+.code-box {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 2px dashed var(--line);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  user-select: all;
+  -webkit-user-select: all;
+  word-break: break-all;
+}
+
 /* ---------- Pestañas ---------- */
 .tabs {
   position: fixed;

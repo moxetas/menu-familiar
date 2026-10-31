@@ -27,8 +27,13 @@ function load() {
 }
 
 let state = load();
-function save() {
+function saveLocal() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('No se ha podido guardar en este teléfono'); }
+}
+// Guarda en el teléfono y, si el móvil comparte con la familia, envía el cambio
+function save() {
+  saveLocal();
+  Familia.changed();
 }
 
 // ---------- Utilidades ----------
@@ -235,6 +240,8 @@ function renderWeek(main, actions) {
           <button type="button" class="btn primary" id="go-dishes">Añadir mis platos</button>
           <button type="button" class="btn" id="examples">Probar con ejemplos</button>
         </div>
+        ${Familia.active ? '' : `<p class="muted small">¿Alguien de casa ya usa la app?</p>
+        <div class="row" style="justify-content:center"><button type="button" class="btn" id="join-family">👨‍👩‍👧 Tengo un código de familia</button></div>`}
       </div>`;
   } else {
     html += `
@@ -268,6 +275,7 @@ function renderWeek(main, actions) {
   $('#share').onclick = () => shareWeek(days);
   $('#go-dishes')?.addEventListener('click', () => go('platos'));
   $('#examples')?.addEventListener('click', loadExamples);
+  $('#join-family')?.addEventListener('click', Familia.openJoin);
   $('#fill')?.addEventListener('click', () => { fillWeek(days, false); render(); toast('Menú listo. Toca un plato para cambiarlo.'); });
   $('#redo')?.addEventListener('click', () => {
     if (!confirm('¿Rehacer toda la semana? Se cambiarán todos los platos.')) return;
@@ -419,6 +427,8 @@ function renderDishes(main) {
         <div class="group-head"><span class="dot"></span>${g.c.emoji} ${esc(g.c.nombre)} <span class="count">${g.items.length}</span></div>
         ${g.items.map((d) => `<button type="button" class="dish c-${d.cat}" data-id="${d.id}"><span class="name">${esc(d.name)}</span>${d.when !== 'ambos' ? `<span class="badge">solo ${d.when}</span>` : ''}${d.fav ? '⭐' : ''}</button>`).join('')}
       </section>`).join('')}
+    <h2>Familia</h2>
+    ${Familia.card()}
     <h2>Ajustes</h2>
     <div class="card">
       <label class="field">Qué planificar</label>
@@ -435,6 +445,7 @@ function renderDishes(main) {
       </div>
     </div>`;
 
+  Familia.bind(main);
   main.querySelectorAll('#add-cats .chip').forEach((b) => b.onclick = () => {
     view.newCat = b.dataset.v;
     main.querySelectorAll('#add-cats .chip').forEach((x) => x.setAttribute('aria-pressed', x === b));
@@ -626,6 +637,7 @@ function closeSheet() {
   sheet.setAttribute('inert', '');
   sheet.setAttribute('aria-hidden', 'true');
   $('#scrim').classList.remove('open');
+  Familia.retry();
 }
 $('#scrim').onclick = closeSheet;
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
@@ -640,6 +652,7 @@ document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => go(b.
 try { view.tab = localStorage.getItem(KEY + '-tab') || 'semana'; } catch (e) { /* da igual */ }
 
 render();
+Familia.start();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
