@@ -23,7 +23,7 @@ Los platos se guardan solo en el teléfono.
 ## Instalarla en el iPhone
 
 1. En GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama **main**, carpeta **/ (root)**, **Save**.
-2. Al cabo de uno o dos minutos estará en `https://moxetas.github.io/men-familiar/`.
+2. Al cabo de uno o dos minutos estará en `https://moxetas.github.io/Men-Familiar/`.
 3. Ábrela en **Safari**, toca **Compartir → Añadir a pantalla de inicio**.
 
 ## Archivos
