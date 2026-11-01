@@ -10,7 +10,7 @@
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 11;
+const FAMILIA_VERSION = 12;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -53,6 +53,7 @@ const Familia = (() => {
       settings: s.settings,
       shopping: Object.fromEntries((s.shopping || []).map((i) => [i.id, i])),
       members: Object.fromEntries((s.members || []).map((m) => [m.id, m])),
+      agua: s.agua || {},
     });
   }
 
@@ -66,6 +67,7 @@ const Familia = (() => {
       settings: { ...d.settings, ...(r.settings || {}) },
       shopping: Object.entries(r.shopping || {}).map(([id, x]) => ({ ...x, id })),
       members: Object.entries(r.members || {}).map(([id, x]) => ({ ...x, id })),
+      agua: r.agua || {},
     };
   }
 
@@ -87,6 +89,7 @@ const Familia = (() => {
     walk(a.dismissed, b.dismissed, 'dismissed/', 1);
     walk(a.shopping, b.shopping, 'shopping/', 1);
     walk(a.members, b.members, 'members/', 1);
+    walk(a.agua, b.agua, 'agua/', 2);
     if (stable(a.settings) !== stable(b.settings)) out.settings = b.settings ?? null;
     return out;
   }
@@ -223,6 +226,7 @@ const Familia = (() => {
     for (const [id, i] of Object.entries(mine.shopping || {})) if (!items.has(norm(i.name))) add[`shopping/${id}`] = i;
     const people = new Set(theirs.members.map((m) => norm(m.name)));
     for (const [id, m] of Object.entries(mine.members || {})) if (!people.has(norm(m.name))) add[`members/${id}`] = m;
+    for (const [day, ms] of Object.entries(mine.agua || {})) for (const [id, ml] of Object.entries(ms || {})) if (!remote.agua?.[day]?.[id]) add[`agua/${day}/${id}`] = ml;
     for (const [p, v] of Object.entries(add)) remote = setPath(remote, p, v);
     info.pending = { ...(info.pending || {}), ...add };
     info.needsMerge = false;
@@ -246,6 +250,7 @@ const Familia = (() => {
     state.settings = next.settings;
     state.shopping = next.shopping;
     state.members = next.members;
+    state.agua = next.agua;
     base = shape(state);
     info.base = base;
     persist();
@@ -461,6 +466,7 @@ const Familia = (() => {
     // La familia se creó antes de que existiera la lista de la compra: lo apuntado en este móvil se envía
     if (!base.shopping) { base.shopping = {}; info.base = base; persist(); changed(); }
     if (!base.members) { base.members = {}; info.base = base; persist(); changed(); }
+    if (!base.agua) { base.agua = {}; info.base = base; persist(); changed(); }
     connect();
     flush();
   }

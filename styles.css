@@ -459,6 +459,23 @@ textarea.short { min-height: 96px; }
 .meter span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
 .small-macros div { background: var(--surface-2); }
 
+/* ---------- Plan de salud ---------- */
+.slot-health { margin-left: 6px; font-size: 0.9rem; }
+.tile-health { position: absolute; bottom: 6px; right: 7px; font-size: 0.85rem; }
+.health-line { margin: 0; font-size: 0.85rem; }
+.health-tag { justify-self: start; margin-top: 2px; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); font-size: 0.75rem; font-weight: 600; }
+.health-box { display: grid; gap: 6px; padding: 12px; border-radius: 12px; background: var(--surface); border-left: 5px solid var(--verdura); }
+.health-box.warn { border-left-color: var(--ave); }
+.health-box.stop { border-left-color: var(--carne); }
+.health-notes { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; font-size: 0.88rem; }
+.danger-note { background: color-mix(in srgb, var(--carne) 14%, var(--surface)); }
+.danger-text { color: var(--carne); font-weight: 600; }
+.health-intake { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.hrow { display: grid; grid-template-columns: 1.5em 1fr auto; align-items: baseline; gap: 4px 8px; font-size: 0.92rem; }
+.hrow strong { font-variant-numeric: tabular-nums; }
+.hextra { grid-column: 2 / -1; margin-top: -2px; }
+.water .hero strong { font-size: 1.6rem; }
+
 /* ---------- Familia ---------- */
 .stack { display: grid; gap: 10px; }
 .region { display: grid; gap: 14px; }

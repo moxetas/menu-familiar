@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 11;
+const APP_VERSION = 12;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -13,8 +13,9 @@ function defaults() {
     plan: {},            // { 'AAAA-MM-DD': { comida: { name, cat, nuevo }, cena: {...} } }
     dismissed: [],       // ideas que no se quieren volver a ver
     shopping: [],        // lista de la compra: { id, name, sec, done, from }
-    members: [],         // familia: { id, name, sexo, edad, peso, altura, actividad, racion, avatar }
-    settings: { meals: ['comida', 'cena'], nuevos: 1 },
+    members: [],         // familia: { id, name, sexo, edad, peso, altura, actividad, racion, avatar, salud }
+    agua: {},            // agua bebida: { 'AAAA-MM-DD': { idMiembro: ml } }
+    settings: { meals: ['comida', 'cena'], nuevos: 1, caldoCasero: false },
   };
 }
 
@@ -102,6 +103,7 @@ function addToContext(ctx, p) {
   ctx.count[p.cat] = (ctx.count[p.cat] || 0) + 1;
   ctx.used.add(norm(p.name));
   ctx.prevCat = p.cat;
+  if (perRacion(p.name)?.roja) ctx.roja = (ctx.roja || 0) + 1;
 }
 
 function score(cand, meal, ctx, sameDayCat) {
@@ -114,6 +116,7 @@ function score(cand, meal, ctx, sameDayCat) {
   if (cand.cat === ctx.prevCat) s -= 3;
   if (cand.cat === sameDayCat) s -= 2;
   if (cand.fav) s += 0.8;
+  s -= healthPenalty(cand.name, ctx);
   return s;
 }
 
@@ -263,6 +266,7 @@ function renderWeek(main, actions) {
         ${filled ? '<button type="button" class="btn grow" id="redo">Rehacer semana</button>' : ''}
       </div>
       ${filled ? legend(counts) : ''}
+      ${filled && healthMembers().length ? `<p class="muted small">Para ${esc(healthMembers().map((m) => m.name).join(' y '))}: 🧂 mucha sal · 🧈 grasa saturada · 🦐 purinas · 🥓 embutido · ⛔ no apto. Toca la comida para ver cómo arreglarlo.</p>` : ''}
       ${filled ? `<div class="row">
         <button type="button" class="pill-btn" id="to-shop">🛒 Pasar a la lista de la compra</button>
         <button type="button" class="pill-btn" id="clear-week">🗑️ Limpiar semana</button>
@@ -279,7 +283,7 @@ function renderWeek(main, actions) {
         if (!p) return `<button type="button" class="slot empty" data-key="${key}" data-meal="${m}"><span class="slot-meal">${COMIDAS[m]}</span><span class="slot-name">+ Elegir plato</span><span></span></button>`;
         return `<button type="button" class="slot c-${p.cat}" data-key="${key}" data-meal="${m}">
           <span class="slot-meal">${COMIDAS[m]}</span>
-          <span class="slot-name">${esc(p.name)}${p.nuevo ? '<span class="tag-new">✨ Nuevo</span>' : ''}${list.length > 1 ? `<span class="slot-more">${list.slice(1).map((x) => `<span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}`).join(' ')}</span>` : ''}</span>
+          <span class="slot-name">${esc(p.name)}${p.nuevo ? '<span class="tag-new">✨ Nuevo</span>' : ''}${slotHealth(list)}${list.length > 1 ? `<span class="slot-more">${list.slice(1).map((x) => `<span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}`).join(' ')}</span>` : ''}</span>
           <span class="slot-emoji" aria-label="${esc(CAT[p.cat]?.nombre || '')}">${CAT[p.cat]?.emoji || ''}</span>
         </button>`;
       }).join('')}
@@ -369,6 +373,13 @@ function setDish(key, meal, i, dish) {
   save();
 }
 
+// Aviso en la semana si algún plato de la comida no le va bien a quien tiene plan de salud
+function slotHealth(list) {
+  const icons = [...new Set(list.map((x) => healthIcons(x.name, x)).join('').match(/⛔|🧂|🧈|🦐|🥓/gu) || [])];
+  const txt = icons.includes('⛔') ? '⛔' : icons.join('');
+  return txt ? `<span class="slot-health">${txt}</span>` : '';
+}
+
 // ---------- Hoja de una comida: sus platos y quién come cada uno ----------
 
 function openMeal(key, meal) {
@@ -386,6 +397,7 @@ function openMeal(key, meal) {
             <span class="muted small">${esc(whoText(p))}</span>
           </div>
         </div>
+        ${healthLines(p.name, p)}
         ${p.nuevo ? `<div class="notice">
           <p class="small"><strong>Es una idea nueva.</strong> Si os gusta, guárdala con vuestros platos.</p>
           <div class="row"><button type="button" class="btn primary small" data-keep="${i}">Guardar en mis platos</button><button type="button" class="btn small" data-nope="${i}">No me la sugieras más</button></div>
@@ -562,6 +574,7 @@ function renderDishes(main, same) {
             <span class="tile-name">${esc(d.name)}</span>
             ${d.fav ? '<span class="tile-fav" aria-label="Favorito">⭐</span>' : ''}
             ${recipeFor(d.name) ? '' : '<span class="tile-badge">sin receta</span>'}
+            ${healthIcons(d.name) ? `<span class="tile-health" aria-label="Con moderación para quien tiene plan de salud">${healthIcons(d.name)}</span>` : ''}
           </button>`).join('')}</div>
       </section>`).join('')}
     <h2>Ajustes</h2>
@@ -572,6 +585,9 @@ function renderDishes(main, same) {
         ${chip('comida', 'Solo comida', meals)}
         ${chip('cena', 'Solo cena', meals)}
       </div>
+      <label class="field">Cocina</label>
+      <div class="chips"><button type="button" class="chip" id="set-caldo" aria-pressed="${!!state.settings.caldoCasero}">🍲 Usamos caldo casero sin sal</button></div>
+      <p class="muted small">Si está activado, la sal de los platos se calcula con caldo casero sin sal en vez de caldo de brick, que lleva mucha.</p>
       <label class="field">Ideas nuevas en cada menú semanal</label>
       <div class="chips" id="set-new">${[0, 1, 2, 3].map((n) => chip(String(n), n === 0 ? 'Ninguna' : String(n), String(state.settings.nuevos))).join('')}</div>
       <div class="row">
@@ -590,6 +606,7 @@ function renderDishes(main, same) {
     save(); render();
   });
   region.querySelectorAll('#set-new .chip').forEach((b) => b.onclick = () => { state.settings.nuevos = Number(b.dataset.v); save(); render(); });
+  $('#set-caldo').onclick = () => { state.settings.caldoCasero = !state.settings.caldoCasero; save(); render(); toast(state.settings.caldoCasero ? 'La sal se calcula con caldo casero sin sal' : 'La sal se calcula con caldo de brick'); };
   $('#export').onclick = exportList;
   $('#undismiss')?.addEventListener('click', () => { state.dismissed = []; save(); render(); toast('Esas ideas pueden volver a salir'); });
 }

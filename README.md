@@ -7,6 +7,14 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
 - **Ideas**: cada semana mete por su cuenta algún plato nuevo (marcado con ✨). Si os gusta, lo guardas; si no, no vuelve a salir.
 - **Recetas**: cada idea del catálogo trae su receta para 4 personas, con cantidades, pasos y tiempo. Las calorías se calculan por ingrediente (y proteínas, grasas e hidratos por persona) con la tabla de alimentos de `recetas.js`. Se puede cambiar el número de personas, adaptar una receta «a nuestra manera» o escribir la de un plato propio.
 - **Familia**: ficha de cada persona (edad, sexo, peso, altura y actividad). Con ella se calcula lo que necesita al día (fórmula de Mifflin-St Jeor en adultos y tablas de la EFSA en niños) y su ración respecto a la estándar de las recetas (2.000 kcal). También muestra lo que come cada uno en comida y cena por día, semana, mes y año.
+- **Plan de salud**: en la ficha de cada persona se pueden poner las indicaciones de su médico (sal máxima, agua, proteína, grasa saturada, purinas, carne roja por semana, ultraprocesados y si toma IECA o ARA-II). Hay un botón con el plan de poliquistosis renal. Con eso la app:
+  - avisa en la semana, en Mis platos y en cada receta de los platos con mucha sal (🧂), grasa saturada (🧈), purinas (🦐) o embutido (🥓), y explica cómo arreglarlo;
+  - aconseja cuánta carne o pescado tomar para no pasarse de proteína;
+  - marca como no aptos (⛔) la sal de régimen y los sustitutos de sal con cloruro potásico, y avisa si se apuntan en la compra;
+  - hace el menú automático sin pasar de su máximo de carne roja y evitando los platos más salados;
+  - muestra su sal, proteína, grasa saturada y carne roja por día, semana, mes y año, y lleva la cuenta del agua de cada día.
+
+  La sal se calcula con el sodio de los ingredientes (tabla en `recetas.js`), sin contar la que se añada al cocinar. En Ajustes se puede indicar que en casa se usa caldo casero sin sal.
 - **Compra**: lista de la compra ordenada por secciones del súper. Se escribe a mano o se sacan los ingredientes de los platos del menú de la semana (quitando lo que ya hay en casa). Tocar una cosa la tacha; con «Familia» activado, lo que tacha uno lo ven los demás al momento.
 - **Familia**: conecta los móviles de casa con un código. Platos y menús son los mismos en todos, y lo que cambia uno lo ven los demás al momento. Sin cobertura sigue funcionando y se pone al día al volver la conexión.
 - **Compartir**: manda el menú de la semana por WhatsApp.

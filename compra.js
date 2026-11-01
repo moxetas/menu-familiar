@@ -77,6 +77,9 @@ function renderShopping(main, actions, same) {
       e.preventDefault();
       const names = parseList($('#shop-name').value);
       if (!names.length) return;
+      const potasio = names.filter((n) => findFood(n)?.flags.includes('k'));
+      const ieca = healthMembers().filter((m) => m.salud.ieca);
+      if (potasio.length && ieca.length && !confirm(`⛔ ${potasio.join(', ')} es cloruro potásico. ${ieca.map((m) => m.name).join(' y ')} toma un IECA y puede subirle el potasio peligrosamente. ¿Apuntarlo igualmente?`)) return;
       names.forEach((n) => addItem(n));
       save();
       $('#shop-name').value = '';
@@ -133,7 +136,7 @@ function itemRow(i) {
     <button type="button" class="item-main" data-toggle="${i.id}" aria-pressed="${!!i.done}">
       <span class="tick" aria-hidden="true">${i.done ? '✓' : ''}</span>
       <span class="item-text">
-        <span class="item-name">${esc(i.name)}</span>
+        <span class="item-name">${findFood(i.name)?.flags.includes('k') ? '⛔ ' : ''}${esc(i.name)}</span>
         ${i.from?.length && !i.done ? `<span class="item-from">para ${esc(i.from.join(', '))}</span>` : ''}
       </span>
     </button>

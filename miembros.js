@@ -115,21 +115,169 @@ function bindWho(root, dish, prefix, change) {
 
 // ---------- Calorías que come cada uno ----------
 
+// Lo que lleva una ración estándar de un plato: calorías, nutrientes, sal y marcas
 const nutMemo = new Map();
 function perRacion(name) {
   const r = recipeFor(name);
   if (!r) return null;
   const k = r.personas || 4;
-  const key = `${norm(name)}|${k}|${r.ing.join(';')}`;
+  const key = `${norm(name)}|${k}|${r.ing.join(';')}|${state.settings?.caldoCasero ? 'casero' : ''}`;
   if (!nutMemo.has(key)) {
     const n = nutrition(r, k);
-    nutMemo.set(key, { kcal: n.total / k, p: n.p / k, g: n.g / k, h: n.h / k });
+    nutMemo.set(key, {
+      kcal: n.total / k, p: n.p / k, g: n.g / k, h: n.h / k,
+      sal: (n.na * 2.5) / 1000 / k, sat: n.satSinAceite / k, satTotal: n.sat / k, grasos: n.grasos,
+      salConCaldoCasero: n.gCaldo ? ((n.na - n.naCaldo + n.gCaldo * 0.4) * 2.5) / 1000 / k : null,
+      roja: n.roja / k >= 40,
+      embutidos: n.embutidos, procesados: n.procesados, purinas: n.purinas, potasio: n.potasio, salados: n.salados,
+    });
   }
   return nutMemo.get(key);
 }
 
+// ---------- Plan de salud de cada miembro ----------
+// m.salud = { activo, nombre, sal (g/día), agua (l/día), protMin, protMax (g/día), satBaja, urico, rojaMax (veces/semana), procesados, ieca, nota }
+
+const PLAN_RENAL = { activo: true, nombre: 'Poliquistosis renal', sal: 5, agua: 3, protMin: 65, protMax: 80, satBaja: true, urico: true, rojaMax: 2, procesados: true, ieca: true };
+const healthMembers = () => (state.members || []).filter((m) => m.salud?.activo);
+const fmt1 = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
+
+// Avisos de un plato para un miembro que come f raciones. lvl: stop (no apto), warn (con moderación), info
+function healthNotes(m, name, f) {
+  const s = m.salud;
+  const t = perRacion(name);
+  if (!s?.activo || !t) return [];
+  const notes = [];
+  if (t.potasio.length) notes.push({ lvl: 'stop', icon: '⛔', short: 'sal de régimen', text: `Lleva ${t.potasio.join(', ')}: es cloruro potásico${s.ieca ? ' y, con su IECA, puede subir el potasio peligrosamente' : ''}. No usar.` });
+  const sal = t.sal * f;
+  const muchaSal = s.sal && sal > s.sal * 0.3;
+  if (muchaSal) {
+    const tips = salTips(t, f);
+    notes.push({ lvl: 'warn', icon: '🧂', short: `${fmt1(sal)} g sal`, text: `Mucha sal: ${fmt1(sal)} g, de sus ${s.sal} g al día${t.salados.length ? `, sobre todo por ${t.salados.slice(0, 3).join(', ').toLowerCase()}` : ''}.${tips.length ? ` Para bajarla: ${tips.join('; ')}.` : ''}` });
+  }
+  const sat = t.sat * f;
+  if (s.satBaja && sat > 7) {
+    const tips = satTips(t);
+    notes.push({ lvl: 'warn', icon: '🧈', short: 'grasa saturada', text: `Bastante grasa saturada: ${fmt1(sat)} g sin contar el aceite de oliva${t.grasos.length ? `, sobre todo de ${t.grasos.slice(0, 3).join(', ').toLowerCase()}` : ''}.${tips.length ? ` Para bajarla: ${tips.join('; ')}.` : ''}` });
+  }
+  if (s.urico && t.purinas.length) notes.push({ lvl: 'warn', icon: '🦐', short: 'purinas', text: `Purinas altas (${t.purinas.slice(0, 3).join(', ').toLowerCase()}): mejor de vez en cuando, por el ácido úrico.` });
+  // La proteína depende de cuánto se sirva: se da como consejo de cantidad, no como aviso del plato
+  const p = t.p * f;
+  const porComida = s.protMax ? Math.round(s.protMax * 0.4) : 0;
+  if (porComida && p > porComida * 1.15) {
+    const r = porComida / p;
+    const parte = r >= 0.6 ? 'algo menos de lo normal' : r >= 0.4 ? 'la mitad' : 'un tercio';
+    notes.push({ lvl: 'info', icon: '🍖', short: `${fmtInt(p)} g proteína`, text: `Proteína: ${fmtInt(p)} g en su ración. Para quedarse en ${s.protMin || 0}–${s.protMax} g al día (unos ${porComida} g por comida), que tome ${parte} de la carne, el pescado o el huevo y complete con verdura, ensalada, arroz, pasta o pan.` });
+  }
+  if ((s.sal || s.satBaja) && t.embutidos.length && !muchaSal) notes.push({ lvl: 'warn', icon: '🥓', short: 'embutido', text: `Lleva embutido o curado (${t.embutidos.slice(0, 3).join(', ').toLowerCase()}): sal y grasa.` });
+  if (s.rojaMax != null && t.roja) notes.push({ lvl: 'info', icon: '🥩', short: 'carne roja', text: `Carne roja: cuenta para su máximo de ${s.rojaMax} a la semana.` });
+  if (s.procesados && t.procesados.length) notes.push({ lvl: 'info', icon: '🏭', short: 'ultraprocesado', text: `Ultraprocesados: ${t.procesados.slice(0, 3).join(', ').toLowerCase()}. Mejor la versión casera o la que no lleve fosfatos (E-338 a E-452).` });
+  return notes;
+}
+
+// Lo peor de un plato para los miembros con plan de salud que lo comen: 'stop', 'warn' o ''
+function healthLevel(name, dish) {
+  let lvl = '';
+  const eaters = dish ? dinersOf(dish).people : healthMembers().map((m) => ({ m, f: factorOf(m) }));
+  for (const { m, f } of eaters) {
+    if (!m.salud?.activo) continue;
+    for (const n of healthNotes(m, name, f)) {
+      if (n.lvl === 'stop') return 'stop';
+      if (n.lvl === 'warn') lvl = 'warn';
+    }
+  }
+  return lvl;
+}
+const healthIcon = (lvl) => (lvl === 'stop' ? '⛔' : lvl === 'warn' ? '⚠️' : '');
+
+// Los motivos de aviso de un plato, como iconos: «🧂🧈». ⛔ si no es apto.
+function healthIcons(name, dish) {
+  const eaters = dish ? dinersOf(dish).people : healthMembers().map((m) => ({ m, f: factorOf(m) }));
+  const icons = new Set();
+  for (const { m, f } of eaters) {
+    if (!m.salud?.activo) continue;
+    for (const n of healthNotes(m, name, f)) {
+      if (n.lvl === 'stop') return '⛔';
+      if (n.lvl === 'warn') icons.add(n.icon);
+    }
+  }
+  return [...icons].join('');
+}
+
+// Una línea corta por cada miembro con plan de salud: «Para Alberto: 🧂 1,8 g sal · 🥩 carne roja»
+function healthLines(name, dish) {
+  return dinersOf(dish).people.filter(({ m }) => m.salud?.activo).map(({ m, f }) => {
+    const notes = healthNotes(m, name, f);
+    const t = perRacion(name);
+    const body = notes.length
+      ? notes.map((n) => `${n.icon} ${n.short}`).join(' · ')
+      : `✅ bien${t ? ` (${fmt1(t.sal * f)} g de sal)` : ''}`;
+    return `<p class="health-line"><strong>Para ${esc(m.name)}:</strong> ${body}</p>`;
+  }).join('');
+}
+
+// Qué cambiar para que un plato lleve menos sal o menos grasa saturada
+function salTips(t, f) {
+  const n = t.salados.map(norm).join(' | ');
+  const tips = [];
+  if (/caldo/.test(n)) tips.push(`caldo casero sin sal o agua${t.salConCaldoCasero != null ? ` (se quedaría en ${fmt1(t.salConCaldoCasero * f)} g; si ya lo hacéis así, activadlo en Mis platos → Ajustes)` : ''}`);
+  if (/jamon|chorizo|morcilla|panceta|tocino|bacon|lacon|salchicha/.test(n)) tips.push('la mitad de embutido, o nada');
+  if (/queso|parmesano|quesito/.test(n)) tips.push('menos queso, o queso fresco');
+  if (/bacalao/.test(n)) tips.push('desalar bien el bacalao (48 h cambiando el agua)');
+  if (/garbanzo|lenteja|atun|maiz/.test(n)) tips.push('enjuagar las conservas o usar legumbre seca');
+  if (/anchoa|aceituna|caviar|soja|mostaza|tinta/.test(n)) tips.push('usarlo solo como detalle');
+  if (/tomate frito/.test(n)) tips.push('tomate triturado natural en vez de tomate frito');
+  if (/\bpan\b|pan de|pan rallado/.test(n)) tips.push('pan sin sal');
+  return tips;
+}
+function satTips(t) {
+  const n = t.grasos.map(norm).join(' | ');
+  const tips = [];
+  if (/nata/.test(n)) tips.push('nata ligera o leche evaporada');
+  if (/mantequilla|bechamel/.test(n)) tips.push('aceite de oliva en vez de mantequilla');
+  if (/pollo|muslo|alita|gallina/.test(n)) tips.push('quitar la piel del pollo');
+  if (/queso|parmesano|mozzarella|quesito/.test(n)) tips.push('menos queso');
+  if (/chorizo|morcilla|panceta|tocino|bacon|jamon|lacon|salchicha/.test(n)) tips.push('menos embutido');
+  if (/carne picada/.test(n)) tips.push('carne picada magra, o mitad de pavo');
+  if (/secreto|costilla|carriller/.test(n)) tips.push('un corte más magro, como lomo o solomillo');
+  if (/coco/.test(n)) tips.push('leche de coco ligera');
+  if (/masa/.test(n)) tips.push('masa casera con aceite de oliva');
+  return tips;
+}
+
+// El menú automático evita lo que no conviene a quien tiene plan de salud
+function healthPenalty(name, ctx) {
+  const hm = healthMembers();
+  if (!hm.length) return 0;
+  const t = perRacion(name);
+  if (!t) return 0;
+  let pen = 0;
+  for (const m of hm) {
+    const s = m.salud;
+    const f = factorOf(m);
+    if (t.potasio.length) pen += 50;
+    if (s.sal && t.sal * f > s.sal * 0.3) pen += 2;
+    if (s.urico && t.purinas.length) pen += 1;
+    if (s.satBaja && t.sat * f > 7) pen += 1;
+    if (s.rojaMax != null && t.roja && (ctx?.roja || 0) >= s.rojaMax) pen += 8;
+  }
+  return pen;
+}
+
+// ---------- Agua ----------
+const todayKey = () => iso(new Date());
+const aguaDe = (m, key = todayKey()) => +(state.agua?.[key]?.[m.id] || 0);
+function addAgua(m, ml) {
+  const key = todayKey();
+  state.agua ||= {};
+  state.agua[key] ||= {};
+  const v = Math.max(0, aguaDe(m, key) + ml);
+  if (v) state.agua[key][m.id] = v; else delete state.agua[key][m.id];
+  save();
+}
+
 function consumo(from, to) {
-  const res = Object.fromEntries((state.members || []).map((m) => [m.id, { kcal: 0, p: 0, g: 0, h: 0, days: new Set() }]));
+  const res = Object.fromEntries((state.members || []).map((m) => [m.id, { kcal: 0, p: 0, g: 0, h: 0, sal: 0, sat: 0, roja: 0, purinas: 0, days: new Set() }]));
   const sinReceta = new Set();
   for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
     const key = iso(d);
@@ -142,6 +290,9 @@ function consumo(from, to) {
         for (const { m, f } of dinersOf(dish).people) {
           const r = res[m.id];
           r.kcal += pr.kcal * f; r.p += pr.p * f; r.g += pr.g * f; r.h += pr.h * f;
+          r.sal += pr.sal * f; r.sat += pr.sat * f;
+          if (pr.roja) r.roja++;
+          if (pr.purinas.length) r.purinas++;
           r.days.add(key);
         }
       }
@@ -193,11 +344,27 @@ function renderFamily(main) {
         <span class="member-text">
           <strong>${esc(m.name)}</strong>
           <span class="muted small">${[m.edad ? `${m.edad} años` : '', `≈ ${fmtInt(needKcal(m))} kcal al día`].filter(Boolean).join(' · ')}</span>
+          ${m.salud?.activo ? `<span class="health-tag">🩺 ${esc(m.salud.nombre || 'Plan de salud')}</span>` : ''}
         </span>
         <span class="member-factor"><strong>${fmtFactor(factorOf(m))}</strong><span>ración</span></span>
       </button>`).join('')}</div>`
     : `<div class="card"><p>Añade a cada persona de casa con su edad, peso, altura y actividad. Así las recetas se ajustan a lo que come cada uno y podrás ver cuánto come cada persona.</p></div>`}
     <button type="button" class="btn" id="add-member">➕ Añadir a alguien</button>
+    ${healthMembers().filter((m) => m.salud.agua).map((m) => {
+      const ml = aguaDe(m);
+      const goal = m.salud.agua * 1000;
+      return `<div class="card water">
+        <p><strong>💧 Agua de ${esc(m.name)} hoy</strong></p>
+        <div class="hero"><strong>${fmt1(ml / 1000)} l</strong><span>de ${fmt1(m.salud.agua)} l</span></div>
+        <div class="meter" role="img" aria-label="${Math.round((ml / goal) * 100)} % del agua de hoy"><span style="width:${Math.min(100, (ml / goal) * 100)}%"></span></div>
+        <div class="row">
+          <button type="button" class="btn small grow" data-agua="${m.id}" data-ml="250">+ Vaso (250 ml)</button>
+          <button type="button" class="btn small grow" data-agua="${m.id}" data-ml="500">+ Botella (500 ml)</button>
+          <button type="button" class="btn small" data-agua="${m.id}" data-ml="-250" aria-label="Quitar un vaso">−</button>
+        </div>
+      </div>`;
+    }).join('')}
+    ${healthMembers().some((m) => m.salud.ieca) ? `<div class="notice danger-note"><p class="small"><strong>⛔ Nunca sal de régimen ni «sal dietética»</strong> (Diätsalz, sal baja en sodio, sustitutos de sal): son cloruro potásico y, con ${esc(healthMembers().filter((m) => m.salud.ieca).map((m) => m.name).join(' y '))} tomando un IECA, pueden subir el potasio peligrosamente.</p></div>` : ''}
 
     ${members.length ? `
       <h2>¿Cuánto come cada uno?</h2>
@@ -216,6 +383,10 @@ function renderFamily(main) {
   `;
 
   main.querySelectorAll('[data-member]').forEach((b) => b.onclick = () => openMember(b.dataset.member));
+  main.querySelectorAll('[data-agua]').forEach((b) => b.onclick = () => {
+    const m = state.members.find((x) => x.id === b.dataset.agua);
+    if (m) { addAgua(m, +b.dataset.ml); render(); }
+  });
   $('#add-member').onclick = () => openMember(null);
   main.querySelectorAll('#per-kind .chip').forEach((b) => b.onclick = () => { famView.periodo = b.dataset.v; famView.off = 0; render(); });
   $('#per-prev')?.addEventListener('click', () => { famView.off--; render(); });
@@ -243,8 +414,26 @@ function intakeCard(m, r, range) {
         <div><strong>${fmtInt(r.g / daysWith)} g</strong><span>grasas</span></div>
         <div><strong>${fmtInt(r.h / daysWith)} g</strong><span>hidratos</span></div>
       </div>
-      <p class="muted small" style="text-align:center">${one ? 'en este día' : 'media por día'}</p>`
+      <p class="muted small" style="text-align:center">${one ? 'en este día' : 'media por día'}</p>
+      ${m.salud?.activo ? healthIntake(m, r, range, daysWith) : ''}`
     : '<p class="muted small">No hay comidas suyas en el menú de estas fechas.</p>'}
+  </div>`;
+}
+
+function healthIntake(m, r, range, daysWith) {
+  const s = m.salud;
+  const sal = r.sal / daysWith;
+  const prot = r.p / daysWith;
+  const weeks = range.days / 7;
+  const row = (icon, label, value, extra) => `<div class="hrow"><span>${icon}</span><span>${label}</span><strong>${value}</strong>${extra ? `<span class="muted small hextra">${extra}</span>` : ''}</div>`;
+  return `<div class="health-intake">
+    <p class="small"><strong>🩺 Su plan${s.nombre ? `: ${esc(s.nombre)}` : ''}</strong> <span class="muted">(media por día en comida y cena)</span></p>
+    ${s.sal ? row('🧂', 'Sal', `${fmt1(sal)} g`, `máximo ${s.sal} g en todo el día · sin contar la que se añada al cocinar`) : ''}
+    ${s.sal ? `<div class="meter" role="img" aria-label="${Math.round((sal / s.sal) * 100)} % de su máximo de sal"><span style="width:${Math.min(100, (sal / s.sal) * 100)}%"></span></div>` : ''}
+    ${s.protMax ? row('🍖', 'Proteína', `${fmtInt(prot)} g`, `objetivo ${s.protMin || 0}–${s.protMax} g en todo el día; el desayuno y la merienda suelen sumar 15–20 g`) : ''}
+    ${s.satBaja ? row('🧈', 'Grasa saturada', `${fmt1(r.sat / daysWith)} g`, 'cuanto menos, mejor para el colesterol') : ''}
+    ${s.rojaMax != null ? row('🥩', 'Carne roja', `${r.roja} ${r.roja === 1 ? 'vez' : 'veces'}`, range.days >= 7 ? `máximo ${s.rojaMax} a la semana${weeks > 1 ? ` (${fmt1(r.roja / weeks)} por semana)` : ''}` : `máximo ${s.rojaMax} a la semana`) : ''}
+    ${s.urico ? row('🦐', 'Platos con purinas altas', `${r.purinas}`, 'con moderación por el ácido úrico') : ''}
   </div>`;
 }
 
@@ -253,8 +442,8 @@ function intakeCard(m, r, range) {
 function openMember(id) {
   const old = (state.members || []).find((m) => m.id === id);
   const m = old ? { ...old } : { id: uid(), name: '', sexo: 'h', actividad: 'media', racion: 'auto' };
+  // Cada botón guarda primero lo escrito en los campos (keep) y luego cambia lo suyo y redibuja
   const draw = () => {
-    keep();
     openSheet(`
       <div class="sheet-head"><h3>${old ? esc(old.name) : 'Nueva persona'}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
       <label class="field">Nombre<input type="text" id="mb-name" value="${esc(m.name || '')}" placeholder="Ej.: Ana" autocomplete="off"></label>
@@ -272,16 +461,42 @@ function openMember(id) {
       <div class="chips" id="mb-rac">${[['auto', `Automática (${autoFactor()})`], ['0.5', '½'], ['0.75', '¾'], ['1', '1'], ['1.25', '1¼'], ['1.5', '1½'], ['2', '2']].map(([v, l]) => chip(v, l, String(m.racion || 'auto'))).join('')}</div>
       <label class="field">Dibujo</label>
       <div class="chips" id="mb-av">${chip('', 'Automático', m.avatar || '')}${['👨', '👩', '👦', '👧', '🧒', '👶', '👴', '👵', '🧑'].map((a) => chip(a, a, m.avatar || '')).join('')}</div>
+      <label class="field">🩺 Salud</label>
+      <div class="chips"><button type="button" class="chip" id="mb-salud" aria-pressed="${!!m.salud?.activo}">Tiene indicaciones de su médico</button></div>
+      ${m.salud?.activo ? `
+        <button type="button" class="btn small" id="mb-renal">Rellenar con el plan de poliquistosis renal</button>
+        <label class="field">Enfermedad o plan<input type="text" id="sl-nombre" value="${esc(m.salud.nombre || '')}" placeholder="Ej.: Poliquistosis renal"></label>
+        <div class="row">
+          <label class="field grow">Sal máx. (g/día)<input type="number" id="sl-sal" value="${m.salud.sal ?? ''}" min="0" max="15" step="0.5" inputmode="decimal"></label>
+          <label class="field grow">Agua (l/día)<input type="number" id="sl-agua" value="${m.salud.agua ?? ''}" min="0" max="6" step="0.5" inputmode="decimal"></label>
+        </div>
+        <div class="row">
+          <label class="field grow">Proteína mín. (g/día)<input type="number" id="sl-pmin" value="${m.salud.protMin ?? ''}" min="0" max="250" inputmode="numeric"></label>
+          <label class="field grow">Proteína máx. (g/día)<input type="number" id="sl-pmax" value="${m.salud.protMax ?? ''}" min="0" max="250" inputmode="numeric"></label>
+        </div>
+        <label class="field">Carne roja, máximo de veces a la semana<input type="number" id="sl-roja" value="${m.salud.rojaMax ?? ''}" min="0" max="14" inputmode="numeric" placeholder="Sin límite"></label>
+        <div class="chips" id="sl-flags">
+          <button type="button" class="chip" data-flag="satBaja" aria-pressed="${!!m.salud.satBaja}">🧈 Poca grasa saturada (colesterol)</button>
+          <button type="button" class="chip" data-flag="urico" aria-pressed="${!!m.salud.urico}">🦐 Pocas purinas (ácido úrico)</button>
+          <button type="button" class="chip" data-flag="procesados" aria-pressed="${!!m.salud.procesados}">🏭 Pocos ultraprocesados</button>
+          <button type="button" class="chip" data-flag="ieca" aria-pressed="${!!m.salud.ieca}">💊 Toma IECA o ARA-II</button>
+        </div>
+        ${m.salud.ieca ? '<p class="small danger-text">⛔ Con IECA o ARA-II, nunca sal de régimen ni sustitutos de sal: son cloruro potásico. La app avisará si aparecen.</p>' : ''}
+        <label class="field">Notas<input type="text" id="sl-nota" value="${esc(m.salud.nota || '')}" placeholder="Ej.: medicación, revisiones…"></label>
+        <p class="muted small">Estos límites son los de su médico. La app solo los usa para avisar y para ayudar a planificar.</p>` : ''}
       <div class="row">
         <button type="button" class="btn primary grow" id="mb-ok">Guardar</button>
         ${old ? '<button type="button" class="btn danger" id="mb-del">Quitar</button>' : ''}
       </div>
     `);
     const sheet = $('#sheet');
-    sheet.querySelectorAll('#mb-sexo .chip').forEach((b) => b.onclick = () => { m.sexo = b.dataset.v; draw(); });
-    sheet.querySelectorAll('#mb-act .chip').forEach((b) => b.onclick = () => { m.actividad = b.dataset.v; draw(); });
-    sheet.querySelectorAll('#mb-rac .chip').forEach((b) => b.onclick = () => { m.racion = b.dataset.v === 'auto' ? 'auto' : +b.dataset.v; draw(); });
-    sheet.querySelectorAll('#mb-av .chip').forEach((b) => b.onclick = () => { if (b.dataset.v) m.avatar = b.dataset.v; else delete m.avatar; draw(); });
+    sheet.querySelectorAll('#mb-sexo .chip').forEach((b) => b.onclick = () => { keep(); m.sexo = b.dataset.v; draw(); });
+    sheet.querySelectorAll('#mb-act .chip').forEach((b) => b.onclick = () => { keep(); m.actividad = b.dataset.v; draw(); });
+    sheet.querySelectorAll('#mb-rac .chip').forEach((b) => b.onclick = () => { keep(); m.racion = b.dataset.v === 'auto' ? 'auto' : +b.dataset.v; draw(); });
+    sheet.querySelectorAll('#mb-av .chip').forEach((b) => b.onclick = () => { keep(); if (b.dataset.v) m.avatar = b.dataset.v; else delete m.avatar; draw(); });
+    $('#mb-salud').onclick = () => { keep(); if (m.salud?.activo) m.salud = { ...m.salud, activo: false }; else m.salud = { ...(m.salud || {}), activo: true }; draw(); };
+    $('#mb-renal')?.addEventListener('click', () => { keep(); m.salud = { ...PLAN_RENAL, nota: m.salud?.nota || '' }; draw(); toast('Plan de poliquistosis renal puesto. Revisa que coincide con lo de su médico.'); });
+    sheet.querySelectorAll('#sl-flags .chip').forEach((b) => b.onclick = () => { keep(); m.salud[b.dataset.flag] = !m.salud[b.dataset.flag]; draw(); });
     // Al escribir no se redibuja la hoja (se perdería el siguiente toque): solo se actualiza el cálculo
     ['#mb-edad', '#mb-peso', '#mb-alt'].forEach((s) => { $(s).oninput = () => {
       keep();
@@ -316,6 +531,13 @@ function openMember(id) {
     if ($('#mb-name')) m.name = v('#mb-name').trim();
     const num = (s, key) => { const x = parseFloat(String(v(s) || '').replace(',', '.')); if (x > 0) m[key] = x; else delete m[key]; };
     if ($('#mb-edad')) { num('#mb-edad', 'edad'); num('#mb-peso', 'peso'); num('#mb-alt', 'altura'); }
+    if ($('#sl-sal') && m.salud) {
+      const n = (s) => { const x = parseFloat(String(v(s) || '').replace(',', '.')); return Number.isFinite(x) && x >= 0 ? x : null; };
+      const set = (key, val) => { if (val == null) delete m.salud[key]; else m.salud[key] = val; };
+      set('sal', n('#sl-sal')); set('agua', n('#sl-agua')); set('protMin', n('#sl-pmin')); set('protMax', n('#sl-pmax')); set('rojaMax', n('#sl-roja'));
+      m.salud.nombre = v('#sl-nombre').trim();
+      m.salud.nota = v('#sl-nota').trim();
+    }
   }
   draw();
 }

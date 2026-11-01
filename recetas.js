@@ -4,200 +4,216 @@
 //
 // ALIMENTOS: valores por 100 g del alimento TAL COMO SE COMPRA (pescado entero con espinas, pollo con hueso,
 // mejillones con concha…), para que encaje con las cantidades de las recetas.
-//   nombre | kcal | proteínas | grasas | hidratos | extras
+//   nombre | kcal | proteínas | grasas | hidratos | sodio (mg) | grasa saturada (g) | extras
 //   extras: u = gramos por unidad (1 huevo, 1 cebolla, 1 diente de ajo…), c = gramos por cucharada,
 //           l = gramos por lata o bote, d = densidad (ml → g)
+//           !marcas: r = carne roja fresca, e = embutido o curado, u = ultraprocesado, p = purinas altas,
+//                    a = alcohol, k = sal de régimen o sustituto con cloruro potásico
 // Fuente orientativa: tablas BEDCA y USDA, redondeadas. Son valores aproximados.
 
 const ALIMENTOS_TXT = `
-merluza|71|16|1|0
-almeja|20|3|0.3|1
-mejillon|30|4|0.8|1.4
-gamba|50|10|0.8|0
-langostino|50|10|0.8|0
-calamar|92|16|1.4|3
-sepia|79|16|0.7|0.8
-pulpo|82|15|1|2
-bacalao|82|18|0.7|0
-salmon|208|20|13|0
-dorada|55|11|1|0
-lubina|55|10|1.5|0
-sardina|85|11|4.5|0
-boqueron|85|12|4|0
-rape|76|16|1.5|0
-atun|130|23|5|0|l56
-atun en lata|198|29|8|0|l56
-bonito|138|21|6|0
-trucha|70|12|2.5|0
-emperador|121|20|4|0
-caballa|120|11|8.5|0
-lenguado|50|10|0.8|0
-anchoa|210|29|10|0|u4
-carne picada|250|17|20|0
-ternera|160|20|9|0
-filete de ternera|130|21|5|0
-morcillo|140|20|6|0
-lomo de cerdo|155|21|7|0
-costilla de cerdo|200|14|16|0
-costilla|200|14|16|0
-solomillo de cerdo|120|21|4|0
-carrillera|170|20|10|0
-secreto iberico|310|16|27|0
-chuleta de cerdo|190|17|13|0
-conejo|110|18|4|0
-pollo|150|16|9.5|0
-pechuga de pollo|110|23|1.5|0
-pechuga de pavo|107|24|1|0
-pavo|107|24|1|0
-muslo de pollo|160|16|10|0
-alita de pollo|150|14|10|0
-gallina|180|15|13|0
-chorizo|455|24|38|2|u100
-morcilla|380|15|34|2|u100
-panceta|395|15|37|0
-tocino|640|9|67|0
-bacon|405|14|39|1
-jamon serrano|241|31|13|0|u15
-jamon york|110|18|3.5|1|u20
-lacon|200|18|14|0
-hueso|0|0|0|0|u100
-huevo|143|12.6|9.5|0.7|u55
-leche|46|3.2|1.6|4.8
-leche de coco|197|2|21|3|l400
-nata|195|2.5|18|4|c15
-mantequilla|742|0.6|82|0.5|c14
-queso|380|25|30|0.5|u20
-queso rallado|400|30|30|1|c7
-mozzarella|250|18|19|2|u125
-parmesano|392|36|26|3|c7
-quesito|240|10|20|5|u16
-yogur|61|3.5|3.3|4.7|u125
-arroz|354|7|0.6|78
-pasta|357|12|1.5|72
-macarron|357|12|1.5|72
-espagueti|357|12|1.5|72
-fideo|357|12|1.5|72
-placa de lasana|357|12|1.5|72|u17
-placa de canelon|357|12|1.5|72|u8
-noqui|150|3.5|0.5|33
-cuscus|361|13|1|72
-harina|340|10|1|72|c10
-pan rallado|395|13|5|72|c8
-pan|270|9|3|51|u250
-pan de molde|265|8|4|48|u25
-pan de hamburguesa|270|9|4|49|u60
-pan de pita|275|9|1|55|u60
-tortilla de trigo|300|8|7|50|u40
-masa de pizza|280|7|6|48
-masa de empanada|330|6|16|40
-masa quebrada|470|6|27|52
-garbanzo|364|19|6|61
-garbanzo cocido|140|8|2.5|20|l250
-lenteja|352|24|1|60
-lenteja cocida|116|9|0.4|20|l250
-alubia|335|21|1.5|60
-fabe|335|21|1.5|60
-azucar|400|0|0|100|c12
-aceite de oliva|884|0|100|0|c13.5|d0.92
-aceite|884|0|100|0|c13.5|d0.92
-vinagre|18|0|0|0.5|c15
-sal|0|0|0|0|c18
-pimienta|0|0|0|0
-pimenton|282|14|13|54|c7
-comino|375|18|22|44|c6
-curry|325|14|14|56|c6
-azafran|0|0|0|0
-oregano|265|9|4|69|c3
-laurel|313|8|8|75|u0.2
-tomate triturado|32|1.5|0.2|5|l400
-tomate frito|80|1.5|4|9|c15|l400
-salsa de soja|53|8|0.6|5|c15
-mayonesa|680|1|75|1|c14
-mostaza|66|4|4|6|c15
-tahini|595|17|54|21|c15
-vino|83|0|0|2.6
-caldo|6|1|0.2|0.5
-caldo de pollo|6|1|0.2|0.5
-caldo de pescado|6|1|0.2|0.5
-caldo de verdura|6|1|0.2|0.5
-caldo de carne|6|1|0.2|0.5
-caldo de cocido|6|1|0.2|0.5
-tinta de calamar|70|1|0.5|10|u4
-almendra|576|21|50|9
-pinon|673|14|68|13
-pasa|299|3|0.5|79
-aceituna|145|1|15|4|u4
-maiz dulce|86|3|1|19|l140
-maiz|86|3|1|19|l140
-ajo|119|5|0.5|24|u5
-cebolla|40|1.1|0.1|9|u150
-patata|77|2|0.1|17|u200
-zanahoria|41|0.9|0.2|10|u80
-pimiento rojo|31|1|0.3|6|u180
-pimiento verde|20|0.9|0.2|4.6|u150
-pimiento|26|1|0.3|5|u160
-pimiento choricero|280|12|8|40|u8
-pimiento de padron|20|1|0.2|4|u10
-guindilla|40|2|0.4|9|u2
-tomate|18|0.9|0.2|3.9|u150
-calabacin|17|1.2|0.3|3.1|u250
-berenjena|25|1|0.2|6|u300
-puerro|31|1.5|0.3|7|u150
-calabaza|26|1|0.1|6.5
-judia verde|31|1.8|0.2|7
-brocoli|34|2.8|0.4|7|u400
-coliflor|25|1.9|0.3|5|u800
-champinon|22|3|0.3|3.3
-seta|30|3|0.4|4
-alcachofa|22|1.3|0.1|4.5|u120
-espinaca|23|2.9|0.4|3.6
-acelga|19|1.8|0.2|3.7
-lechuga|15|1.4|0.2|2.9|u400
-pepino|15|0.7|0.1|3.6|u250
-limon|29|1.1|0.3|9|u100
-manzana|52|0.3|0.2|14|u180
-platano|89|1.1|0.3|23|u120
-aguacate|160|2|15|9|u150
-perejil|36|3|0.8|6
-albahaca|23|3.2|0.6|2.7
-hierbabuena|44|3.3|0.7|8
-esparrago triguero|20|2.2|0.1|3.9
-esparrago|20|2.2|0.1|3.9
-repollo|25|1.3|0.1|6
-guisante|81|5.4|0.4|14
-agua|0|0|0|0
-leche entera|65|3.2|3.6|4.7
-requeson|98|11|4|3.4
-bechamel|130|4|8|10|c15
-salchicha|300|12|27|2|u50
-hamburguesa|250|17|20|0|u120
-cordero|250|17|20|0
-tofu|76|8|4.8|1.9
-quinoa|368|14|6|64
-avena|389|17|7|66|c10
-galleta|480|6|20|70|u8
-boniato|86|1.6|0.1|20|u300
-judion|300|20|1.5|55
-col|25|1.3|0.1|6
-naranja|47|0.9|0.1|12|u200
-pera|57|0.4|0.1|15|u180
-fresa|32|0.7|0.3|7.7
-lima|30|0.7|0.2|10|u70
-cebolleta|32|1.8|0.2|7|u50
-chalota|72|2.5|0.1|17|u30
-apio|16|0.7|0.2|3|u60
-rucula|25|2.6|0.7|3.7
-cilantro|23|2|0.5|4
-jengibre|80|1.8|0.8|18
-canela|247|4|1|81|c8
-nuez moscada|525|6|36|49|c7
-nuez|654|15|65|14
-ketchup|112|1.2|0.1|26|c17
-miel|304|0.3|0|82|c21
-chocolate|530|7|31|55
-cerveza|43|0.5|0|3.6
-bogavante|32|6.5|0.3|0
-caviar|264|25|18|4
+merluza|71|16|1|0|100|0.2
+almeja|20|3|0.3|1|120|0.1|!p
+mejillon|30|4|0.8|1.4|90|0.15|!p
+gamba|50|10|0.8|0|150|0.2|!p
+langostino|50|10|0.8|0|150|0.2|!p
+calamar|92|16|1.4|3|45|0.4|!p
+sepia|79|16|0.7|0.8|370|0.1|!p
+pulpo|82|15|1|2|230|0.2|!p
+bacalao|82|18|0.7|0|400|0.1
+salmon|208|20|13|0|50|3
+dorada|55|11|1|0|40|0.3
+lubina|55|10|1.5|0|40|0.35
+sardina|85|11|4.5|0|60|1.3|!p
+boqueron|85|12|4|0|70|1.1|!p
+rape|76|16|1.5|0|20|0.3
+atun|130|23|5|0|40|1.3|l56
+atun en lata|198|29|8|0|350|1.5|l56
+bonito|138|21|6|0|45|1.6
+trucha|70|12|2.5|0|30|0.6
+emperador|121|20|4|0|90|1
+caballa|120|11|8.5|0|50|2
+lenguado|50|10|0.8|0|50|0.2
+anchoa|210|29|10|0|3600|2.2|u4|!p
+carne picada|250|17|20|0|70|8|!r
+ternera|160|20|9|0|60|3.5|!r
+filete de ternera|130|21|5|0|60|2|!r
+morcillo|140|20|6|0|60|2.5|!r
+lomo de cerdo|155|21|7|0|55|2.5|!r
+costilla de cerdo|200|14|16|0|60|6|!r
+costilla|200|14|16|0|60|6|!r
+solomillo de cerdo|120|21|4|0|55|1.3|!r
+carrillera|170|20|10|0|60|3.5|!r
+secreto iberico|310|16|27|0|60|9|!r
+chuleta de cerdo|190|17|13|0|55|4.5|!r
+conejo|110|18|4|0|45|1.3
+pollo|150|16|9.5|0|60|2.7
+pechuga de pollo|110|23|1.5|0|60|0.4
+pechuga de pavo|107|24|1|0|55|0.3
+pavo|107|24|1|0|55|0.3
+muslo de pollo|160|16|10|0|70|2.8
+alita de pollo|150|14|10|0|60|2.8
+gallina|180|15|13|0|60|3.8
+chorizo|455|24|38|2|1250|14|u100|!e
+morcilla|380|15|34|2|700|13|u100|!e
+panceta|395|15|37|0|1000|14|!e
+tocino|640|9|67|0|1200|25|!e
+bacon|405|14|39|1|1700|14|!eu
+jamon serrano|241|31|13|0|1900|4.5|u15|!e
+jamon york|110|18|3.5|1|900|1.2|u20|!eu
+lacon|200|18|14|0|1300|5|!e
+hueso|0|0|0|0|0|0|u100|!e
+huevo|143|12.6|9.5|0.7|140|3.1|u55
+leche|46|3.2|1.6|4.8|45|1
+leche de coco|197|2|21|3|15|18.5|l400
+nata|195|2.5|18|4|40|11|c15
+mantequilla|742|0.6|82|0.5|15|52|c14
+queso|380|25|30|0.5|700|19|u20
+queso rallado|400|30|30|1|900|19|c7
+mozzarella|250|18|19|2|400|12|u125
+parmesano|392|36|26|3|1500|17|c7
+quesito|240|10|20|5|900|13|u16|!u
+yogur|61|3.5|3.3|4.7|45|2.1|u125
+arroz|354|7|0.6|78|3|0.2
+pasta|357|12|1.5|72|5|0.3
+macarron|357|12|1.5|72|5|0.3
+espagueti|357|12|1.5|72|5|0.3
+fideo|357|12|1.5|72|5|0.3
+placa de lasana|357|12|1.5|72|5|0.3|u17
+placa de canelon|357|12|1.5|72|5|0.3|u8
+noqui|150|3.5|0.5|33|400|0.1
+cuscus|361|13|1|72|10|0.2
+harina|340|10|1|72|2|0.2|c10
+pan rallado|395|13|5|72|700|1|c8
+pan|270|9|3|51|450|0.6|u250
+pan de molde|265|8|4|48|450|1|u25|!u
+pan de hamburguesa|270|9|4|49|450|1.5|u60|!u
+pan de pita|275|9|1|55|450|0.2|u60
+tortilla de trigo|300|8|7|50|700|2.5|u40|!u
+masa de pizza|280|7|6|48|600|1.5|!u
+masa de empanada|330|6|16|40|500|7|!u
+masa quebrada|470|6|27|52|400|13|!u
+garbanzo|364|19|6|61|25|0.6
+garbanzo cocido|140|8|2.5|20|300|0.3|l250
+lenteja|352|24|1|60|10|0.15
+lenteja cocida|116|9|0.4|20|240|0.05|l250
+alubia|335|21|1.5|60|15|0.3
+fabe|335|21|1.5|60|15|0.3
+azucar|400|0|0|100|0|0|c12
+aceite de oliva|884|0|100|0|0|14|c13.5|d0.92
+aceite|884|0|100|0|0|14|c13.5|d0.92
+vinagre|18|0|0|0.5|5|0|c15
+sal|0|0|0|0|39000|0|c18
+pimienta|0|0|0|0|0|0
+pimenton|282|14|13|54|70|2|c7
+comino|375|18|22|44|170|1.5|c6
+curry|325|14|14|56|50|2|c6
+azafran|0|0|0|0|0|0
+oregano|265|9|4|69|25|1.5|c3
+laurel|313|8|8|75|20|2|u0.2
+tomate triturado|32|1.5|0.2|5|150|0|l400
+tomate frito|80|1.5|4|9|500|0.5|c15|l400
+salsa de soja|53|8|0.6|5|5500|0.1|c15
+mayonesa|680|1|75|1|600|6|c14
+mostaza|66|4|4|6|1100|0.3|c15
+tahini|595|17|54|21|30|7.5|c15
+vino|83|0|0|2.6|5|0|!a
+caldo|6|1|0.2|0.5|350|0.1
+caldo de pollo|6|1|0.2|0.5|350|0.1
+caldo de pescado|6|1|0.2|0.5|350|0.1
+caldo de verdura|6|1|0.2|0.5|350|0.1
+caldo de carne|6|1|0.2|0.5|350|0.1
+caldo de cocido|6|1|0.2|0.5|350|0.1
+caldo casero|6|1|0.2|0.5|40|0.1
+tinta de calamar|70|1|0.5|10|4000|0.1|u4
+almendra|576|21|50|9|1|3.8
+pinon|673|14|68|13|2|4.9
+pasa|299|3|0.5|79|11|0.1
+aceituna|145|1|15|4|1500|2|u4
+maiz dulce|86|3|1|19|250|0.2|l140
+maiz|86|3|1|19|250|0.2|l140
+ajo|119|5|0.5|24|17|0.1|u5
+cebolla|40|1.1|0.1|9|4|0|u150
+patata|77|2|0.1|17|6|0|u200
+zanahoria|41|0.9|0.2|10|69|0|u80
+pimiento rojo|31|1|0.3|6|4|0|u180
+pimiento verde|20|0.9|0.2|4.6|3|0|u150
+pimiento|26|1|0.3|5|4|0|u160
+pimiento choricero|280|12|8|40|40|1|u8
+pimiento de padron|20|1|0.2|4|3|0|u10
+guindilla|40|2|0.4|9|9|0|u2
+tomate|18|0.9|0.2|3.9|5|0|u150
+calabacin|17|1.2|0.3|3.1|8|0.1|u250
+berenjena|25|1|0.2|6|2|0|u300
+puerro|31|1.5|0.3|7|20|0|u150
+calabaza|26|1|0.1|6.5|1|0
+judia verde|31|1.8|0.2|7|6|0
+brocoli|34|2.8|0.4|7|33|0.1|u400
+coliflor|25|1.9|0.3|5|30|0.1|u800
+champinon|22|3|0.3|3.3|5|0
+seta|30|3|0.4|4|10|0.1
+alcachofa|22|1.3|0.1|4.5|35|0|u120
+espinaca|23|2.9|0.4|3.6|79|0.1
+acelga|19|1.8|0.2|3.7|210|0
+lechuga|15|1.4|0.2|2.9|10|0|u400
+pepino|15|0.7|0.1|3.6|2|0|u250
+limon|29|1.1|0.3|9|2|0|u100
+manzana|52|0.3|0.2|14|1|0|u180
+platano|89|1.1|0.3|23|1|0.1|u120
+aguacate|160|2|15|9|7|2.1|u150
+perejil|36|3|0.8|6|56|0.1
+albahaca|23|3.2|0.6|2.7|4|0
+hierbabuena|44|3.3|0.7|8|30|0.2
+esparrago triguero|20|2.2|0.1|3.9|2|0
+esparrago|20|2.2|0.1|3.9|2|0
+repollo|25|1.3|0.1|6|18|0
+guisante|81|5.4|0.4|14|5|0.1
+agua|0|0|0|0|0|0
+leche entera|65|3.2|3.6|4.7|45|2.3
+requeson|98|11|4|3.4|360|2.5
+bechamel|130|4|8|10|300|5|c15
+salchicha|300|12|27|2|800|10|u50|!eu
+hamburguesa|250|17|20|0|500|8|u120|!ru
+cordero|250|17|20|0|60|9|!r
+tofu|76|8|4.8|1.9|7|0.7
+quinoa|368|14|6|64|5|0.7
+avena|389|17|7|66|2|1.2|c10
+galleta|480|6|20|70|400|9|u8|!u
+boniato|86|1.6|0.1|20|55|0|u300
+judion|300|20|1.5|55|15|0.3
+col|25|1.3|0.1|6|18|0
+naranja|47|0.9|0.1|12|0|0|u200
+pera|57|0.4|0.1|15|1|0|u180
+fresa|32|0.7|0.3|7.7|1|0
+lima|30|0.7|0.2|10|2|0|u70
+cebolleta|32|1.8|0.2|7|16|0|u50
+chalota|72|2.5|0.1|17|12|0|u30
+apio|16|0.7|0.2|3|80|0|u60
+rucula|25|2.6|0.7|3.7|27|0.1
+cilantro|23|2|0.5|4|46|0
+jengibre|80|1.8|0.8|18|13|0.2
+canela|247|4|1|81|10|0.3|c8
+nuez moscada|525|6|36|49|16|26|c7
+nuez|654|15|65|14|2|6
+ketchup|112|1.2|0.1|26|900|0|c17
+miel|304|0.3|0|82|4|0|c21
+chocolate|530|7|31|55|20|18
+cerveza|43|0.5|0|3.6|4|0|!ap
+bogavante|32|6.5|0.3|0|100|0.05|!p
+caviar|264|25|18|4|1500|4|!p
+higado|135|20|4|4|70|1.3|!p
+callos|85|12|3.5|0|60|1.5|!p
+mollejas|150|17|8|0|90|3|!p
+riñones|100|17|3|1|180|1|!p
+sal de regimen|0|0|0|0|0|0|c6|!k
+sal dietetica|0|0|0|0|0|0|c6|!k
+sustituto de sal|0|0|0|0|0|0|c6|!k
+cloruro potasico|0|0|0|0|0|0|c6|!k
+diatsalz|0|0|0|0|0|0|c6|!k
+sal baja en sodio|0|0|0|0|0|0|c6|!k
+sal light|0|0|0|0|0|0|c6|!k
+sal potasica|0|0|0|0|0|0|c6|!k
+bacalao fresco|82|18|0.7|0|60|0.1
 `;
 
 // Recetas para 4 personas de las ideas del catálogo.
@@ -214,7 +230,7 @@ const RECETAS = {
     '700 g salmón; 2 limones; 600 g patatas; 3 cdas aceite de oliva; sal; pimienta',
     'Precalienta el horno a 200 °C.|Corta las patatas en rodajas finas, ponlas en una bandeja con la mitad del aceite y sal, y hornéalas 20 minutos.|Coloca encima el salmón salpimentado y rodajas de limón, y riega con el resto del aceite y el zumo de medio limón.|Hornea 12–15 minutos más, hasta que el salmón esté jugoso por dentro.|Sirve con más limón al gusto.'],
   'Dorada a la sal': ['35 min',
-    '1200 g dorada entera; 2 kg sal gruesa; 1 limón; 2 cdas aceite de oliva',
+    '1200 g dorada entera; 2 kg sal gruesa (para la costra, no se come); 1 limón; 2 cdas aceite de oliva',
     'Precalienta el horno a 220 °C. Limpia las doradas por dentro pero sin quitarles las escamas.|Mezcla la sal gruesa con un poco de agua para que quede como arena mojada.|Pon una capa de sal en una bandeja, coloca encima las doradas con unas rodajas de limón en la tripa y cúbrelas del todo con el resto.|Hornea 20–25 minutos.|Rompe la costra de sal, quita la piel y sirve los lomos con un chorrito de aceite.'],
   'Lubina a la espalda': ['30 min',
     '1200 g lubina entera; 4 dientes ajo; 1 guindilla; 1 limón; 6 cdas aceite de oliva; 1 cda vinagre; sal',
@@ -562,9 +578,12 @@ const foodWords = (s) => norm(s).replace(/[^a-z0-9ñ ]+/g, ' ').split(' ').filte
 function foods() {
   if (foodIndex) return foodIndex;
   foodIndex = ALIMENTOS_TXT.trim().split('\n').map((line) => {
-    const [name, kcal, p, g, h, ...extra] = line.split('|');
-    const f = { key: foodWords(name), kcal: +kcal, p: +p, g: +g, h: +h };
-    for (const e of extra) f[e[0]] = parseFloat(e.slice(1));
+    const [name, kcal, p, g, h, na, sat, ...extra] = line.split('|');
+    const f = { key: foodWords(name), kcal: +kcal, p: +p, g: +g, h: +h, na: +na || 0, sat: +sat || 0, flags: '' };
+    for (const e of extra) {
+      if (e[0] === '!') f.flags = e.slice(1);
+      else f[e[0]] = parseFloat(e.slice(1));
+    }
     return f;
   }).sort((a, b) => b.key.length - a.key.length);   // gana el nombre más largo: «caldo de pollo» antes que «pollo»
   return foodIndex;
@@ -697,16 +716,38 @@ function nutrition(recipe, personas) {
   const factor = personas / (recipe.personas || 4);
   const rows = recipe.ing.map((line) => {
     const r = parseIngredient(line);
-    const g = r.grams == null ? null : r.grams * factor;
+    // Lo que no se come (la costra de sal de la dorada) no cuenta
+    const eaten = !/no se come/i.test(line);
+    const g = r.grams == null || !eaten ? null : r.grams * factor;
     const kcal = g == null || !r.food ? null : (g * r.food.kcal) / 100;
-    return { ...r, qtyText: fmtQty(r, factor), g, kcal };
+    return { ...r, qtyText: fmtQty(r, factor), g, kcal, eaten };
   });
-  const sum = (k) => rows.reduce((t, r) => t + (r.g == null || !r.food ? 0 : (r.g * r.food[k]) / 100), 0);
+  // Si en casa se usa caldo casero sin sal, el caldo comprado se cuenta como casero
+  if (state.settings?.caldoCasero) {
+    const casero = findFood('caldo casero');
+    rows.forEach((r) => { if (r.food && /^caldo/.test(r.food.key)) r.food = casero; });
+  }
+  const counted = rows.filter((r) => r.g != null && r.food);
+  const sum = (k) => counted.reduce((t, r) => t + (r.g * r.food[k]) / 100, 0);
+  // Ingredientes con cada marca (carne roja, embutido, ultraprocesado, purinas, alcohol, sal de régimen)
+  const marked = (flag) => rows.filter((r) => r.food && r.food.flags.includes(flag)).map((r) => cleanName(r.name));
+  const oil = (r) => /^aceite/.test(r.food.key);
+  const broth = (r) => /^caldo/.test(r.food.key) && r.food.key !== 'caldo casero';
   return {
     rows,
     total: rows.reduce((t, r) => t + (r.kcal || 0), 0),
-    p: sum('p'), g: sum('g'), h: sum('h'),
-    unknown: rows.filter((r) => r.qty != null && r.kcal == null).map((r) => cleanName(r.name)),
+    p: sum('p'), g: sum('g'), h: sum('h'), na: sum('na'), sat: sum('sat'),
+    // Grasa saturada sin contar el aceite de oliva (el que se recomienda) y de dónde viene la que hay
+    satSinAceite: counted.filter((r) => !oil(r)).reduce((t, r) => t + (r.g * r.food.sat) / 100, 0),
+    grasos: counted.filter((r) => !oil(r) && r.food.sat >= 3).sort((a, b) => b.g * b.food.sat - a.g * a.food.sat).map((r) => cleanName(r.name)),
+    // Sodio que aporta el caldo comprado y cuántos gramos de caldo hay (para calcular con caldo casero)
+    naCaldo: counted.filter(broth).reduce((t, r) => t + (r.g * r.food.na) / 100, 0),
+    gCaldo: counted.filter(broth).reduce((t, r) => t + r.g, 0),
+    roja: counted.filter((r) => r.food.flags.includes('r')).reduce((t, r) => t + r.g, 0),
+    embutidos: marked('e'), procesados: marked('u'), purinas: marked('p'), alcohol: marked('a'), potasio: marked('k'),
+    // Lo que más sal aporta, de más a menos
+    salados: counted.filter((r) => r.food.na >= 300).sort((a, b) => b.g * b.food.na - a.g * a.food.na).map((r) => cleanName(r.name)),
+    unknown: rows.filter((r) => r.qty != null && r.eaten && r.kcal == null).map((r) => cleanName(r.name)),
   };
 }
 
@@ -758,6 +799,18 @@ function openRecipe(name, opts = {}) {
   const nut = nutrition(recipe, Math.max(raciones, 0.01));
   const porRacion = nut.total / Math.max(raciones, 0.01);
   const members = state.members || [];
+  const sinSal = healthMembers().some((m) => m.salud.sal);
+  const salud = people.filter(({ m }) => m.salud?.activo);
+  const saludBox = salud.map(({ m, f }) => {
+    const notes = healthNotes(m, name, f);
+    const t = perRacion(name);
+    const lvl = notes.some((n) => n.lvl === 'stop') ? 'stop' : notes.some((n) => n.lvl === 'warn') ? 'warn' : 'ok';
+    return `<div class="health-box ${lvl}">
+      <p><strong>🩺 Para ${esc(m.name)}</strong> <span class="muted small">(su ración ${fmtFactor(f)})</span></p>
+      <p class="small">🧂 ${fmt1(t.sal * f)} g de sal · 🍖 ${fmtInt(t.p * f)} g de proteína · 🧈 ${fmt1(t.sat * f)} g de grasa saturada (sin el aceite de oliva)</p>
+      ${notes.length ? `<ul class="health-notes">${notes.map((n) => `<li>${n.icon} ${esc(n.text)}</li>`).join('')}</ul>` : '<p class="small">✅ Sin avisos para su plan.</p>'}
+    </div>`;
+  }).join('');
   openSheet(`${head}
     <div class="recipe-meta c-${cat}">
       <span class="dot"></span>${esc(CAT[cat]?.nombre || '')}
@@ -767,13 +820,15 @@ function openRecipe(name, opts = {}) {
     <p class="muted small">Receta base para ${recipe.personas || 4} personas. ${members.length ? 'Elige quién come y las cantidades se ajustan a la ración de cada uno.' : 'Cambia el número de personas y se ajustan las cantidades.'}</p>
     ${whoPicker(who, 'rw')}
     ${members.length ? `<div class="per-person">${people.map(({ m, f }) => `<span>${avatarOf(m)} ${esc(m.name)} <strong>${fmtInt(porRacion * f)} kcal</strong> <span class="muted">(${fmtFactor(f)})</span></span>`).join('')}${extra ? `<span>🙂 ${extra} ${extra === 1 ? 'invitado' : 'invitados'} <strong>${fmtInt(porRacion)} kcal</strong> <span class="muted">cada uno</span></span>` : ''}</div>` : ''}
+    ${saludBox}
+    ${sinSal ? '<div class="notice"><p class="small">🧂 <strong>Cocinar sin sal añadida.</strong> Sazona con hierbas, ajo, limón, pimienta, pimentón u otras especias. La sal que se cuenta es la que ya traen los ingredientes. Y nunca sal de régimen.</p></div>' : ''}
     ${raciones > 0 ? `
     <table class="ing-table">
       <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>kcal</th></tr></thead>
       <tbody>${nut.rows.map((r) => `<tr>
-        <td>${esc(cleanName(r.name))}</td>
-        <td>${esc(r.qtyText)}</td>
-        <td>${r.qty == null ? '' : r.kcal == null ? '?' : Math.round(r.kcal)}</td>
+        <td>${r.food?.flags.includes('k') ? '⛔ ' : ''}${esc(cleanName(r.name))}</td>
+        <td>${esc(sinSal && r.qty == null && r.food?.key === 'sal' ? 'sin sal añadida' : r.qtyText)}</td>
+        <td>${r.qty == null ? '' : !r.eaten ? '—' : r.kcal == null ? '?' : Math.round(r.kcal)}</td>
       </tr>`).join('')}</tbody>
       <tfoot>
         <tr><td>Total</td><td>${fmtNum(raciones)} raciones</td><td>${Math.round(nut.total)}</td></tr>
@@ -835,6 +890,7 @@ function openRecipeEditor(id, baseName, blank) {
       pasos: lines($('#re-steps').value),
     };
     save();
+    render();
     openRecipe(dish.name);
     toast('Receta guardada');
   };
@@ -842,6 +898,7 @@ function openRecipeEditor(id, baseName, blank) {
     if (!confirm(original ? '¿Volver a la receta original?' : '¿Borrar la receta?')) return;
     delete dish.recipe;
     save();
+    render();
     openRecipe(dish.name);
   });
 }
