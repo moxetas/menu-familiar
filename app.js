@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 7;
+const APP_VERSION = 8;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -337,7 +337,8 @@ function openSlot(key, meal) {
       .sort((a, b) => a.name.localeCompare(b.name, 'es'));
     openSheet(`
       <div class="sheet-head"><h3>${fmtDay.format(d)} · ${COMIDAS[meal]}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      ${p ? `<div class="slot c-${p.cat}" style="cursor:default"><span class="slot-meal">Ahora</span><span class="slot-name">${esc(p.name)}</span><span class="slot-emoji">${CAT[p.cat]?.emoji || ''}</span></div>` : ''}
+      ${p ? `<div class="slot c-${p.cat}" style="cursor:default"><span class="slot-meal">Ahora</span><span class="slot-name">${esc(p.name)}</span><span class="slot-emoji">${CAT[p.cat]?.emoji || ''}</span></div>
+      <button type="button" class="btn" id="see-recipe">📖 Ver la receta</button>` : ''}
       ${p?.nuevo ? `<div class="notice">
           <p><strong>✨ Es una idea nueva.</strong> Si os gusta, guárdala con vuestros platos.</p>
           <div class="row"><button type="button" class="btn primary small" id="keep">Guardar en mis platos</button><button type="button" class="btn small" id="nope">No me la sugieras más</button></div>
@@ -371,6 +372,7 @@ function openSlot(key, meal) {
       n ? setSlot(key, meal, n) : toast('Ya conoces todas las ideas que tengo');
     };
     $('#clear')?.addEventListener('click', () => setSlot(key, meal, null));
+    $('#see-recipe')?.addEventListener('click', () => openRecipe(p.name));
     $('#keep')?.addEventListener('click', () => {
       addDish(p.name, p.cat, CATALOGO.find((c) => c[0] === p.name)?.[2] || 'ambos');
       p.nuevo = false; save(); closeSheet(); render(); toast('Guardado en tus platos');
@@ -458,7 +460,7 @@ function renderDishes(main, same) {
   const meals = state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0];
   const region = $('#dish-region');
   region.innerHTML = `
-    <p class="muted small">${state.dishes.length ? `${state.dishes.length} platos. Toca uno para cambiar su color, sus ingredientes, marcarlo como favorito o borrarlo.` : 'Todavía no hay platos. Puedes escribirlos uno a uno o pegar una lista entera.'}</p>
+    <p class="muted small">${state.dishes.length ? `${state.dishes.length} platos. Toca uno para ver su receta, cambiar su color, marcarlo como favorito o borrarlo.` : 'Todavía no hay platos. Puedes escribirlos uno a uno o pegar una lista entera.'}</p>
     ${groups.filter((g) => g.items.length).map((g) => `
       <section class="group c-${g.c.id}">
         <div class="group-head"><span class="dot"></span>${g.c.emoji} ${esc(g.c.nombre)} <span class="count">${g.items.length}</span></div>
@@ -484,7 +486,10 @@ function renderDishes(main, same) {
     <p class="muted small" style="text-align:center">Versión ${APP_VERSION}${typeof FAMILIA_VERSION !== 'undefined' && FAMILIA_VERSION === APP_VERSION ? '' : ' · ⚠️ a medio actualizar: cierra la app y ábrela otra vez'}</p>`;
 
   Familia.bind(region);
-  region.querySelectorAll('.group .dish').forEach((b) => b.onclick = () => openDish(b.dataset.id));
+  region.querySelectorAll('.group .dish').forEach((b) => b.onclick = () => {
+    const d = state.dishes.find((x) => x.id === b.dataset.id);
+    if (d) openRecipe(d.name);
+  });
   region.querySelectorAll('#set-meals .chip').forEach((b) => b.onclick = () => {
     state.settings.meals = b.dataset.v === 'ambas' ? ['comida', 'cena'] : [b.dataset.v];
     save(); render();
@@ -537,6 +542,7 @@ function openDish(id) {
       </label>
       <div class="row">
         <button type="button" class="btn primary grow" id="ed-ok">Guardar</button>
+        <button type="button" class="btn" id="ed-recipe">📖 Receta</button>
         <button type="button" class="btn danger" id="ed-del">Borrar</button>
       </div>
     `);
@@ -545,6 +551,7 @@ function openDish(id) {
     sheet.querySelectorAll('#ed-when .chip').forEach((b) => b.onclick = () => { d.when = b.dataset.v; keepName(); draw(); });
     $('#ed-fav').onclick = () => { d.fav = !d.fav; keepName(); draw(); };
     $('#ed-ok').onclick = () => { keepName(); save(); closeSheet(); render(); };
+    $('#ed-recipe').onclick = () => { keepName(); save(); render(); openRecipe(d.name); };
     $('#ed-del').onclick = () => {
       if (!confirm(`¿Borrar «${d.name}»?`)) return;
       state.dishes = state.dishes.filter((x) => x.id !== d.id);
@@ -600,6 +607,7 @@ function renderIdeas(main) {
           <button type="button" class="btn" id="i-week">Ponerlo en el menú</button>
         </div>
         <div class="row" style="justify-content:center">
+          <button type="button" class="pill-btn" id="i-recipe">📖 Receta</button>
           <button type="button" class="pill-btn" id="i-next">🎲 Otra idea</button>
           <button type="button" class="pill-btn" id="i-no">No me gusta</button>
         </div>
@@ -609,6 +617,7 @@ function renderIdeas(main) {
     ${scarce.length && state.dishes.length ? `<p class="muted small">Tienes pocos platos de: ${scarce.map((c) => c.nombre.toLowerCase()).join(', ')}. Prueba a mirar ideas de esos tipos.</p>` : ''}
   `;
   if (!i) return;
+  $('#i-recipe').onclick = () => openRecipe(i.name);
   $('#i-next').onclick = () => { view.idea = shuffle(free.filter((c) => c.name !== i.name))[0] || i; render(); };
   $('#i-no').onclick = () => { state.dismissed.push(i.name); save(); view.idea = null; render(); toast('Vale, no la volveré a sugerir'); };
   $('#i-save').onclick = () => { addDish(i.name, i.cat, i.when || 'ambos'); save(); view.idea = null; render(); toast('Guardado en tus platos'); };

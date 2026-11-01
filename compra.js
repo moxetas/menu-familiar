@@ -17,6 +17,7 @@ function catalogIngredients(name) {
 // Los ingredientes que ha apuntado la familia y, si no hay, los del catálogo
 function ingredientsFor(name) {
   const d = state.dishes.find((x) => norm(x.name) === norm(name));
+  if (d?.recipe?.ing?.length) return recipeShoppingNames(d.recipe);
   if (d?.ingredients?.length) return d.ingredients;
   return catalogIngredients(name) || [];
 }
