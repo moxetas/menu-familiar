@@ -130,6 +130,17 @@ function perRacion(name) {
       salConCaldoCasero: n.gCaldo ? ((n.na - n.naCaldo + n.gCaldo * 0.4) * 2.5) / 1000 / k : null,
       roja: n.roja / k >= 40,
       embutidos: n.embutidos, procesados: n.procesados, purinas: n.purinas, potasio: n.potasio, salados: n.salados,
+      // Lo que aporta cada ingrediente a una ración (peso en gramos; la grasa saturada sin contar el aceite de oliva)
+      rows: n.rows.filter((r) => r.g != null && r.food).map((r) => ({
+        name: cleanName(r.name),
+        peso: r.g / k,
+        kcal: (r.kcal || 0) / k,
+        p: (r.g * r.food.p) / 100 / k,
+        g: (r.g * r.food.g) / 100 / k,
+        h: (r.g * r.food.h) / 100 / k,
+        sal: (r.g * r.food.na * 2.5) / 100000 / k,
+        sat: /^aceite/.test(r.food.key) ? 0 : (r.g * r.food.sat) / 100 / k,
+      })),
     });
   }
   return nutMemo.get(key);
@@ -277,7 +288,7 @@ function addAgua(m, ml) {
 }
 
 function consumo(from, to) {
-  const res = Object.fromEntries((state.members || []).map((m) => [m.id, { kcal: 0, p: 0, g: 0, h: 0, sal: 0, sat: 0, roja: 0, purinas: 0, days: new Set() }]));
+  const res = Object.fromEntries((state.members || []).map((m) => [m.id, { kcal: 0, p: 0, g: 0, h: 0, sal: 0, sat: 0, roja: 0, purinas: 0, days: new Set(), dishes: new Map() }]));
   const sinReceta = new Set();
   for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
     const key = iso(d);
@@ -294,6 +305,12 @@ function consumo(from, to) {
           if (pr.roja) r.roja++;
           if (pr.purinas.length) r.purinas++;
           r.days.add(key);
+          // Desglose por plato: cuántas veces, en qué comidas y cuántas raciones en total
+          const dk = norm(dish.name);
+          const e = r.dishes.get(dk) || { name: dish.name, cat: dish.cat, veces: 0, raciones: 0, comidas: new Set(), kcal: 0, p: 0, g: 0, h: 0, sal: 0, sat: 0 };
+          e.veces++; e.raciones += f; e.comidas.add(meal);
+          for (const n of ['kcal', 'p', 'g', 'h', 'sal', 'sat']) e[n] += pr[n] * f;
+          r.dishes.set(dk, e);
         }
       }
     }
@@ -329,7 +346,64 @@ function periodRange(kind, off) {
 
 // ---------- Pestaña Familia ----------
 
-const famView = { periodo: 'semana', off: 0 };
+const famView = { periodo: 'semana', off: 0, open: null, nut: 'kcal', dish: null };
+
+// Nutrientes del desglose: [nombre, cómo se escribe el valor]
+const fmtG = (v) => `${v >= 10 ? fmtInt(v) : fmt1(v)} g`;
+const NUTRIENTES = {
+  kcal: ['Calorías', (v) => `${fmtInt(v)} kcal`],
+  p: ['Proteína', fmtG],
+  g: ['Grasas', fmtG],
+  h: ['Hidratos', fmtG],
+  sal: ['Sal', (v) => `${v < 0.1 && v > 0 ? '<0,1' : fmt1(v)} g`],
+  sat: ['Grasa saturada', fmtG],
+};
+
+// De dónde sale cada nutriente: por plato y, al tocar uno, por ingrediente
+function breakdown(m, r, range) {
+  const nut = famView.nut;
+  const [label, fmt] = NUTRIENTES[nut];
+  const dishes = [...r.dishes.entries()].sort((a, b) => b[1][nut] - a[1][nut]);
+  const total = r[nut];
+  const max = Math.max(...dishes.map(([, e]) => e[nut]), 0.0001);
+  const one = range.days === 1;
+  const where = (e) => one ? [...e.comidas].map((c) => COMIDAS[c] || c).join(' y ') : `${e.veces} ${e.veces === 1 ? 'vez' : 'veces'}`;
+  return `<div class="breakdown">
+    <div class="chips" data-nut-row>${Object.entries(NUTRIENTES).map(([k, [l]]) => chip(k, l, nut)).join('')}</div>
+    <p class="small"><strong>${fmt(total)}</strong> de ${label.toLowerCase()} ${one ? 'este día' : 'en total'}, en ${r.dishes.size} ${r.dishes.size === 1 ? 'plato' : 'platos'}.${nut === 'sal' ? ' Sin contar la sal que se añada al cocinar.' : ''}${nut === 'sat' ? ' Sin contar el aceite de oliva.' : ''}</p>
+    <div class="bd-list">${dishes.map(([dk, e]) => {
+      const pct = total ? Math.round((e[nut] / total) * 100) : 0;
+      const open = famView.dish === dk;
+      return `<div class="bd-item ${open ? 'open' : ''}">
+        <button type="button" class="bd-row" data-bd-dish="${esc(dk)}" aria-expanded="${open}">
+          <span class="bd-name"><span class="dot c-${e.cat}"></span>${esc(e.name)} <span class="muted">· ${esc(where(e))}</span></span>
+          <span class="bd-val">${fmt(e[nut])} <span class="muted">${pct} %</span></span>
+          <span class="bd-bar"><span style="width:${Math.max(2, (e[nut] / max) * 100)}%"></span></span>
+        </button>
+        ${open ? ingredientBreakdown(e, nut, fmt) : ''}
+      </div>`;
+    }).join('')}</div>
+    <p class="muted small">Toca un plato para ver qué ingredientes lo aportan y cuánto ha comido de cada uno.</p>
+  </div>`;
+}
+
+function ingredientBreakdown(e, nut, fmt) {
+  const pr = perRacion(e.name);
+  if (!pr) return '';
+  const rows = pr.rows.map((x) => ({ ...x, v: x[nut] * e.raciones, peso: x.peso * e.raciones }))
+    .filter((x) => x.v > 0.0001 || nut === 'kcal')
+    .sort((a, b) => b.v - a.v);
+  const total = rows.reduce((t, x) => t + x.v, 0);
+  return `<table class="bd-ing">
+    <thead><tr><th>Ingrediente</th><th>Comido</th><th>${esc(NUTRIENTES[nut][0])}</th></tr></thead>
+    <tbody>${rows.map((x) => `<tr>
+      <td>${esc(x.name)}</td>
+      <td>${x.peso >= 1000 ? `${fmt1(x.peso / 1000)} kg` : `${fmtInt(x.peso)} g`}</td>
+      <td>${fmt(x.v)} <span class="muted">${total ? Math.round((x.v / total) * 100) : 0} %</span></td>
+    </tr>`).join('') || '<tr><td colspan="3" class="muted">No lleva.</td></tr>'}</tbody>
+  </table>
+  <p class="muted small">${fmt1(e.raciones)} ${e.raciones === 1 ? 'ración' : 'raciones'} en total${e.veces > 1 ? `, en ${e.veces} veces` : ''}.</p>`;
+}
 
 function renderFamily(main) {
   const members = state.members || [];
@@ -391,6 +465,16 @@ function renderFamily(main) {
   main.querySelectorAll('#per-kind .chip').forEach((b) => b.onclick = () => { famView.periodo = b.dataset.v; famView.off = 0; render(); });
   $('#per-prev')?.addEventListener('click', () => { famView.off--; render(); });
   $('#per-next')?.addEventListener('click', () => { famView.off++; render(); });
+  main.querySelectorAll('[data-desglose]').forEach((b) => b.onclick = () => {
+    famView.open = famView.open === b.dataset.desglose ? null : b.dataset.desglose;
+    famView.dish = null;
+    render();
+  });
+  main.querySelectorAll('[data-nut-row] .chip').forEach((b) => b.onclick = () => { famView.nut = b.dataset.v; render(); });
+  main.querySelectorAll('[data-bd-dish]').forEach((b) => b.onclick = () => {
+    famView.dish = famView.dish === b.dataset.bdDish ? null : b.dataset.bdDish;
+    render();
+  });
   Familia.bind(main);
 }
 
@@ -415,7 +499,9 @@ function intakeCard(m, r, range) {
         <div><strong>${fmtInt(r.h / daysWith)} g</strong><span>hidratos</span></div>
       </div>
       <p class="muted small" style="text-align:center">${one ? 'en este día' : 'media por día'}</p>
-      ${m.salud?.activo ? healthIntake(m, r, range, daysWith) : ''}`
+      ${m.salud?.activo ? healthIntake(m, r, range, daysWith) : ''}
+      <button type="button" class="btn small" data-desglose="${m.id}" aria-expanded="${famView.open === m.id}">${famView.open === m.id ? 'Ocultar el desglose' : '📊 Ver de dónde sale'}</button>
+      ${famView.open === m.id ? breakdown(m, r, range) : ''}`
     : '<p class="muted small">No hay comidas suyas en el menú de estas fechas.</p>'}
   </div>`;
 }

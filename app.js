@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 12;
+const APP_VERSION = 13;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 

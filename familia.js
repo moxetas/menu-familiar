@@ -10,7 +10,7 @@
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 12;
+const FAMILIA_VERSION = 13;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
