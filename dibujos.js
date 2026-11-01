@@ -171,7 +171,7 @@ const DIBUJO_POR_PALABRA = [
   ['fajita', ['fajita', 'burrito', 'taco', 'wrap', 'quesadilla']],
   ['paella', ['paella', 'arroz', 'fideua', 'risotto']],
   ['pasta', ['pasta', 'macarr', 'espagueti', 'spaghetti', 'lasana', 'canelon', 'noqui', 'tallarin', 'fideo', 'cuscus']],
-  ['gamba', ['gamba', 'langostino', 'marisco', 'mejill', 'almeja', 'zarzuela', 'cigala']],
+  ['gamba', ['gamba', 'langostino', 'marisco', 'mejill', 'almeja', 'zarzuela', 'cigala', 'bogavante', 'langosta', 'necora', 'centollo']],
   ['pulpo', ['pulpo', 'calamar', 'sepia', 'chipir', 'chopito']],
   ['tortilla', ['tortilla']],
   ['huevo', ['huevo', 'revuelto', 'frittata', 'shakshuka']],

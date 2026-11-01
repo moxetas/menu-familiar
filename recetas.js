@@ -196,6 +196,8 @@ ketchup|112|1.2|0.1|26|c17
 miel|304|0.3|0|82|c21
 chocolate|530|7|31|55
 cerveza|43|0.5|0|3.6
+bogavante|32|6.5|0.3|0
+caviar|264|25|18|4
 `;
 
 // Recetas para 4 personas de las ideas del catálogo.
@@ -534,6 +536,17 @@ const RECETAS = {
   'Quiche de verduras': ['60 min',
     '250 g masa quebrada; 4 huevos; 200 ml nata para cocinar; 1 puerro; 200 g espinacas; 100 g queso rallado; 2 cdas aceite de oliva; sal',
     'Precalienta el horno a 190 °C. Forra un molde con la masa, pínchala con un tenedor y hornéala 10 minutos.|Pocha el puerro en el aceite 8 minutos y añade las espinacas hasta que se ablanden.|Bate los huevos con la nata, el queso y sal, y mézclalo con las verduras.|Vierte el relleno sobre la masa y hornea 30 minutos, hasta que cuaje.'],
+  // ---------- Platos de casa que no están entre las ideas ----------
+  'Huevos fritos y patatas con jamón': ['30 min',
+    '8 huevos; 800 g patatas; 120 g jamón serrano; 100 ml aceite de oliva (lo que absorbe la fritura); sal',
+    'Pela las patatas y córtalas en bastones. Lávalas y sécalas bien.|Fríelas en abundante aceite a fuego medio 10 minutos y luego sube el fuego 2–3 minutos para que se doren. Escúrrelas y sálalas.|Pasa el jamón en tiras unos segundos por ese aceite, o déjalo crudo, al gusto.|Fríe los huevos de uno en uno en aceite muy caliente, echándoles aceite por encima con la espumadera para que la clara quede con puntilla y la yema líquida.|Sirve dos huevos por persona con las patatas y el jamón.'],
+  'Bogavante': ['25 min',
+    '1200 g bogavante; 4 dientes ajo; 15 g perejil; 4 cdas aceite de oliva; 1 limón; sal gruesa',
+    'Si el bogavante está vivo, mételo 15 minutos en el congelador para adormecerlo.|Pártelo por la mitad a lo largo con un cuchillo grande y casca un poco las pinzas.|Pica el ajo y el perejil y mézclalos con el aceite.|Pon los bogavantes en la plancha muy caliente con la carne hacia abajo 4–5 minutos. Dales la vuelta, píntalos con el aceite de ajo y perejil y hazlos 4–5 minutos más. Las pinzas necesitan 8–10 minutos.|Sirve con sal gruesa y limón.'],
+  'Caviar': ['20 min',
+    '50 g caviar; 6 rebanadas pan de molde; 100 ml nata; 2 huevos; ½ cebolla; 1 limón',
+    'Guarda el caviar en la nevera hasta el último momento y sírvelo sobre hielo, con una cucharilla que no sea de metal (de nácar, hueso o plástico).|Tuesta el pan, quítale la corteza y córtalo en triángulos pequeños.|Cuece los huevos 10 minutos, enfríalos y pica por separado la clara y la yema. Pica la cebolla muy fina.|Sirve el caviar en su lata con las tostas, la nata, el huevo, la cebolla y el limón, para que cada uno se prepare la suya.'],
+
   'Sándwiches calientes': ['15 min',
     '8 rebanadas pan de molde; 8 lonchas jamón york; 8 lonchas queso; 2 tomates; 20 g mantequilla',
     'Unta una cara de cada rebanada con un poco de mantequilla.|Monta los sándwiches con la mantequilla por fuera: jamón, queso y unas rodajas finas de tomate.|Tuéstalos en una sartén a fuego medio 2–3 minutos por cada lado, apretando un poco, hasta que el queso se funda.'],
