@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -263,7 +263,10 @@ function renderWeek(main, actions) {
         ${filled ? '<button type="button" class="btn grow" id="redo">Rehacer semana</button>' : ''}
       </div>
       ${filled ? legend(counts) : ''}
-      ${filled ? '<button type="button" class="pill-btn" id="to-shop" style="justify-self:start">🛒 Pasar a la lista de la compra</button>' : ''}`;
+      ${filled ? `<div class="row">
+        <button type="button" class="pill-btn" id="to-shop">🛒 Pasar a la lista de la compra</button>
+        <button type="button" class="pill-btn" id="clear-week">🗑️ Limpiar semana</button>
+      </div>` : ''}`;
   }
 
   html += days.map((d) => {
@@ -293,6 +296,11 @@ function renderWeek(main, actions) {
   $('#join-family')?.addEventListener('click', Familia.openJoin);
   $('#to-shop')?.addEventListener('click', () => { const w = view.week; go('compra'); openFromMenu(w); });
   $('#fill')?.addEventListener('click', () => { fillWeek(days, false); render(); toast('Menú listo. Toca un plato para cambiarlo.'); });
+  $('#clear-week')?.addEventListener('click', () => {
+    if (!confirm(`¿Borrar todos los platos del ${fmtShort.format(first)} al ${fmtShort.format(last)}? Se borrarán también en los demás móviles de la familia.`)) return;
+    days.forEach((d) => { delete state.plan[iso(d)]; });
+    save(); render(); toast('Semana limpia');
+  });
   $('#redo')?.addEventListener('click', () => {
     if (!confirm('¿Rehacer toda la semana? Se cambiarán todos los platos.')) return;
     fillWeek(days, true); render(); toast('Semana nueva');
@@ -430,7 +438,10 @@ function openPicker(key, meal, i) {
   const current = dishesOf(state.plan[key]?.[meal]);
   const cur = current[i];
   let filter = cur?.cat || 'todas';
-  const put = (dish) => { setDish(key, meal, i, dish); render(); openMeal(key, meal); };
+  const put = (dish) => {
+    if (current.some((x, j) => j !== i && norm(x.name) === norm(dish.name))) { toast('Ese plato ya está en esta comida'); return; }
+    setDish(key, meal, i, dish); render(); openMeal(key, meal);
+  };
   const title = cur ? `Cambiar «${cur.name}»` : current.length ? 'Añadir otro plato' : `${cap(fmtDay.format(d))} · ${COMIDAS[meal]}`;
 
   const draw = () => {
