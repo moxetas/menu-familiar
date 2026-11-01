@@ -478,6 +478,18 @@ function renderFamily(main) {
   Familia.bind(main);
 }
 
+// Explica las calorías de comida y cena frente a lo que necesita en todo el día
+function kcalText(m, avg, one) {
+  const need = needKcal(m);
+  const rec = need * COMIDA_Y_CENA;
+  const resto = need - rec;
+  const pre = one ? '' : 'De media al día: ';
+  const base = `le tocan unas <strong>${fmtInt(rec)} kcal</strong> entre comida y cena, que son el 60 % de sus ${fmtInt(need)} kcal de todo el día; el resto, unas ${fmtInt(resto)}, es para desayuno y merienda.`;
+  if (avg > rec * 1.05) return `${pre}<strong>se pasa en unas ${fmtInt(avg - rec)} kcal</strong>: ${base} Con un desayuno y una merienda normales, el día acabaría en unas ${fmtInt(avg + resto)} kcal.`;
+  if (avg < rec * 0.85) return `${pre}<strong>le faltan unas ${fmtInt(rec - avg)} kcal</strong>: ${base} Puede servirse algo más o tomar un desayuno o una merienda más completos.`;
+  return `${pre}<strong>va bien</strong>: ${base}`;
+}
+
 function intakeCard(m, r, range) {
   const daysWith = r.days.size;
   const avg = daysWith ? r.kcal / daysWith : 0;
@@ -487,12 +499,12 @@ function intakeCard(m, r, range) {
   return `<div class="intake-card">
     <div class="intake-head"><span class="avatar small" aria-hidden="true">${avatarOf(m)}</span><strong>${esc(m.name)}</strong></div>
     ${daysWith ? `
-      <div class="hero"><strong>${fmtInt(r.kcal)}</strong><span>kcal ${one ? 'este día' : 'en total'}</span></div>
+      <div class="hero"><strong>${fmtInt(r.kcal)}</strong><span>kcal en comida y cena${one ? '' : ', en total'}</span></div>
       ${one ? '' : `<p class="small">Media de <strong>${fmtInt(avg)} kcal</strong> al día, en ${daysWith} ${daysWith === 1 ? 'día' : 'días'} con menú</p>`}
-      <div class="meter" role="img" aria-label="${pct} % de lo recomendado para comida y cena">
+      <div class="meter" role="img" aria-label="${pct} % de lo que le toca para comida y cena">
         <span style="width:${Math.min(100, pct)}%"></span>
       </div>
-      <p class="muted small">${pct} % de lo recomendado para comida y cena (≈ ${fmtInt(rec)} kcal al día)</p>
+      <p class="small">${kcalText(m, avg, one)}</p>
       <div class="macros small-macros">
         <div><strong>${fmtInt(r.p / daysWith)} g</strong><span>proteínas</span></div>
         <div><strong>${fmtInt(r.g / daysWith)} g</strong><span>grasas</span></div>
