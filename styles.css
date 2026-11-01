@@ -367,6 +367,98 @@ textarea.short { min-height: 96px; }
 .steps { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; line-height: 1.5; }
 .steps li::marker { color: var(--accent); font-weight: 700; }
 
+/* ---------- Dibujos y cuadrícula de platos ---------- */
+.cute { display: block; width: 64px; height: 64px; flex: none; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.tile {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 6px;
+  aspect-ratio: 1 / 1.08;
+  padding: 10px 6px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  background: color-mix(in srgb, var(--c) calc(var(--tint) * 0.9), var(--surface));
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.tile:active { transform: scale(0.97); }
+.tile .cute { width: 58%; height: auto; aspect-ratio: 1; }
+.tile-name {
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tile-fav { position: absolute; top: 6px; right: 7px; font-size: 0.8rem; }
+.tile-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Comida con varios platos ---------- */
+.slot-more { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+.slot-more .dot { display: inline-block; width: 8px; height: 8px; margin: 0 4px 0 6px; vertical-align: 0; }
+.slot-more .dot:first-child { margin-left: 0; }
+.meal-dish {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-left: 6px solid var(--c);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.md-head { display: flex; align-items: center; gap: 10px; }
+.md-head .cute { width: 52px; height: 52px; }
+.md-title { display: grid; gap: 2px; }
+.md-who { display: grid; gap: 8px; }
+.per-person { display: flex; flex-wrap: wrap; gap: 6px; }
+.per-person > span { padding: 6px 10px; border-radius: 999px; background: var(--surface); font-size: 0.85rem; }
+
+/* ---------- Pestaña Familia ---------- */
+.members { display: grid; gap: 8px; }
+.member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.avatar { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--surface-2); font-size: 1.6rem; }
+.avatar.small { width: 32px; height: 32px; font-size: 1.15rem; }
+.member-text { flex: 1; display: grid; }
+.member-factor { display: grid; justify-items: end; }
+.member-factor strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.member-factor span { font-size: 0.72rem; color: var(--muted); }
+.intake { display: grid; gap: 10px; }
+.intake-card { display: grid; gap: 8px; padding: 14px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.intake-head { display: flex; align-items: center; gap: 8px; }
+.hero { display: flex; align-items: baseline; gap: 8px; }
+.hero strong { font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.hero span { color: var(--muted); font-size: 0.9rem; }
+.meter { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.meter span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+.small-macros div { background: var(--surface-2); }
+
 /* ---------- Familia ---------- */
 .stack { display: grid; gap: 10px; }
 .region { display: grid; gap: 14px; }
@@ -404,7 +496,7 @@ textarea.short { min-height: 96px; }
   left: 0; right: 0; bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: var(--surface);
   border-top: 1px solid var(--line);
@@ -418,8 +510,9 @@ textarea.short { min-height: 96px; }
   border-radius: 12px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 .tabs .tab-ic { font-size: 1.3rem; filter: grayscale(1); opacity: 0.7; }
 .tabs button[aria-current="page"] { color: var(--accent); }
@@ -454,7 +547,7 @@ textarea.short { min-height: 96px; }
 .sheet.open { transform: none; visibility: visible; transition: transform 0.25s ease; }
 .sheet .grabber { justify-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--line); }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.sheet-head h3 { margin: 0; font-size: 1.15rem; }
+.sheet-head h3 { flex: 1; margin: 0; font-size: 1.15rem; }
 .sheet-head h3::first-letter { text-transform: uppercase; }
 .close { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--surface-2); font-size: 1rem; }
 .notice {

@@ -10,7 +10,7 @@
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 8;
+const FAMILIA_VERSION = 9;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -52,6 +52,7 @@ const Familia = (() => {
       dismissed: Object.fromEntries(s.dismissed.map((n) => [fbKey(n), n])),
       settings: s.settings,
       shopping: Object.fromEntries((s.shopping || []).map((i) => [i.id, i])),
+      members: Object.fromEntries((s.members || []).map((m) => [m.id, m])),
     });
   }
 
@@ -64,6 +65,7 @@ const Familia = (() => {
       dismissed: Object.values(r.dismissed || {}),
       settings: { ...d.settings, ...(r.settings || {}) },
       shopping: Object.entries(r.shopping || {}).map(([id, x]) => ({ ...x, id })),
+      members: Object.entries(r.members || {}).map(([id, x]) => ({ ...x, id })),
     };
   }
 
@@ -84,6 +86,7 @@ const Familia = (() => {
     walk(a.plan, b.plan, 'plan/', 2);
     walk(a.dismissed, b.dismissed, 'dismissed/', 1);
     walk(a.shopping, b.shopping, 'shopping/', 1);
+    walk(a.members, b.members, 'members/', 1);
     if (stable(a.settings) !== stable(b.settings)) out.settings = b.settings ?? null;
     return out;
   }
@@ -218,6 +221,8 @@ const Familia = (() => {
     if (!remote.settings) add.settings = mine.settings;
     const items = new Set(theirs.shopping.map((i) => norm(i.name)));
     for (const [id, i] of Object.entries(mine.shopping || {})) if (!items.has(norm(i.name))) add[`shopping/${id}`] = i;
+    const people = new Set(theirs.members.map((m) => norm(m.name)));
+    for (const [id, m] of Object.entries(mine.members || {})) if (!people.has(norm(m.name))) add[`members/${id}`] = m;
     for (const [p, v] of Object.entries(add)) remote = setPath(remote, p, v);
     info.pending = { ...(info.pending || {}), ...add };
     info.needsMerge = false;
@@ -240,6 +245,7 @@ const Familia = (() => {
     state.dismissed = next.dismissed;
     state.settings = next.settings;
     state.shopping = next.shopping;
+    state.members = next.members;
     base = shape(state);
     info.base = base;
     persist();
@@ -318,7 +324,7 @@ const Familia = (() => {
   function appLink() { return location.href.split('#')[0].split('?')[0]; }
 
   async function shareCode() {
-    const text = `Únete a nuestro Menú familiar:\n1. Abre la app (${appLink()})\n2. Ve a «Mis platos» → «Tengo un código»\n3. Pega este código: ${info.code}`;
+    const text = `Únete a nuestro Menú familiar:\n1. Abre la app (${appLink()})\n2. Ve a la pestaña «Familia» → «Tengo un código»\n3. Pega este código: ${info.code}`;
     try {
       if (navigator.share) { await navigator.share({ text }); return; }
       await navigator.clipboard.writeText(text);
@@ -334,7 +340,7 @@ const Familia = (() => {
     if (!info.code) {
       return `<div class="card">
         <p><strong>👨‍👩‍👧 Compartir con la familia</strong></p>
-        <p class="muted small">Conecta los móviles de casa: los platos, los menús y la lista de la compra serán los mismos en todos, y lo que cambie uno lo verán los demás.</p>
+        <p class="muted small">Conecta los móviles de casa: los platos, los menús, la familia y la lista de la compra serán los mismos en todos, y lo que cambie uno lo verán los demás.</p>
         <div class="row">
           <button type="button" class="btn primary grow" data-fam="create">Crear código de familia</button>
           <button type="button" class="btn grow" data-fam="join">Tengo un código</button>
@@ -388,7 +394,7 @@ const Familia = (() => {
   function openShow() {
     openSheet(`
       <div class="sheet-head"><h3>Código de familia</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <p class="muted small">Envíalo a los demás de casa. En su app tienen que ir a «Mis platos» → «Tengo un código» y pegarlo.</p>
+      <p class="muted small">Envíalo a los demás de casa. En su app tienen que ir a la pestaña «Familia» → «Tengo un código» y pegarlo.</p>
       <div class="code-box">${esc(info.code)}</div>
       <p class="small" data-fam-status>${statusText()}</p>
       <button type="button" class="btn primary" id="fam-share">Enviar código por WhatsApp…</button>
@@ -454,6 +460,7 @@ const Familia = (() => {
     if (!base) { base = shape(state); info.base = base; persist(); }
     // La familia se creó antes de que existiera la lista de la compra: lo apuntado en este móvil se envía
     if (!base.shopping) { base.shopping = {}; info.base = base; persist(); changed(); }
+    if (!base.members) { base.members = {}; info.base = base; persist(); changed(); }
     connect();
     flush();
   }

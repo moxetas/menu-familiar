@@ -699,41 +699,62 @@ function nutrition(recipe, personas) {
 
 // ---------- Pantallas ----------
 
-function openRecipe(name, personas) {
+// La receta del catálogo que más se parece por nombre (para empezar la de un plato propio)
+const VACIAS = new Set(['de', 'del', 'con', 'a', 'al', 'la', 'el', 'las', 'los', 'en', 'y', 'mi', 'casera', 'casero', 'abuela', 'mama']);
+function similarRecipe(name) {
+  const words = foodWords(name).split(' ').filter((w) => !VACIAS.has(w));
+  let best = null, bestScore = 0;
+  for (const k of Object.keys(RECETAS)) {
+    const kw = new Set(foodWords(k).split(' '));
+    const score = words.filter((w) => kw.has(w)).length + (kw.has(words[0]) ? 0.5 : 0);
+    if (score > bestScore || (score === bestScore && best && k.length < best.length)) { best = k; bestScore = score; }
+  }
+  return bestScore >= 1 ? best : null;
+}
+
+// opts: { dish (plato del menú: dice quién come), onChange (al cambiar quién come), back (volver a la hoja anterior) }
+function openRecipe(name, opts = {}) {
   const dish = state.dishes.find((d) => norm(d.name) === norm(name));
   const recipe = recipeFor(name);
-  const cat = dish?.cat || CATALOGO.find((c) => norm(c[0]) === norm(name))?.[1] || 'otros';
-  const head = `<div class="sheet-head"><h3>${esc(dish?.name || name)}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>`;
+  const cat = dish?.cat || opts.dish?.cat || CATALOGO.find((c) => norm(c[0]) === norm(name))?.[1] || 'otros';
+  const back = opts.back ? '<button type="button" class="close" id="rc-back" aria-label="Volver">‹</button>' : '';
+  const head = `<div class="sheet-head">${back}<h3>${esc(dish?.name || name)}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>`;
+  const bindBack = () => $('#rc-back')?.addEventListener('click', opts.back);
 
   if (!recipe) {
+    const base = similarRecipe(name);
     openSheet(`${head}
       <div class="notice">
         <p><strong>Este plato todavía no tiene receta.</strong></p>
-        <p class="small">Escríbela una vez, con las cantidades, y la app calculará las calorías.</p>
-        ${dish ? '<button type="button" class="btn primary" id="rc-write">✍️ Escribir la receta</button>' : ''}
+        <p class="small">Escríbela una vez, con las cantidades para 4 personas, y la app calculará las calorías y ajustará las cantidades a quien coma.</p>
+        ${dish && base ? `<button type="button" class="btn primary" id="rc-base">📋 Empezar con la de «${esc(base)}»</button>` : ''}
+        ${dish ? `<button type="button" class="btn ${base ? '' : 'primary'}" id="rc-write">✍️ Escribirla desde cero</button>` : ''}
       </div>
       ${dish ? '<button type="button" class="btn" id="rc-dish">Editar el plato</button>' : ''}
     `);
-    $('#rc-write')?.addEventListener('click', () => openRecipeEditor(dish.id));
+    bindBack();
+    $('#rc-base')?.addEventListener('click', () => openRecipeEditor(dish.id, base));
+    $('#rc-write')?.addEventListener('click', () => openRecipeEditor(dish.id, null, true));
     $('#rc-dish')?.addEventListener('click', () => openDish(dish.id));
     return;
   }
 
-  const n = personas || recipe.personas || 4;
-  const nut = nutrition(recipe, n);
-  const perPerson = (v) => Math.round(v / n);
+  // Quién come: el plato del menú, o una elección temporal (todos, o las personas de la receta si no hay familia)
+  const who = opts.dish || (opts.who ||= (state.members || []).length ? {} : { n: recipe.personas || 4 });
+  const { people, extra, raciones } = dinersOf(who);
+  const nut = nutrition(recipe, Math.max(raciones, 0.01));
+  const porRacion = nut.total / Math.max(raciones, 0.01);
+  const members = state.members || [];
   openSheet(`${head}
     <div class="recipe-meta c-${cat}">
       <span class="dot"></span>${esc(CAT[cat]?.nombre || '')}
       ${recipe.tiempo ? `<span>⏱ ${esc(recipe.tiempo)}</span>` : ''}
-      <span>🔥 ${perPerson(nut.total)} kcal por persona</span>
+      <span>🔥 ${Math.round(porRacion)} kcal por ración</span>
     </div>
-    <div class="servings">
-      <span>Personas</span>
-      <button type="button" class="round" id="rc-less" aria-label="Menos personas">−</button>
-      <strong>${n}</strong>
-      <button type="button" class="round" id="rc-more" aria-label="Más personas">+</button>
-    </div>
+    <p class="muted small">Receta base para ${recipe.personas || 4} personas. ${members.length ? 'Elige quién come y las cantidades se ajustan a la ración de cada uno.' : 'Cambia el número de personas y se ajustan las cantidades.'}</p>
+    ${whoPicker(who, 'rw')}
+    ${members.length ? `<div class="per-person">${people.map(({ m, f }) => `<span>${avatarOf(m)} ${esc(m.name)} <strong>${fmtInt(porRacion * f)} kcal</strong> <span class="muted">(${fmtFactor(f)})</span></span>`).join('')}${extra ? `<span>🙂 ${extra} ${extra === 1 ? 'invitado' : 'invitados'} <strong>${fmtInt(porRacion)} kcal</strong> <span class="muted">cada uno</span></span>` : ''}</div>` : ''}
+    ${raciones > 0 ? `
     <table class="ing-table">
       <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>kcal</th></tr></thead>
       <tbody>${nut.rows.map((r) => `<tr>
@@ -742,16 +763,16 @@ function openRecipe(name, personas) {
         <td>${r.qty == null ? '' : r.kcal == null ? '?' : Math.round(r.kcal)}</td>
       </tr>`).join('')}</tbody>
       <tfoot>
-        <tr><td>Total</td><td></td><td>${Math.round(nut.total)}</td></tr>
-        <tr><td>Por persona</td><td></td><td>${perPerson(nut.total)}</td></tr>
+        <tr><td>Total</td><td>${fmtNum(raciones)} raciones</td><td>${Math.round(nut.total)}</td></tr>
+        <tr><td>Por ración</td><td></td><td>${Math.round(porRacion)}</td></tr>
       </tfoot>
     </table>
     <div class="macros">
-      <div><strong>${perPerson(nut.p)} g</strong><span>proteínas</span></div>
-      <div><strong>${perPerson(nut.g)} g</strong><span>grasas</span></div>
-      <div><strong>${perPerson(nut.h)} g</strong><span>hidratos</span></div>
+      <div><strong>${Math.round(nut.p / raciones)} g</strong><span>proteínas</span></div>
+      <div><strong>${Math.round(nut.g / raciones)} g</strong><span>grasas</span></div>
+      <div><strong>${Math.round(nut.h / raciones)} g</strong><span>hidratos</span></div>
     </div>
-    <p class="muted small">Por persona. Calorías aproximadas, calculadas con los ingredientes tal como se compran.${nut.unknown.length ? ` No sé las calorías de: ${esc(nut.unknown.join(', '))}.` : ''}</p>
+    <p class="muted small">Por ración estándar. Calorías aproximadas, calculadas con los ingredientes tal como se compran.${nut.unknown.length ? ` No sé las calorías de: ${esc(nut.unknown.join(', '))}.` : ''}</p>` : '<p class="muted">No come nadie: elige a alguien.</p>'}
     <h4 class="steps-title">Preparación</h4>
     <ol class="steps">${recipe.pasos.filter(Boolean).map((p) => `<li>${esc(p)}</li>`).join('')}</ol>
     ${recipe.mine ? '<p class="muted small">Esta es vuestra receta.</p>' : ''}
@@ -760,16 +781,17 @@ function openRecipe(name, personas) {
       ${dish ? '<button type="button" class="btn grow" id="rc-dish">Editar el plato</button>' : ''}
     </div>
   `);
-  $('#rc-less').onclick = () => openRecipe(name, Math.max(1, n - 1));
-  $('#rc-more').onclick = () => openRecipe(name, Math.min(20, n + 1));
+  bindBack();
+  bindWho($('#sheet'), who, 'rw', () => { opts.onChange?.(); openRecipe(name, opts); });
   $('#rc-edit')?.addEventListener('click', () => openRecipeEditor(dish.id));
   $('#rc-dish')?.addEventListener('click', () => openDish(dish.id));
 }
 
-function openRecipeEditor(id) {
+function openRecipeEditor(id, baseName, blank) {
   const dish = state.dishes.find((d) => d.id === id);
   if (!dish) return;
-  const base = dish.recipe || catalogRecipe(dish.name) || { personas: 4, tiempo: '', ing: [], pasos: [] };
+  const empty = { personas: 4, tiempo: '', ing: [], pasos: [] };
+  const base = dish.recipe || (blank ? empty : catalogRecipe(baseName || dish.name)) || empty;
   const original = catalogRecipe(dish.name);
   openSheet(`
     <div class="sheet-head"><h3>Receta: ${esc(dish.name)}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>

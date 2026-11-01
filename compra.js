@@ -183,11 +183,11 @@ function openFromMenu(week) {
     const seen = new Map();
     for (const d of days) {
       for (const m of state.settings.meals) {
-        const p = state.plan[iso(d)]?.[m];
-        if (!p) continue;
-        const k = norm(p.name);
-        if (seen.has(k)) seen.get(k).n++;
-        else { const e = { name: p.name, cat: p.cat, n: 1 }; seen.set(k, e); dishes.push(e); }
+        for (const p of dishesOf(state.plan[iso(d)]?.[m])) {
+          const k = norm(p.name);
+          if (seen.has(k)) seen.get(k).n++;
+          else { const e = { name: p.name, cat: p.cat, n: 1 }; seen.set(k, e); dishes.push(e); }
+        }
       }
     }
     const have = new Set(state.shopping.filter((i) => !i.done).map((i) => norm(i.name)));
