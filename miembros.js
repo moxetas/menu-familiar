@@ -18,7 +18,8 @@ const ACTIVIDAD = {
 // Niños y adolescentes: kcal al día con actividad normal (EFSA, aproximado). [desde la edad, niño, niña]
 const NINOS = [[1, 950, 900], [3, 1250, 1150], [5, 1450, 1350], [7, 1700, 1550], [9, 1950, 1800], [11, 2200, 2000], [13, 2550, 2200], [15, 2850, 2300], [17, 3000, 2350]];
 
-function needKcal(m) {
+// Calorías calculadas con edad, peso, altura y actividad (sin tener en cuenta las puestas a mano)
+function calcKcal(m) {
   const edad = +m.edad || 0;
   const hombre = m.sexo !== 'm';
   const act = (ACTIVIDAD[m.actividad] || ACTIVIDAD.media).f;
@@ -33,6 +34,11 @@ function needKcal(m) {
   const a = edad || 40;
   const basal = 10 * peso + 6.25 * alt - 5 * a + (hombre ? 5 : -161);
   return Math.round((basal * act) / 10) * 10;
+}
+
+// Lo que necesita al día: las calorías puestas a mano (por su médico o nutricionista) o las calculadas
+function needKcal(m) {
+  return +m.kcal > 0 ? Math.round(+m.kcal) : calcKcal(m);
 }
 
 function factorOf(m) {
@@ -554,6 +560,8 @@ function openMember(id) {
       <label class="field">Actividad física</label>
       <div class="chips" id="mb-act">${Object.entries(ACTIVIDAD).map(([k, a]) => chip(k, a.label, m.actividad || 'media')).join('')}</div>
       <p class="muted small">${esc((ACTIVIDAD[m.actividad] || ACTIVIDAD.media).help)}.</p>
+      <label class="field">Calorías al día<input type="number" id="mb-kcal" value="${m.kcal || ''}" min="500" max="6000" step="50" inputmode="numeric" placeholder="Calculadas: ${fmtInt(calcKcal(m))}"></label>
+      <p class="muted small">Déjalo vacío para calcularlas con la edad, el peso, la altura y la actividad. Escribe un número si su médico o nutricionista le ha marcado unas calorías.</p>
       <div class="notice" id="mb-sum">${summary()}</div>
       <label class="field">Ración</label>
       <div class="chips" id="mb-rac">${[['auto', `Automática (${autoFactor()})`], ['0.5', '½'], ['0.75', '¾'], ['1', '1'], ['1.25', '1¼'], ['1.5', '1½'], ['2', '2']].map(([v, l]) => chip(v, l, String(m.racion || 'auto'))).join('')}</div>
@@ -596,7 +604,7 @@ function openMember(id) {
     $('#mb-renal')?.addEventListener('click', () => { keep(); m.salud = { ...PLAN_RENAL, nota: m.salud?.nota || '' }; draw(); toast('Plan de poliquistosis renal puesto. Revisa que coincide con lo de su médico.'); });
     sheet.querySelectorAll('#sl-flags .chip').forEach((b) => b.onclick = () => { keep(); m.salud[b.dataset.flag] = !m.salud[b.dataset.flag]; draw(); });
     // Al escribir no se redibuja la hoja (se perdería el siguiente toque): solo se actualiza el cálculo
-    ['#mb-edad', '#mb-peso', '#mb-alt'].forEach((s) => { $(s).oninput = () => {
+    ['#mb-edad', '#mb-peso', '#mb-alt', '#mb-kcal'].forEach((s) => { $(s).oninput = () => {
       keep();
       $('#mb-sum').innerHTML = summary();
       const auto = $('#mb-rac .chip[data-v="auto"]');
@@ -621,14 +629,16 @@ function openMember(id) {
   function summary() {
     const f = factorOf(m);
     const cmp = Math.abs(f - 1) < 0.05 ? 'lo mismo' : f > 1 ? 'algo más' : 'algo menos';
-    return `<p>Necesita unas <strong>${fmtInt(needKcal(m))} kcal al día</strong>. Come <strong>${fmtFactor(f)}</strong> ración${m.racion && m.racion !== 'auto' ? ' (puesta a mano)' : ''}: ${cmp} que la ración estándar de las recetas.</p>`;
+    return `<p>Necesita unas <strong>${fmtInt(needKcal(m))} kcal al día</strong>${+m.kcal > 0 ? ' (puestas a mano)' : ''}. Come <strong>${fmtFactor(f)}</strong> ración${m.racion && m.racion !== 'auto' ? ' (puesta a mano)' : ''}: ${cmp} que la ración estándar de las recetas.</p>`;
   }
   // Guarda lo escrito en los campos antes de redibujar
   function keep() {
     const v = (s) => $(s)?.value;
     if ($('#mb-name')) m.name = v('#mb-name').trim();
     const num = (s, key) => { const x = parseFloat(String(v(s) || '').replace(',', '.')); if (x > 0) m[key] = x; else delete m[key]; };
-    if ($('#mb-edad')) { num('#mb-edad', 'edad'); num('#mb-peso', 'peso'); num('#mb-alt', 'altura'); }
+    if ($('#mb-edad')) { num('#mb-edad', 'edad'); num('#mb-peso', 'peso'); num('#mb-alt', 'altura'); num('#mb-kcal', 'kcal'); }
+    const kc = $('#mb-kcal');
+    if (kc) kc.placeholder = `Calculadas: ${fmtInt(calcKcal(m))}`;
     if ($('#sl-sal') && m.salud) {
       const n = (s) => { const x = parseFloat(String(v(s) || '').replace(',', '.')); return Number.isFinite(x) && x >= 0 ? x : null; };
       const set = (key, val) => { if (val == null) delete m.salud[key]; else m.salud[key] = val; };
