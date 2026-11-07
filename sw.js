@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v15';
+const CACHE = 'menu-familiar-v16';
 const FILES = [
   './',
   'index.html',
@@ -11,6 +11,7 @@ const FILES = [
   'recetas.js',
   'dibujos.js',
   'miembros.js',
+  'citas.js',
   'app.js',
   'manifest.webmanifest',
   'icons/icon-192.png',
@@ -48,4 +49,29 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('index.html')))
   );
+});
+
+// Avisos de citas: los envía el proceso de GitHub (.github/scripts/avisos.mjs) una semana antes y un día antes
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { title: 'Menú familiar', body: event.data && event.data.text() }; }
+  event.waitUntil(self.registration.showNotification(data.title || '📌 Cita', {
+    body: data.body || '',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    tag: data.tag || undefined,
+    data: { url: data.url || './#citas' },
+  }));
+});
+
+// Al tocar el aviso se abre la app en la pestaña Citas
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL((event.notification.data && event.notification.data.url) || './#citas', self.registration.scope).href;
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) {
+      if (c.url.startsWith(self.registration.scope) && 'focus' in c) { c.navigate(url).catch(() => {}); return c.focus(); }
+    }
+    return self.clients.openWindow(url);
+  }));
 });

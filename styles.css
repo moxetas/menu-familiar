@@ -502,6 +502,43 @@ textarea.short { min-height: 96px; }
 .bd-ing td:nth-child(2), .bd-ing td:last-child, .bd-ing th:nth-child(2), .bd-ing th:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bd-item > .muted { margin: 0 12px 10px; }
 
+/* ---------- Citas ---------- */
+.citas { display: grid; gap: 8px; }
+.cita {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-left: 6px solid var(--accent);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.cita.tipo-medica { border-left-color: var(--pescado); }
+.cita.tipo-reunion { border-left-color: var(--huevos); }
+.cita.tipo-colegio { border-left-color: var(--pasta); }
+.cita-fecha { display: grid; justify-items: center; min-width: 44px; padding: 4px 0; border-radius: 10px; background: var(--surface-2); }
+.cita-fecha strong { font-size: 1.3rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cita-fecha span { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+.cita-text { flex: 1; display: grid; gap: 2px; }
+.cita-falta { justify-self: start; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); font-size: 0.75rem; font-weight: 700; }
+.cita-bell { font-size: 0.9rem; opacity: 0.7; }
+.citas.pasadas .cita { opacity: 0.6; box-shadow: none; }
+.day-cita {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+}
+
 /* ---------- Familia ---------- */
 .stack { display: grid; gap: 10px; }
 .region { display: grid; gap: 14px; }
@@ -539,7 +576,7 @@ textarea.short { min-height: 96px; }
   left: 0; right: 0; bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: var(--surface);
   border-top: 1px solid var(--line);
@@ -553,7 +590,7 @@ textarea.short { min-height: 96px; }
   border-radius: 12px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 600;
   white-space: nowrap;
 }

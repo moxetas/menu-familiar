@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 15;
+const APP_VERSION = 16;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -15,6 +15,7 @@ function defaults() {
     shopping: [],        // lista de la compra: { id, name, sec, done, from }
     members: [],         // familia: { id, name, sexo, edad, peso, altura, actividad, racion, avatar, salud }
     agua: {},            // agua bebida: { 'AAAA-MM-DD': { idMiembro: ml } }
+    citas: [],           // citas: { id, titulo, tipo, fecha, hora, lugar, para, notas, avisos, zona }
     settings: { meals: ['comida', 'cena'], nuevos: 1, caldoCasero: false },
   };
 }
@@ -212,6 +213,7 @@ function render() {
   else if (view.tab === 'compra') renderShopping(main, actions, same);
   else if (view.tab === 'platos') renderDishes(main, same);
   else if (view.tab === 'familia') renderFamily(main);
+  else if (view.tab === 'citas') renderCitas(main);
   else renderIdeas(main);
 }
 
@@ -277,6 +279,7 @@ function renderWeek(main, actions) {
     const key = iso(d);
     return `<section class="day ${key === todayKey ? 'today' : ''}">
       <div class="day-head"><strong>${fmtDay.format(d)}</strong><span class="muted small">${fmtShort.format(d)}</span></div>
+      ${citasDelDia(key)}
       ${meals.map((m) => {
         const list = dishesOf(state.plan[key]?.[m]);
         const p = list[0];
@@ -310,6 +313,7 @@ function renderWeek(main, actions) {
     fillWeek(days, true); render(); toast('Semana nueva');
   });
   main.querySelectorAll('.slot').forEach((b) => b.addEventListener('click', () => openMeal(b.dataset.key, b.dataset.meal)));
+  main.querySelectorAll('[data-cita-sem]').forEach((b) => b.addEventListener('click', () => { go('citas'); openCita(b.dataset.citaSem); }));
 }
 
 function loadExamples() {
@@ -800,9 +804,14 @@ function go(tab) {
 }
 document.querySelectorAll('#tabs button').forEach((b) => b.onclick = () => go(b.dataset.tab));
 try { view.tab = localStorage.getItem(KEY + '-tab') || 'semana'; } catch (e) { /* da igual */ }
+// Al tocar un aviso de cita, la app se abre en la pestaña Citas
+if (location.hash === '#citas') { view.tab = 'citas'; history.replaceState(null, '', location.pathname); }
 
 render();
 Familia.start();
+// Recordatorio de citas al abrir la app y al volver a ella
+setTimeout(comprobarAvisos, 800);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(comprobarAvisos, 800); });
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

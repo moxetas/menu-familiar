@@ -10,7 +10,7 @@
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 15;
+const FAMILIA_VERSION = 16;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -54,6 +54,7 @@ const Familia = (() => {
       shopping: Object.fromEntries((s.shopping || []).map((i) => [i.id, i])),
       members: Object.fromEntries((s.members || []).map((m) => [m.id, m])),
       agua: s.agua || {},
+      citas: Object.fromEntries((s.citas || []).map((c) => [c.id, c])),
     });
   }
 
@@ -68,6 +69,7 @@ const Familia = (() => {
       shopping: Object.entries(r.shopping || {}).map(([id, x]) => ({ ...x, id })),
       members: Object.entries(r.members || {}).map(([id, x]) => ({ ...x, id })),
       agua: r.agua || {},
+      citas: Object.entries(r.citas || {}).map(([id, x]) => ({ ...x, id })),
     };
   }
 
@@ -90,6 +92,7 @@ const Familia = (() => {
     walk(a.shopping, b.shopping, 'shopping/', 1);
     walk(a.members, b.members, 'members/', 1);
     walk(a.agua, b.agua, 'agua/', 2);
+    walk(a.citas, b.citas, 'citas/', 1);
     if (stable(a.settings) !== stable(b.settings)) out.settings = b.settings ?? null;
     return out;
   }
@@ -227,6 +230,7 @@ const Familia = (() => {
     const people = new Set(theirs.members.map((m) => norm(m.name)));
     for (const [id, m] of Object.entries(mine.members || {})) if (!people.has(norm(m.name))) add[`members/${id}`] = m;
     for (const [day, ms] of Object.entries(mine.agua || {})) for (const [id, ml] of Object.entries(ms || {})) if (!remote.agua?.[day]?.[id]) add[`agua/${day}/${id}`] = ml;
+    for (const [id, c] of Object.entries(mine.citas || {})) if (!remote.citas?.[id]) add[`citas/${id}`] = c;
     for (const [p, v] of Object.entries(add)) remote = setPath(remote, p, v);
     info.pending = { ...(info.pending || {}), ...add };
     info.needsMerge = false;
@@ -251,6 +255,7 @@ const Familia = (() => {
     state.shopping = next.shopping;
     state.members = next.members;
     state.agua = next.agua;
+    state.citas = next.citas;
     base = shape(state);
     info.base = base;
     persist();
@@ -467,6 +472,7 @@ const Familia = (() => {
     if (!base.shopping) { base.shopping = {}; info.base = base; persist(); changed(); }
     if (!base.members) { base.members = {}; info.base = base; persist(); changed(); }
     if (!base.agua) { base.agua = {}; info.base = base; persist(); changed(); }
+    if (!base.citas) { base.citas = {}; info.base = base; persist(); changed(); }
     connect();
     flush();
   }
@@ -487,5 +493,14 @@ const Familia = (() => {
     if (info.code && document.visibilityState === 'visible' && Date.now() - lastEvent > 75000) resync();
   }, 15000);
 
-  return { start, changed, retry, card, bind, openJoin, get active() { return !!info.code; } };
+  // Lectura y escritura directa de otras partes del documento de la familia que no forman parte de la app
+  // (suscripciones a los avisos, claves para enviarlos, estado del servicio de avisos)
+  async function raw(path, method = 'GET', value) {
+    if (!info.code) throw new Error('sin familia');
+    const res = await fetch(`${FIREBASE_DB}/familias/${info.code}/${path}.json`, method === 'GET' ? {} : { method, body: JSON.stringify(value) });
+    if (!res.ok) throw new Error(`Firebase respondió ${res.status}`);
+    return res.json();
+  }
+
+  return { start, changed, retry, card, bind, openJoin, raw, get active() { return !!info.code; } };
 })();

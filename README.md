@@ -15,6 +15,9 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
   - muestra su sal, proteína, grasa saturada y carne roja por día, semana, mes y año, y lleva la cuenta del agua de cada día.
 
   La sal se calcula con el sodio de los ingredientes (tabla en `recetas.js`), sin contar la que se añada al cocinar. En Ajustes se puede indicar que en casa se usa caldo casero sin sal.
+- **Citas**: citas médicas, reuniones, colegio… con día, hora, sitio, para quién y notas. Salen también en la Semana y se comparten con la familia. Avisan una semana antes y un día antes:
+  - **en el móvil, aunque la app esté cerrada**: en cada móvil hay que pulsar «Activar avisos» (iPhone/iPad con iOS 16.4 o posterior, abriendo la app desde la pantalla de inicio). Los envía cada hora `.github/workflows/avisos.yml`, que necesita el secreto `FAMILIA_CODIGO` con el código de familia (Settings → Secrets and variables → Actions);
+  - **dentro de la app**: al abrirla sale un recordatorio de las citas que tocan.
 - **Compra**: lista de la compra ordenada por secciones del súper. Se escribe a mano o se sacan los ingredientes de los platos del menú de la semana (quitando lo que ya hay en casa). Tocar una cosa la tacha; con «Familia» activado, lo que tacha uno lo ven los demás al momento.
 - **Familia**: conecta los móviles de casa con un código. Platos y menús son los mismos en todos, y lo que cambia uno lo ven los demás al momento. Sin cobertura sigue funcionando y se pone al día al volver la conexión.
 - **Compartir**: manda el menú de la semana por WhatsApp.
@@ -50,6 +53,8 @@ Los platos se guardan en el teléfono. Si se activa «Familia», también en la 
 | `recetas.js` | Tabla de alimentos (kcal y nutrientes por 100 g), recetas del catálogo y pantalla de receta. Para añadir una receta basta con otra entrada en `RECETAS`. |
 | `miembros.js` | Miembros de la familia, raciones, quién come cada plato, consumo y pestaña Familia. |
 | `dibujos.js` | Dibujos de los platos (SVG) y palabras para elegir el de cada uno. |
+| `citas.js` | Pestaña Citas, recordatorio al abrir la app y activación de los avisos del móvil (Web Push). |
+| `.github/scripts/avisos.mjs` | Servicio que envía los avisos de las citas; lo ejecuta cada hora `.github/workflows/avisos.yml`. |
 | `familia.js` | Sincronización entre móviles con Firebase Realtime Database (dirección de la base de datos al principio del archivo). |
 | `sw.js` | Guarda la app en el teléfono para que abra sin cobertura. |
 
