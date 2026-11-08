@@ -661,3 +661,14 @@ textarea.short { min-height: 96px; }
 @media (prefers-reduced-motion: reduce) {
   .sheet, .scrim, .toast { transition: none; }
 }
+
+/* Guía y añadir desde foto o PDF */
+.guia-pasos { margin: 8px 0 14px; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; }
+.guia-pasos li { display: flex; flex-direction: column; gap: 4px; }
+.guia-pasos li span { color: var(--muted, #666); font-size: .92em; }
+.ayuda-fila { margin-bottom: 12px; }
+.imp-lista { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 10px; }
+.imp-fila { display: flex; gap: 10px; align-items: flex-start; }
+.imp-fila input[type="checkbox"] { width: 22px; height: 22px; margin-top: 10px; flex: none; }
+.imp-fila .grow, .imp-fila input[type="text"] { flex: 1; min-width: 0; }
+#imp-texto { width: 100%; min-height: 120px; font-family: ui-monospace, monospace; font-size: .9em; }

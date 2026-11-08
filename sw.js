@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v17';
+const CACHE = 'menu-familiar-v18';
 const FILES = [
   './',
   'index.html',
@@ -12,6 +12,7 @@ const FILES = [
   'dibujos.js',
   'miembros.js',
   'citas.js',
+  'guia.js',
   'app.js',
   'manifest.webmanifest',
   'icons/icon-192.png',

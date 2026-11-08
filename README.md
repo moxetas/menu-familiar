@@ -37,6 +37,11 @@ Los platos se guardan en el teléfono. Si se activa «Familia», también en la 
 
 El servicio de avisos (`.github/scripts/avisos.mjs`) descifra las citas con el secreto `FAMILIA_CODIGO`, guarda solo una huella de la fecha de cada cita y no escribe en los registros (que son públicos) ningún dato de las citas.
 
+## Guía y «Desde foto o PDF»
+
+- La primera vez (sin platos) se abre «Cómo funciona»; se puede volver a abrir en **Familia → ❓ Cómo funciona**. La guía para compartir está en [`guia.pdf`](guia.pdf).
+- **📷 Desde foto o PDF** (en Citas, Compra y Familia): la app copia unas instrucciones, la persona adjunta la foto o el PDF en su propia app de IA (ChatGPT, Claude, Gemini…) y pega aquí la respuesta. La app la lee (JSON o texto suelto), deja revisarla y añade citas, cosas para la compra y platos. La app no envía nada a ningún sitio.
+
 ## Instalarla en el iPhone
 
 1. En GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, rama **main**, carpeta **/ (root)**, **Save**.
@@ -57,6 +62,7 @@ El servicio de avisos (`.github/scripts/avisos.mjs`) descifra las citas con el s
 | `dibujos.js` | Dibujos de los platos (SVG) y palabras para elegir el de cada uno. |
 | `citas.js` | Pestaña Citas, recordatorio al abrir la app y activación de los avisos del móvil (Web Push). |
 | `.github/scripts/avisos.mjs` | Servicio que envía los avisos de las citas; lo ejecuta cada hora `.github/workflows/avisos.yml`. |
+| `guia.js` | Guía de primeros pasos y «Desde foto o PDF» (instrucciones para la IA, lectura de la respuesta y revisión). |
 | `familia.js` | Sincronización entre móviles con Firebase Realtime Database (dirección de la base de datos al principio del archivo). |
 | `sw.js` | Guarda la app en el teléfono para que abra sin cobertura. |
 

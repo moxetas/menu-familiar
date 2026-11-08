@@ -13,7 +13,7 @@
 //   datos ni nadie sin el código puede leer los platos, menús, citas o la lista de la compra.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 17;
+const FAMILIA_VERSION = 18;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';

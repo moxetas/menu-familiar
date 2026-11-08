@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 17;
+const APP_VERSION = 18;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -215,6 +215,7 @@ function render() {
   else if (view.tab === 'familia') renderFamily(main);
   else if (view.tab === 'citas') renderCitas(main);
   else renderIdeas(main);
+  botonesAyuda(main, view.tab);
 }
 
 function legend(counts) {
@@ -809,6 +810,7 @@ if (location.hash === '#citas') { view.tab = 'citas'; history.replaceState(null,
 
 render();
 Familia.start();
+guiaPrimeraVez();
 // Recordatorio de citas al abrir la app y al volver a ella
 setTimeout(comprobarAvisos, 800);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(comprobarAvisos, 800); });
