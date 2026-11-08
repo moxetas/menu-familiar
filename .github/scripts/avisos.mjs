@@ -7,6 +7,9 @@
 //   vapid    → las claves para firmar los avisos (las crea el primer móvil que los activa)
 //   avisados → qué avisos ya se han enviado de cada cita (lo escribe este script)
 //   servidor → cuándo pasó este script por última vez (lo enseña la app)
+//
+// El repositorio es público y sus registros (logs) también: aquí nunca se escriben
+// títulos, fechas, lugares ni nombres; solo cuántos avisos y envíos hay.
 
 export const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
 const DIA = 864e5;
@@ -94,10 +97,9 @@ export async function run({ code, ahora = Date.now(), send, db = firebase }) {
       } catch (e) {
         // 404/410: el móvil ya no acepta avisos (app borrada o avisos desactivados)
         if (e.statusCode === 404 || e.statusCode === 410) caducados.add(subId);
-        else console.log(`No se pudo avisar a ${sub.dispositivo || subId}: ${e.statusCode || ''} ${e.body || e.message}`);
+        else console.log(`No se pudo avisar a un móvil: ${e.statusCode || 'error'}`);
       }
     }
-    console.log(`Aviso «${tipo}» de «${cita.titulo}» (${cita.fecha} ${cita.hora || ''}) → ${subs.length} móviles`);
   }
   const cambios = { avisados, servidor: { ultimaVez: ahora, enviados, moviles: subs.length - caducados.size } };
   for (const id of caducados) cambios[`push/${id}`] = null;
