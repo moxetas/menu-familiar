@@ -2,10 +2,11 @@
 // Lo ejecuta cada hora .github/workflows/avisos.yml. Necesita el secreto FAMILIA_CODIGO (el código de familia de la app).
 //
 // Lee de Firebase el documento de la familia (/familias/<código>):
-//   citas    → las citas apuntadas en la app
+//   menu-c   → los datos de la app, CIFRADOS con el código de familia (citas y miembros se descifran aquí);
+//              si aún no existe, se leen los de antes (citas, members) sin cifrar
 //   push     → los móviles que han activado los avisos (suscripciones Web Push)
 //   vapid    → las claves para firmar los avisos (las crea el primer móvil que los activa)
-//   avisados → qué avisos ya se han enviado de cada cita (lo escribe este script)
+//   avisados → qué avisos ya se han enviado de cada cita (con una huella de la fecha, no la fecha en claro)
 //   servidor → cuándo pasó este script por última vez (lo enseña la app)
 //
 // El repositorio es público y sus registros (logs) también: aquí nunca se escriben
@@ -13,6 +14,40 @@
 
 export const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
 const DIA = 864e5;
+const te = new TextEncoder();
+
+/** Misma clave que la app (familia.js): HKDF-SHA-256 del código de familia. */
+export async function familyKey(code) {
+  const clean = code.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const base = await crypto.subtle.importKey('raw', te.encode(clean), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: te.encode('menu-familiar/cifrado/v1'), info: te.encode('datos') }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+}
+
+/** Descifra todos los textos cifrados de un árbol. */
+export async function abrir(x, key) {
+  if (typeof x === 'string' && x.startsWith('c1.')) {
+    try {
+      const b = Buffer.from(x.slice(3).replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+      return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b.subarray(0, 12) }, key, b.subarray(12))));
+    } catch {
+      return null;
+    }
+  }
+  if (x && typeof x === 'object' && !Array.isArray(x)) {
+    const out = {};
+    for (const [k, v] of Object.entries(x)) {
+      const o = await abrir(v, key);
+      if (o !== null && o !== undefined) out[k] = o;
+    }
+    return out;
+  }
+  return x;
+}
+
+/** Huella corta (para no guardar fechas y horas de las citas en claro). */
+export async function huella(texto) {
+  return Buffer.from(await crypto.subtle.digest('SHA-256', te.encode(texto))).subarray(0, 12).toString('hex');
+}
 const AVISOS = { semana: 7 * DIA, dia: DIA };
 
 // Fecha y hora de una zona horaria («2026-11-14», «10:30», «Europe/Madrid») → milisegundos UTC
@@ -50,14 +85,14 @@ export function textoAviso(cita, tipo, ahora, nombres = {}) {
 }
 
 // Decide qué avisos tocan ahora. Devuelve { enviar: [{ id, cita, tipo }], avisados (actualizado) }.
-export function avisosQueTocan(data, ahora) {
+export async function avisosQueTocan(data, ahora, code = '') {
   const avisados = JSON.parse(JSON.stringify(data.avisados || {}));
   const enviar = [];
   for (const [id, cita] of Object.entries(data.citas || {})) {
     if (!cita || !cita.fecha || !cita.titulo) continue;
     const t = horaEnZona(cita.fecha, cita.hora, cita.zona || 'Europe/Madrid');
     if (t <= ahora) { delete avisados[id]; continue; }           // ya pasó: se limpia
-    const firma = `${cita.fecha}|${cita.hora || ''}`;
+    const firma = await huella(`${code}|${cita.fecha}|${cita.hora || ''}`);
     let hecho = avisados[id];
     if (!hecho || hecho.firma !== firma) hecho = { firma };          // cita nueva o cambiada de fecha: avisos desde cero
     for (const [tipo, ms] of Object.entries(AVISOS)) {
@@ -80,9 +115,11 @@ async function firebase(code, path, method = 'GET', body) {
 }
 
 export async function run({ code, ahora = Date.now(), send, db = firebase }) {
-  const data = (await db(code, '')) || {};
+  const raw = (await db(code, '')) || {};
+  // Los datos de la app van cifrados en `menu-c`; si aún no, se leen los de antes.
+  const data = raw['menu-c'] ? { ...raw, ...(await abrir(raw['menu-c'], await familyKey(code))) } : raw;
   const nombres = Object.fromEntries(Object.entries(data.members || {}).map(([id, m]) => [id, m.name]));
-  const { enviar, avisados } = avisosQueTocan(data, ahora);
+  const { enviar, avisados } = await avisosQueTocan(data, ahora, code);
   const subs = Object.entries(data.push || {});
   let enviados = 0;
   const caducados = new Set();

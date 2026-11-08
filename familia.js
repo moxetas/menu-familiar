@@ -8,9 +8,12 @@
 // - Cada cambio en este móvil se compara con la última versión sincronizada y solo se envía lo que ha cambiado.
 // - Los cambios de los demás llegan al momento por una conexión abierta (EventSource).
 // - Sin cobertura, los cambios se guardan y se envían cuando vuelve la conexión.
+// - Todo va CIFRADO de extremo a extremo con una clave que sale del código de familia (AES-GCM).
+//   En Firebase (/familias/<código>/menu-c) solo hay textos cifrados: ni el dueño de la base de
+//   datos ni nadie sin el código puede leer los platos, menús, citas o la lista de la compra.
 
 const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 16;
+const FAMILIA_VERSION = 17;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -40,7 +43,55 @@ const Familia = (() => {
   const stable = (v) => JSON.stringify(v ?? null, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)
     ? Object.keys(x).sort().reduce((o, kk) => { o[kk] = x[kk]; return o; }, {}) : x));
   const fbKey = (s) => norm(s).replace(/[.#$[\]/]/g, '_') || '_';
-  const url = () => `${FIREBASE_DB}/familias/${info.code}.json`;
+  const url = () => `${FIREBASE_DB}/familias/${info.code}/menu-c.json`;
+  // Partes de la familia que van cifradas (antes del cifrado estaban sin cifrar en la raíz de la familia)
+  const MENU_KEYS = ['dishes', 'plan', 'dismissed', 'settings', 'shopping', 'members', 'agua', 'citas'];
+  const EMPTY = { dishes: {}, plan: {}, dismissed: {}, shopping: {}, members: {}, agua: {}, citas: {} };
+  const OLD_GRACE = 7 * 24 * 3600 * 1000;
+
+  // ---------- Cifrado ----------
+
+  const SALT = 'menu-familiar/cifrado/v1';
+  const te = new TextEncoder();
+  const td = new TextDecoder();
+  const keyCache = {};
+  function familyKey(code) {
+    const clean = code.toLowerCase().replace(/[^a-z0-9]/g, '');
+    keyCache[clean] ||= crypto.subtle.importKey('raw', te.encode(clean), 'HKDF', false, ['deriveKey'])
+      .then((k) => crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: te.encode(SALT), info: te.encode('datos') }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']));
+    return keyCache[clean];
+  }
+  const b64u = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64u = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+  async function seal(value) {
+    const key = await familyKey(info.code);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, te.encode(JSON.stringify(value))));
+    const out = new Uint8Array(12 + ct.length);
+    out.set(iv); out.set(ct, 12);
+    return 'c1.' + b64u(out);
+  }
+  // Descifra todos los textos cifrados que haya en un árbol (lo que no esté cifrado se deja igual)
+  async function open(x, code = info.code) {
+    if (typeof x === 'string' && x.startsWith('c1.')) {
+      try {
+        const b = unb64u(x.slice(3));
+        const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b.slice(0, 12) }, await familyKey(code), b.slice(12));
+        return JSON.parse(td.decode(plain));
+      } catch (e) { return null; }
+    }
+    if (x && typeof x === 'object' && !Array.isArray(x)) {
+      const out = {};
+      for (const [k, v] of Object.entries(x)) { const o = await open(v, code); if (o !== null && o !== undefined) out[k] = o; }
+      return out;
+    }
+    return x;
+  }
+  async function sealBatch(batch) {
+    const out = {};
+    for (const [p, v] of Object.entries(batch)) out[p] = v === null || v === undefined ? null : await seal(v);
+    return out;
+  }
   const count = (o) => Object.keys(o || {}).length;
 
   // ---------- Del estado de la app a la forma guardada en Firebase, y al revés ----------
@@ -88,7 +139,8 @@ const Familia = (() => {
     };
     walk(a.dishes, b.dishes, 'dishes/', 1);
     walk(a.plan, b.plan, 'plan/', 2);
-    walk(a.dismissed, b.dismissed, 'dismissed/', 1);
+    // Los descartados van enteros (así sus nombres no quedan a la vista en las claves de Firebase)
+    if (stable(a.dismissed) !== stable(b.dismissed)) out.dismissed = b.dismissed ?? null;
     walk(a.shopping, b.shopping, 'shopping/', 1);
     walk(a.members, b.members, 'members/', 1);
     walk(a.agua, b.agua, 'agua/', 2);
@@ -127,12 +179,12 @@ const Familia = (() => {
   }
 
   async function flush() {
-    if (!info.code || flushing || !count(info.pending)) return;
+    if (!info.code || info.v !== 2 || flushing || !count(info.pending)) return;
     flushing = true;
     const batch = clone(info.pending);
     let ok = false;
     try {
-      const res = await fetch(url(), { method: 'PATCH', body: JSON.stringify(batch) });
+      const res = await fetch(url(), { method: 'PATCH', body: JSON.stringify(await sealBatch(batch)) });
       const answer = res.ok ? '' : ` ${(await res.text().catch(() => '')).slice(0, 300)}`;
       note(`envío [${Object.keys(batch).join(', ').slice(0, 200)}] → ${res.status}${answer}`);
       if (res.status === 401 || res.status === 403) setStatus('denied');
@@ -156,16 +208,60 @@ const Familia = (() => {
 
   // ---------- Recibir cambios de los demás ----------
 
+  // Paso único a los datos cifrados: si otro móvil ya los pasó, se usan esos; si no, se cifran los de antes.
+  async function migrate() {
+    const res = await fetch(url());
+    if (res.status === 401 || res.status === 403) { setStatus('denied'); throw new Error('denied'); }
+    if (!res.ok) throw new Error(String(res.status));
+    const cur = await res.json();
+    if (!cur || !count(cur)) {
+      const oldRes = await fetch(`${FIREBASE_DB}/familias/${info.code}.json`);
+      const all = oldRes.ok ? (await oldRes.json()) || {} : {};
+      const old = Object.fromEntries(MENU_KEYS.filter((k) => all[k] !== undefined).map((k) => [k, all[k]]));
+      if (count(old)) {
+        const batch = await sealBatch(diff(EMPTY, { ...EMPTY, ...old }));
+        let tree = {};
+        for (const [p, v] of Object.entries(batch)) if (v !== null) tree = setPath(tree, p, v);
+        const put = await fetch(url(), { method: 'PUT', body: JSON.stringify(tree) });
+        if (!put.ok) throw new Error(String(put.status));
+        await fetch(`${FIREBASE_DB}/familias/${info.code}/menu-migrado.json`, { method: 'PUT', body: JSON.stringify(Date.now()) }).catch(() => {});
+        note(`datos pasados a cifrado (${count(batch)} partes)`);
+      }
+    }
+    info.v = 2;
+    persist();
+  }
+
+  // Una semana después del paso al cifrado, se borran los datos sin cifrar de antes
+  let cleaned = false;
+  async function cleanOld() {
+    if (cleaned || !info.code) return;
+    cleaned = true;
+    try {
+      const when = await (await fetch(`${FIREBASE_DB}/familias/${info.code}/menu-migrado.json`)).json();
+      if (typeof when === 'number' && Date.now() - when > OLD_GRACE) {
+        await fetch(`${FIREBASE_DB}/familias/${info.code}.json`, { method: 'PATCH', body: JSON.stringify(Object.fromEntries(MENU_KEYS.map((k) => [k, null]))) });
+        note('borrados los datos sin cifrar de antes');
+      }
+    } catch (e) { /* otro día */ }
+  }
+
   function connect() {
     if (!info.code) return;
     disconnect();
     setStatus(navigator.onLine === false ? 'offline' : 'connecting');
     lastEvent = Date.now();
+    if (info.v !== 2) {
+      migrate().then(() => { connect(); flush(); }).catch((e) => { if (status !== 'denied') { note(`paso a cifrado: ${e && e.message}`); setStatus('offline'); retryLater(); } });
+      return;
+    }
     note('conectando');
+    cleanOld();
     es = new EventSource(url());
     es.addEventListener('keep-alive', () => { lastEvent = Date.now(); });
-    es.addEventListener('put', (e) => onEvent(e, false));
-    es.addEventListener('patch', (e) => onEvent(e, true));
+    // Los datos llegan cifrados: se descifran en orden antes de usarlos
+    es.addEventListener('put', (e) => { events = events.then(() => onEvent(e, false)); });
+    es.addEventListener('patch', (e) => { events = events.then(() => onEvent(e, true)); });
     es.addEventListener('cancel', (e) => { note(`cancel ${e.data}`); setStatus('denied'); disconnect(); });
     es.onerror = () => {
       note(`error de conexión (estado ${es ? es.readyState : '-'})`);
@@ -189,14 +285,16 @@ const Familia = (() => {
     retryTimer = setTimeout(connect, 8000);
   }
 
-  function onEvent(e, isPatch) {
+  let events = Promise.resolve();
+  async function onEvent(e, isPatch) {
     let msg;
     try { msg = JSON.parse(e.data); } catch (err) { return; }
     if (!msg) return;
     lastEvent = Date.now();
     lastSync = Date.now();
-    const { path, data } = msg;
-    note(`${isPatch ? 'patch' : 'put'} ${path} ${data && typeof data === 'object' ? `{${Object.keys(data).join(', ').slice(0, 160)}}` : JSON.stringify(data)}`);
+    const { path } = msg;
+    const data = await open(msg.data);
+    note(`${isPatch ? 'patch' : 'put'} ${path} ${data && typeof data === 'object' ? `{${Object.keys(data).join(', ').slice(0, 160)}}` : ''}`);
     if (!isPatch && (path === '/' || path === '')) {
       // Copia completa (al conectarse o reconectarse)
       remote = data && typeof data === 'object' ? clone(data) : {};
@@ -223,7 +321,8 @@ const Familia = (() => {
     for (const [day, meals] of Object.entries(mine.plan || {})) {
       for (const [m, p] of Object.entries(meals || {})) if (p && !remote.plan?.[day]?.[m]) add[`plan/${day}/${m}`] = p;
     }
-    for (const [k, n] of Object.entries(mine.dismissed || {})) if (!remote.dismissed?.[k]) add[`dismissed/${k}`] = n;
+    const allDismissed = { ...(remote.dismissed || {}), ...(mine.dismissed || {}) };
+    if (stable(allDismissed) !== stable(remote.dismissed || {})) add.dismissed = allDismissed;
     if (!remote.settings) add.settings = mine.settings;
     const items = new Set(theirs.shopping.map((i) => norm(i.name)));
     for (const [id, i] of Object.entries(mine.shopping || {})) if (!items.has(norm(i.name))) add[`shopping/${id}`] = i;

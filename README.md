@@ -33,7 +33,9 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
 | 🟣 Morado | Huevos |
 | ⚪ Gris | Otros |
 
-Los platos se guardan en el teléfono. Si se activa «Familia», también en la base de datos de Firebase del proyecto, en `/familias/<código>`.
+Los platos se guardan en el teléfono. Si se activa «Familia», también en la base de datos de Firebase del proyecto, en `/familias/<código>/menu-c`, **cifrados de extremo a extremo**: cada dato se cifra en el móvil (AES-GCM) con una clave que sale del código de familia, así que en Firebase solo hay textos cifrados y ni el dueño de la base de datos ni nadie sin el código puede leer platos, menús, citas, miembros ni la lista de la compra. Los datos de antes del cifrado (en la raíz de la familia) se pasan solos a cifrados al abrir la versión 17 y se borran una semana después.
+
+El servicio de avisos (`.github/scripts/avisos.mjs`) descifra las citas con el secreto `FAMILIA_CODIGO`, guarda solo una huella de la fecha de cada cita y no escribe en los registros (que son públicos) ningún dato de las citas.
 
 ## Instalarla en el iPhone
 
