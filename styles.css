@@ -674,32 +674,67 @@ textarea.short { min-height: 96px; }
 #imp-texto { width: 100%; min-height: 120px; font-family: ui-monospace, monospace; font-size: .9em; }
 
 /* ---------- Temas ---------- */
-/* Con un tema: la cabecera lleva la foto (y se va al desplazar) y los colores salen del color del tema */
+/* Con tema, la foto de la pestaña es el fondo de toda la pantalla y se queda quieta al bajar.
+   Encima lleva un velo: oscuro arriba (para el título) y del color del fondo más abajo (para leer bien). */
+#fondo { position: fixed; inset: 0; z-index: -1; background: var(--bg); }
 :root[data-tema] {
   --accent: var(--tema);
   --accent-fg: #ffffff;
+  --velo: 247, 244, 239;
   --bg: color-mix(in srgb, var(--tema) 6%, #f7f4ef);
   --surface-2: color-mix(in srgb, var(--tema) 10%, #efe9e1);
+  background: #000;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-tema] {
     --accent: color-mix(in srgb, var(--tema) 55%, #ffffff);
     --accent-fg: #15120f;
+    --velo: 21, 19, 17;
     --bg: color-mix(in srgb, var(--tema) 10%, #151311);
     --surface-2: color-mix(in srgb, var(--tema) 14%, #2c2824);
   }
 }
+:root[data-tema] body { background: transparent; }
+:root[data-tema] #fondo {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0, rgba(0, 0, 0, 0) 200px),
+    linear-gradient(180deg, rgba(var(--velo), 0) 0, rgba(var(--velo), 0.15) 160px, rgba(var(--velo), 0.62) 340px, rgba(var(--velo), 0.72) 100%),
+    var(--tema-img) center / cover no-repeat,
+    var(--tema);
+}
 :root[data-tema] .topbar {
   position: relative;
   align-items: flex-end;
-  min-height: calc(150px + env(safe-area-inset-top, 0px));
-  padding-bottom: 14px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.1) 45%, rgba(0, 0, 0, 0.6) 100%), var(--tema-img) center 40% / cover no-repeat, var(--tema);
-  border-radius: 0 0 22px 22px;
-  margin-bottom: 8px;
+  min-height: calc(130px + env(safe-area-inset-top, 0px));
+  padding-bottom: 12px;
+  background: transparent;
 }
-:root[data-tema] .topbar h1 { color: #ffffff; font-size: 1.6rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5); }
+:root[data-tema] .topbar h1 { color: #ffffff; font-size: 1.6rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); }
 :root[data-tema] .topbar .pill-btn { background: rgba(255, 255, 255, 0.88); color: #1d1a17; }
+/* El texto que va directamente sobre la foto lleva una franja del color del fondo para que se lea bien */
+:root[data-tema] main > h2, :root[data-tema] main > p, :root[data-tema] .region > p, :root[data-tema] .region > h2, :root[data-tema] .group-head, :root[data-tema] .week-nav > div, :root[data-tema] .week-nav > strong {
+  justify-self: start;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: rgba(var(--velo), 0.85);
+}
+:root[data-tema] .week-nav > div, :root[data-tema] .week-nav > strong { justify-self: center; }
+.tema-pestanas { display: grid; gap: 8px; }
+.tema-pestana {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px 8px 8px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.tema-mini { display: grid; place-items: center; flex: none; width: 54px; height: 54px; border-radius: 10px; background: var(--surface-2) center / cover no-repeat; font-size: 1.4rem; }
+.tema-pestana-txt { flex: 1; display: grid; }
 .temas { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
 .tema-op {
   display: grid;
@@ -720,6 +755,5 @@ textarea.short { min-height: 96px; }
   background: var(--surface-2) center / cover no-repeat;
   font-size: 2rem;
 }
-.tema-foto.sin-foto.pestana { background: linear-gradient(135deg, #2e7032, #85552a 35%, #5f6f12 65%, #23387a); }
 .tema-nombre { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 650; line-height: 1.2; }
 .tema-color { flex: none; width: 10px; height: 10px; border-radius: 50%; }

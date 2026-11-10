@@ -18,7 +18,7 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
 - **Citas**: citas médicas, reuniones, colegio… con día, hora, sitio, para quién y notas. Salen también en la Semana y se comparten con la familia. Avisan una semana antes y un día antes:
   - **en el móvil, aunque la app esté cerrada**: en cada móvil hay que pulsar «Activar avisos» (iPhone/iPad con iOS 16.4 o posterior, abriendo la app desde la pantalla de inicio). Los envía cada hora `.github/workflows/avisos.yml`, que necesita el secreto `FAMILIA_CODIGO` con el código de familia (Settings → Secrets and variables → Actions);
   - **dentro de la app**: al abrirla sale un recordatorio de las citas que tocan.
-- **Ajustes**: temas (9 fotos para la cabecera, cada una con su color, «Según la pestaña» o el clásico; se guarda en cada móvil), qué planificar, ideas nuevas por semana, caldo casero, compartir la lista de platos y ayuda.
+- **Ajustes**: fondo de cada pestaña (cada una tiene su foto, que se queda quieta al bajar; se puede cambiar o quitar, y se guarda en cada móvil), qué planificar, ideas nuevas por semana, caldo casero, compartir la lista de platos y ayuda.
 - **Compra**: lista de la compra ordenada por secciones del súper. Se escribe a mano o se sacan los ingredientes de los platos del menú de la semana (quitando lo que ya hay en casa). Tocar una cosa la tacha; con «Familia» activado, lo que tacha uno lo ven los demás al momento.
 - **Familia**: conecta los móviles de casa con un código. Platos y menús son los mismos en todos, y lo que cambia uno lo ven los demás al momento. Sin cobertura sigue funcionando y se pone al día al volver la conexión.
 - **Compartir**: manda el menú de la semana por WhatsApp.

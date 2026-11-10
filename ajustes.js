@@ -4,7 +4,7 @@
 // Un tema pone una foto en la cabecera y cambia el color de la app. Se guarda en cada móvil (no se comparte).
 
 const TEMAS = [
-  { id: 'clasico', nombre: 'Clásico', color: '' },
+  { id: 'clasico', nombre: 'Sin foto', color: '' },
   { id: 'pizarra', nombre: 'Pizarra', color: '#3d5a4c', img: 'temas/tema1.webp' },
   { id: 'mercado', nombre: 'Mercado', color: '#b91c1c', img: 'temas/tema2.webp' },
   { id: 'cocina', nombre: 'Cocina', color: '#1f4f99', img: 'temas/tema3.webp' },
@@ -14,53 +14,82 @@ const TEMAS = [
   { id: 'bolsa', nombre: 'Bolsa de la compra', color: '#85552a', img: 'temas/tema7.webp' },
   { id: 'recetario', nombre: 'Recetario', color: '#5f6f12', img: 'temas/tema8.webp' },
   { id: 'citas', nombre: 'Calendario', color: '#23387a', img: 'temas/tema9.webp' },
-  { id: 'pestana', nombre: 'Según la pestaña', color: '' },
 ];
-// Para «Según la pestaña»: la foto que va con cada pestaña
-const TEMA_DE_PESTANA = { semana: 'albahaca', compra: 'bolsa', platos: 'recetario', citas: 'citas', familia: 'hogar', ideas: 'cocina', ajustes: 'pizarra' };
-const TEMA_LS = 'menu-familiar-tema';
+// La foto que le corresponde a cada pestaña (se puede cambiar en Ajustes)
+const PESTANAS = [
+  ['semana', '📅 Semana', 'pizarra'],
+  ['compra', '🛒 Compra', 'mercado'],
+  ['platos', '📖 Mis platos', 'recetario'],
+  ['familia', '👨‍👩‍👧 Familia', 'hogar'],
+  ['ideas', '✨ Ideas', 'cocina'],
+  ['citas', '📌 Citas', 'agenda'],
+  ['ajustes', '⚙️ Ajustes', 'albahaca'],
+];
+const TEMAS_LS = 'menu-familiar-temas';
 
-function temaElegido() {
-  try { return localStorage.getItem(TEMA_LS) || 'clasico'; } catch (e) { return 'clasico'; }
+function temasElegidos() {
+  let t = {};
+  try { t = JSON.parse(localStorage.getItem(TEMAS_LS)) || {}; } catch (e) { /* nada */ }
+  return Object.fromEntries(PESTANAS.map(([tab, , def]) => [tab, t[tab] || def]));
 }
+function guardarTemas(t) { try { localStorage.setItem(TEMAS_LS, JSON.stringify(t)); } catch (e) { /* nada */ } }
 
-// Aplica el tema a la cabecera y a los colores. Se llama en cada render (cambia con la pestaña en «Según la pestaña»).
+// Pone de fondo la foto de la pestaña (se queda quieta al bajar) y su color en toda la app
 function aplicarTema(tab) {
-  let id = temaElegido();
-  if (id === 'pestana') id = TEMA_DE_PESTANA[tab] || 'pizarra';
-  const t = TEMAS.find((x) => x.id === id) || TEMAS[0];
+  const t = TEMAS.find((x) => x.id === temasElegidos()[tab]) || TEMAS[0];
   const root = document.documentElement;
-  const header = document.querySelector('.topbar');
   if (t.img) {
     root.dataset.tema = t.id;
     root.style.setProperty('--tema', t.color);
-    header.style.setProperty('--tema-img', `url("${t.img}")`);
+    root.style.setProperty('--tema-img', `url("${t.img}")`);
   } else {
     delete root.dataset.tema;
     root.style.removeProperty('--tema');
-    header.style.removeProperty('--tema-img');
+    root.style.removeProperty('--tema-img');
   }
-  // Color de la barra del sistema
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
     m.dataset.orig ||= m.content;
     m.content = t.img ? t.color : m.dataset.orig;
   });
 }
 
+function elegirTema(tab) {
+  const [, nombre] = PESTANAS.find((p) => p[0] === tab);
+  const actual = temasElegidos()[tab];
+  openSheet(`
+    <div class="sheet-head"><h3>Fondo de ${esc(nombre)}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+    <div class="temas">${TEMAS.map((t) => `
+      <button type="button" class="tema-op" data-tema-op="${t.id}" aria-pressed="${t.id === actual}">
+        <span class="tema-foto ${t.img ? '' : 'sin-foto'}" ${t.img ? `style="background-image:url('${t.img}')"` : ''}>${t.img ? '' : '🍽️'}</span>
+        <span class="tema-nombre">${t.color ? `<span class="tema-color" style="background:${t.color}"></span>` : ''}${esc(t.nombre)}</span>
+      </button>`).join('')}</div>
+  `);
+  $('#sheet').querySelectorAll('[data-tema-op]').forEach((b) => b.onclick = () => {
+    const t = temasElegidos(); t[tab] = b.dataset.temaOp; guardarTemas(t);
+    closeSheet(); render();
+  });
+}
+
 // ---------- Pestaña Ajustes ----------
 
 function renderAjustes(main) {
-  const elegido = temaElegido();
+  const elegidos = temasElegidos();
   const meals = state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0];
   main.innerHTML = `
-    <h2>🎨 Tema</h2>
-    <p class="muted small">Cambia la foto de arriba y los colores de la app. Cada móvil puede tener el suyo.</p>
-    <div class="temas">${TEMAS.map((t) => `
-      <button type="button" class="tema-op" data-tema-op="${t.id}" aria-pressed="${t.id === elegido}">
-        <span class="tema-foto ${t.img ? '' : `sin-foto ${t.id}`}" ${t.img ? `style="background-image:url('${t.img}')"` : ''}>${t.id === 'pestana' ? '🔀' : t.id === 'clasico' ? '🍽️' : ''}</span>
-        <span class="tema-nombre"><span class="tema-color" style="background:${t.color || 'var(--accent)'}"></span>${esc(t.nombre)}</span>
-      </button>`).join('')}</div>
-    <p class="muted small">«Según la pestaña» pone en cada pestaña su foto: la pizarra en Semana, la bolsa en Compra, el recetario en Mis platos…</p>
+    <h2>🎨 Fondo de cada pestaña</h2>
+    <p class="muted small">Cada pestaña tiene su foto de fondo. Toca una para cambiarla. Se guarda en este móvil.</p>
+    <div class="tema-pestanas">${PESTANAS.map(([tab, nombre]) => {
+      const t = TEMAS.find((x) => x.id === elegidos[tab]) || TEMAS[0];
+      return `<button type="button" class="tema-pestana" data-tema-tab="${tab}">
+        <span class="tema-mini ${t.img ? '' : 'sin-foto'}" ${t.img ? `style="background-image:url('${t.img}')"` : ''}>${t.img ? '' : '🍽️'}</span>
+        <span class="tema-pestana-txt"><strong>${esc(nombre)}</strong><span class="muted small">${esc(t.nombre)}</span></span>
+        <span class="muted">›</span>
+      </button>`;
+    }).join('')}</div>
+    <div class="row">
+      <button type="button" class="btn small grow" id="temas-siempre">Las fotos de siempre</button>
+      <button type="button" class="btn small grow" id="temas-ninguna">Sin fotos</button>
+    </div>
 
     <h2>🍽️ Menú</h2>
     <div class="card">
@@ -95,11 +124,9 @@ function renderAjustes(main) {
     </div>
     <p class="muted small" style="text-align:center">Versión ${APP_VERSION}${typeof FAMILIA_VERSION !== 'undefined' && FAMILIA_VERSION === APP_VERSION ? '' : ' · ⚠️ a medio actualizar: cierra la app y ábrela otra vez'}</p>`;
 
-  main.querySelectorAll('[data-tema-op]').forEach((b) => b.onclick = () => {
-    try { localStorage.setItem(TEMA_LS, b.dataset.temaOp); } catch (e) { /* da igual */ }
-    render();
-    toast(`Tema: ${TEMAS.find((t) => t.id === b.dataset.temaOp).nombre}`);
-  });
+  main.querySelectorAll('[data-tema-tab]').forEach((b) => b.onclick = () => elegirTema(b.dataset.temaTab));
+  $('#temas-siempre').onclick = () => { guardarTemas({}); render(); toast('Cada pestaña con su foto'); };
+  $('#temas-ninguna').onclick = () => { guardarTemas(Object.fromEntries(PESTANAS.map(([tab]) => [tab, 'clasico']))); render(); toast('Sin fotos de fondo'); };
   main.querySelectorAll('#set-meals .chip').forEach((b) => b.onclick = () => {
     state.settings.meals = b.dataset.v === 'ambas' ? ['comida', 'cena'] : [b.dataset.v];
     save(); render();
