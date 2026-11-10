@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v18';
+const CACHE = 'menu-familiar-v19';
 const FILES = [
   './',
   'index.html',
@@ -12,6 +12,16 @@ const FILES = [
   'dibujos.js',
   'miembros.js',
   'citas.js',
+  'ajustes.js',
+  'temas/tema1.webp',
+  'temas/tema2.webp',
+  'temas/tema3.webp',
+  'temas/tema4.webp',
+  'temas/tema5.webp',
+  'temas/tema6.webp',
+  'temas/tema7.webp',
+  'temas/tema8.webp',
+  'temas/tema9.webp',
   'guia.js',
   'app.js',
   'manifest.webmanifest',

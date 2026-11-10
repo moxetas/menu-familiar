@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 18;
+const APP_VERSION = 19;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -207,6 +207,7 @@ function render() {
   actions.innerHTML = '';
   // Si se sigue en la misma pestaña, las que tienen un campo para escribir solo redibujan la lista,
   // para no borrar lo que se está tecleando ni cerrar el teclado
+  aplicarTema(view.tab);
   const same = main.dataset.tab === view.tab;
   main.dataset.tab = view.tab;
   if (view.tab === 'semana') renderWeek(main, actions);
@@ -214,6 +215,7 @@ function render() {
   else if (view.tab === 'platos') renderDishes(main, same);
   else if (view.tab === 'familia') renderFamily(main);
   else if (view.tab === 'citas') renderCitas(main);
+  else if (view.tab === 'ajustes') renderAjustes(main);
   else renderIdeas(main);
   botonesAyuda(main, view.tab);
 }
@@ -581,39 +583,12 @@ function renderDishes(main, same) {
             ${recipeFor(d.name) ? '' : '<span class="tile-badge">sin receta</span>'}
             ${healthIcons(d.name) ? `<span class="tile-health" aria-label="Con moderación para quien tiene plan de salud">${healthIcons(d.name)}</span>` : ''}
           </button>`).join('')}</div>
-      </section>`).join('')}
-    <h2>Ajustes</h2>
-    <div class="card">
-      <label class="field">Qué planificar</label>
-      <div class="chips" id="set-meals">
-        ${chip('ambas', 'Comida y cena', meals)}
-        ${chip('comida', 'Solo comida', meals)}
-        ${chip('cena', 'Solo cena', meals)}
-      </div>
-      <label class="field">Cocina</label>
-      <div class="chips"><button type="button" class="chip" id="set-caldo" aria-pressed="${!!state.settings.caldoCasero}">🍲 Usamos caldo casero sin sal</button></div>
-      <p class="muted small">Si está activado, la sal de los platos se calcula con caldo casero sin sal en vez de caldo de brick, que lleva mucha.</p>
-      <label class="field">Ideas nuevas en cada menú semanal</label>
-      <div class="chips" id="set-new">${[0, 1, 2, 3].map((n) => chip(String(n), n === 0 ? 'Ninguna' : String(n), String(state.settings.nuevos))).join('')}</div>
-      <div class="row">
-        <button type="button" class="btn small grow" id="export">Compartir mi lista</button>
-        ${state.dismissed.length ? `<button type="button" class="btn small grow" id="undismiss">Recuperar ideas descartadas (${state.dismissed.length})</button>` : ''}
-      </div>
-    </div>
-    <p class="muted small" style="text-align:center">Versión ${APP_VERSION}${typeof FAMILIA_VERSION !== 'undefined' && FAMILIA_VERSION === APP_VERSION ? '' : ' · ⚠️ a medio actualizar: cierra la app y ábrela otra vez'}</p>`;
+      </section>`).join('')}`;
 
   region.querySelectorAll('.tile').forEach((b) => b.onclick = () => {
     const d = state.dishes.find((x) => x.id === b.dataset.id);
     if (d) openRecipe(d.name);
   });
-  region.querySelectorAll('#set-meals .chip').forEach((b) => b.onclick = () => {
-    state.settings.meals = b.dataset.v === 'ambas' ? ['comida', 'cena'] : [b.dataset.v];
-    save(); render();
-  });
-  region.querySelectorAll('#set-new .chip').forEach((b) => b.onclick = () => { state.settings.nuevos = Number(b.dataset.v); save(); render(); });
-  $('#set-caldo').onclick = () => { state.settings.caldoCasero = !state.settings.caldoCasero; save(); render(); toast(state.settings.caldoCasero ? 'La sal se calcula con caldo casero sin sal' : 'La sal se calcula con caldo de brick'); };
-  $('#export').onclick = exportList;
-  $('#undismiss')?.addEventListener('click', () => { state.dismissed = []; save(); render(); toast('Esas ideas pueden volver a salir'); });
 }
 
 function openBulk() {

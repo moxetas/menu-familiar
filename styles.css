@@ -576,7 +576,7 @@ textarea.short { min-height: 96px; }
   left: 0; right: 0; bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: var(--surface);
   border-top: 1px solid var(--line);
@@ -590,7 +590,7 @@ textarea.short { min-height: 96px; }
   border-radius: 12px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -672,3 +672,54 @@ textarea.short { min-height: 96px; }
 .imp-fila input[type="checkbox"] { width: 22px; height: 22px; margin-top: 10px; flex: none; }
 .imp-fila .grow, .imp-fila input[type="text"] { flex: 1; min-width: 0; }
 #imp-texto { width: 100%; min-height: 120px; font-family: ui-monospace, monospace; font-size: .9em; }
+
+/* ---------- Temas ---------- */
+/* Con un tema: la cabecera lleva la foto (y se va al desplazar) y los colores salen del color del tema */
+:root[data-tema] {
+  --accent: var(--tema);
+  --accent-fg: #ffffff;
+  --bg: color-mix(in srgb, var(--tema) 6%, #f7f4ef);
+  --surface-2: color-mix(in srgb, var(--tema) 10%, #efe9e1);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-tema] {
+    --accent: color-mix(in srgb, var(--tema) 55%, #ffffff);
+    --accent-fg: #15120f;
+    --bg: color-mix(in srgb, var(--tema) 10%, #151311);
+    --surface-2: color-mix(in srgb, var(--tema) 14%, #2c2824);
+  }
+}
+:root[data-tema] .topbar {
+  position: relative;
+  align-items: flex-end;
+  min-height: calc(150px + env(safe-area-inset-top, 0px));
+  padding-bottom: 14px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.1) 45%, rgba(0, 0, 0, 0.6) 100%), var(--tema-img) center 40% / cover no-repeat, var(--tema);
+  border-radius: 0 0 22px 22px;
+  margin-bottom: 8px;
+}
+:root[data-tema] .topbar h1 { color: #ffffff; font-size: 1.6rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5); }
+:root[data-tema] .topbar .pill-btn { background: rgba(255, 255, 255, 0.88); color: #1d1a17; }
+.temas { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+.tema-op {
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.tema-op[aria-pressed="true"] { border-color: var(--accent); }
+.tema-foto {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1.1;
+  border-radius: 11px;
+  background: var(--surface-2) center / cover no-repeat;
+  font-size: 2rem;
+}
+.tema-foto.sin-foto.pestana { background: linear-gradient(135deg, #2e7032, #85552a 35%, #5f6f12 65%, #23387a); }
+.tema-nombre { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 650; line-height: 1.2; }
+.tema-color { flex: none; width: 10px; height: 10px; border-radius: 50%; }
