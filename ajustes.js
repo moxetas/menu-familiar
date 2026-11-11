@@ -122,6 +122,7 @@ function renderAjustes(main) {
       </div>
       <p class="muted small">Lo de compartir entre móviles está en la pestaña Familia, y los avisos de las citas, en Citas.</p>
     </div>
+    <p class="muted small" style="text-align:center"><a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a></p>
     <p class="muted small" style="text-align:center">Versión ${APP_VERSION}${typeof FAMILIA_VERSION !== 'undefined' && FAMILIA_VERSION === APP_VERSION ? '' : ' · ⚠️ a medio actualizar: cierra la app y ábrela otra vez'}</p>`;
 
   main.querySelectorAll('[data-tema-tab]').forEach((b) => b.onclick = () => elegirTema(b.dataset.temaTab));

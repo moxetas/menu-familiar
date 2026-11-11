@@ -21,7 +21,7 @@ const FIREBASE_DB_FAMILIA = 'https://moxetas-casa-default-rtdb.europe-west1.fire
 const FIREBASE_DB_PUBLICA = 'https://moxetas-familias-default-rtdb.europe-west1.firebasedatabase.app';
 const FIREBASE_DB_ANTIGUA = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
 const dbFor = (code) => (String(code || '').toLowerCase().replace(/[^a-z0-9]/g, '').startsWith('1') ? FIREBASE_DB_PUBLICA : FIREBASE_DB_FAMILIA);
-const FAMILIA_VERSION = 21;
+const FAMILIA_VERSION = 22;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
