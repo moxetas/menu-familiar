@@ -13,11 +13,13 @@
 //   datos ni nadie sin el código puede leer los platos, menús, citas o la lista de la compra.
 
 // Dos bases de datos (las mismas que Finanzas familiares):
-// - la de siempre, para los códigos creados antes de publicar la app (los de la familia de Moxetas);
+// - la de la familia, para los códigos creados antes de publicar la app (los de la familia de Moxetas);
 // - la pública, para los códigos nuevos, que empiezan por «1» (los de antes nunca llevan «1»).
 // Así lo que haga la gente que descarga la app nunca llena la base de la familia.
-const FIREBASE_DB_FAMILIA = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
+// Los códigos de antes estaban en otra base (la antigua): la primera vez se mudan solos (ver «mudanza»).
+const FIREBASE_DB_FAMILIA = 'https://moxetas-casa-default-rtdb.europe-west1.firebasedatabase.app';
 const FIREBASE_DB_PUBLICA = 'https://moxetas-familias-default-rtdb.europe-west1.firebasedatabase.app';
+const FIREBASE_DB_ANTIGUA = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
 const dbFor = (code) => (String(code || '').toLowerCase().replace(/[^a-z0-9]/g, '').startsWith('1') ? FIREBASE_DB_PUBLICA : FIREBASE_DB_FAMILIA);
 const FAMILIA_VERSION = 21;
 
@@ -184,8 +186,28 @@ const Familia = (() => {
     flush();
   }
 
+  // Los códigos de antes estaban en otra base de datos (FIREBASE_DB_ANTIGUA). La primera vez, lo de la familia se copia
+  // tal cual (cifrado) a la suya, en una sola escritura junto con la marca «mudado». Los códigos nuevos («1…») no mudan nada.
+  let movido = null;
+  async function mudanza(code) {
+    if (dbFor(code) !== FIREBASE_DB_FAMILIA) return;
+    const done = await fetch(`${FIREBASE_DB_FAMILIA}/familias/${code}/mudado.json`, { cache: 'no-store' });
+    if (done.status === 401 || done.status === 403) { setStatus('denied'); throw new Error('denied'); }
+    if (!done.ok) throw new Error(String(done.status));
+    if ((await done.json()) !== null) return;
+    const old = await fetch(`${FIREBASE_DB_ANTIGUA}/familias/${code}.json`, { cache: 'no-store' });
+    if (!old.ok) throw new Error(String(old.status));
+    const data = (await old.json()) || {};
+    for (const k of ['push', 'vapid', 'avisados', 'servidor', 'finanzas-push', 'finanzas-avisados', 'finanzas-servidor']) delete data[k];
+    const put = await fetch(`${FIREBASE_DB_FAMILIA}/familias/${code}.json`, { method: 'PATCH', body: JSON.stringify({ ...data, mudado: Date.now() }) });
+    if (!put.ok) throw new Error(String(put.status));
+    // Las claves de los avisos de antes estaban sin proteger en la base antigua: ya no hacen falta
+    fetch(`${FIREBASE_DB_ANTIGUA}/familias/${code}/vapid.json`, { method: 'DELETE' }).catch(() => {});
+    note('datos copiados de la base antigua');
+  }
+
   async function flush() {
-    if (!info.code || info.v !== 2 || flushing || !count(info.pending)) return;
+    if (!info.code || info.v !== 2 || movido !== info.code || flushing || !count(info.pending)) return;
     flushing = true;
     const batch = clone(info.pending);
     let ok = false;
@@ -257,6 +279,10 @@ const Familia = (() => {
     disconnect();
     setStatus(navigator.onLine === false ? 'offline' : 'connecting');
     lastEvent = Date.now();
+    if (movido !== info.code) {
+      mudanza(info.code).then(() => { movido = info.code; connect(); flush(); }).catch((e) => { if (status !== 'denied') { note(`mudanza: ${e && e.message}`); setStatus('offline'); retryLater(); } });
+      return;
+    }
     if (info.v !== 2) {
       migrate().then(() => { connect(); flush(); }).catch((e) => { if (status !== 'denied') { note(`paso a cifrado: ${e && e.message}`); setStatus('offline'); retryLater(); } });
       return;

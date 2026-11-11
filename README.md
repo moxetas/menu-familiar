@@ -38,7 +38,7 @@ Los platos se guardan en el teléfono. Si se activa «Familia», también en la 
 
 Los avisos con la app cerrada también van cifrados de extremo a extremo: cada móvil deja en `/cola/<id>` la hora de cada aviso y su texto cifrado con una clave que sale del código de familia, y el servicio [avisos-familia](https://github.com/moxetas/avisos-familia) solo reenvía ese texto cifrado; lo descifra el móvil al recibirlo.
 
-**Dos bases de datos**: los códigos de familia de antes siguen en la base de siempre; los nuevos empiezan por «1» y van a la base pública (`familia.js`).
+**Dos bases de datos**: los códigos de familia de antes siguen en la base de siempre; los nuevos empiezan por «1» y van a la base pública (`familia.js`). La base de la familia es nueva (`moxetas-casa`): la primera vez que un móvil abre la app actualizada, copia solo, tal cual y cifrado, lo que la familia tenía en la base antigua (`menu-familiar-a2424`).
 
 ## Guía y «Desde foto o PDF»
 
