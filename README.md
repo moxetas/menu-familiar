@@ -16,7 +16,7 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
 
   La sal se calcula con el sodio de los ingredientes (tabla en `recetas.js`), sin contar la que se añada al cocinar. En Ajustes se puede indicar que en casa se usa caldo casero sin sal.
 - **Citas**: citas médicas, reuniones, colegio… con día, hora, sitio, para quién y notas. Salen también en la Semana y se comparten con la familia. Avisan una semana antes y un día antes:
-  - **en el móvil, aunque la app esté cerrada**: en cada móvil hay que pulsar «Activar avisos» (iPhone/iPad con iOS 16.4 o posterior, abriendo la app desde la pantalla de inicio). Los envía cada hora `.github/workflows/avisos.yml`, que necesita el secreto `FAMILIA_CODIGO` con el código de familia (Settings → Secrets and variables → Actions);
+  - **en el móvil, aunque la app esté cerrada**: en cada móvil hay que pulsar «Activar avisos» (iPhone/iPad con iOS 16.4 o posterior, abriendo la app desde la pantalla de inicio). La app deja los avisos cifrados en la cola (`avisos.js`) y los envía cada hora el servicio [avisos-familia](https://github.com/moxetas/avisos-familia), para cualquier familia;
   - **dentro de la app**: al abrirla sale un recordatorio de las citas que tocan.
 - **Ajustes**: fondo de cada pestaña (cada una tiene su foto, que se queda quieta al bajar; se puede cambiar o quitar, y se guarda en cada móvil), qué planificar, ideas nuevas por semana, caldo casero, compartir la lista de platos y ayuda.
 - **Compra**: lista de la compra ordenada por secciones del súper. Se escribe a mano o se sacan los ingredientes de los platos del menú de la semana (quitando lo que ya hay en casa). Tocar una cosa la tacha; con «Familia» activado, lo que tacha uno lo ven los demás al momento.
@@ -36,7 +36,9 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
 
 Los platos se guardan en el teléfono. Si se activa «Familia», también en la base de datos de Firebase del proyecto, en `/familias/<código>/menu-c`, **cifrados de extremo a extremo**: cada dato se cifra en el móvil (AES-GCM) con una clave que sale del código de familia, así que en Firebase solo hay textos cifrados y ni el dueño de la base de datos ni nadie sin el código puede leer platos, menús, citas, miembros ni la lista de la compra. Los datos de antes del cifrado (en la raíz de la familia) se pasan solos a cifrados al abrir la versión 17 y se borran una semana después.
 
-El servicio de avisos (`.github/scripts/avisos.mjs`) descifra las citas con el secreto `FAMILIA_CODIGO`, guarda solo una huella de la fecha de cada cita y no escribe en los registros (que son públicos) ningún dato de las citas.
+Los avisos con la app cerrada también van cifrados de extremo a extremo: cada móvil deja en `/cola/<id>` la hora de cada aviso y su texto cifrado con una clave que sale del código de familia, y el servicio [avisos-familia](https://github.com/moxetas/avisos-familia) solo reenvía ese texto cifrado; lo descifra el móvil al recibirlo.
+
+**Dos bases de datos**: los códigos de familia de antes siguen en la base de siempre; los nuevos empiezan por «1» y van a la base pública (`familia.js`).
 
 ## Guía y «Desde foto o PDF»
 
@@ -63,26 +65,11 @@ El servicio de avisos (`.github/scripts/avisos.mjs`) descifra las citas con el s
 | `dibujos.js` | Dibujos de los platos (SVG) y palabras para elegir el de cada uno. |
 | `ajustes.js` | Pestaña Ajustes y temas. Las fotos de los temas están en `temas/`. |
 | `citas.js` | Pestaña Citas, recordatorio al abrir la app y activación de los avisos del móvil (Web Push). |
-| `.github/scripts/avisos.mjs` | Servicio que envía los avisos de las citas; lo ejecuta cada hora `.github/workflows/avisos.yml`. |
+| `avisos.js` | Cola de avisos con la app cerrada (cifrados) para el servicio [avisos-familia](https://github.com/moxetas/avisos-familia). |
 | `guia.js` | Guía de primeros pasos y «Desde foto o PDF» (instrucciones para la IA, lectura de la respuesta y revisión). |
 | `familia.js` | Sincronización entre móviles con Firebase Realtime Database (dirección de la base de datos al principio del archivo). |
 | `sw.js` | Guarda la app en el teléfono para que abra sin cobertura. |
 
 ## Reglas de Firebase
 
-En **Realtime Database → Reglas** tiene que estar esto, para que solo quien conoce el código de familia pueda leer o cambiar sus datos:
-
-```json
-{
-  "rules": {
-    ".read": false,
-    ".write": false,
-    "familias": {
-      "$codigo": {
-        ".read": "$codigo.length >= 20",
-        ".write": "$codigo.length >= 20"
-      }
-    }
-  }
-}
-```
+Las reglas de las dos bases de datos (la de siempre y la pública) están en el repositorio [avisos-familia](https://github.com/moxetas/avisos-familia), en `reglas-firebase.json`. Solo quien conoce el código de familia puede leer o cambiar sus datos.

@@ -1,12 +1,13 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v20';
+const CACHE = 'menu-familiar-v21';
 const FILES = [
   './',
   'index.html',
   'styles.css',
   'platos.js',
   'familia.js',
+  'avisos.js',
   'compra.js',
   'recetas.js',
   'dibujos.js',
@@ -62,17 +63,61 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Avisos de citas: los envía el proceso de GitHub (.github/scripts/avisos.mjs) una semana antes y un día antes
+// Avisos de citas: los manda el servicio de avisos (repositorio moxetas/avisos-familia) una semana antes y un día antes.
+// Llegan cifrados ({ v: 1, p }) y se abren con la clave que la app guardó en IndexedDB (avisos.js): el servidor nunca ve el texto.
+const TIPOS_AVISO = { medica: '🩺', reunion: '💼', colegio: '🏫', otra: '📌' };
+
+function claveAvisos() {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open('menu-familiar-avisos', 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('kv');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const r = open.result.transaction('kv', 'readonly').objectStore('kv').get('clave');
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+    };
+  });
+}
+
+async function abrirAviso(p) {
+  const key = await claveAvisos();
+  if (!key || typeof p !== 'string') throw new Error('sin clave');
+  const b = Uint8Array.from(atob(p.slice(3).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((p.length - 3 + 3) % 4)), (c) => c.charCodeAt(0));
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b.slice(0, 12) }, key, b.slice(12));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+// Mismo texto que la app: «Mañana, viernes 14 de noviembre a las 10:30 · Centro de salud · Lucía»
+function textoAviso(c) {
+  const zona = c.zona || 'Europe/Madrid';
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: zona }).format(new Date());
+  const dias = Math.round((Date.UTC(...c.fecha.split('-').map((n, i) => (i === 1 ? n - 1 : +n))) - Date.UTC(...hoy.split('-').map((n, i) => (i === 1 ? n - 1 : +n)))) / 864e5);
+  const cuando = dias <= 0 ? 'hoy' : dias === 1 ? 'mañana' : dias === 7 ? 'dentro de una semana' : `dentro de ${dias} días`;
+  const [y, m, d] = c.fecha.split('-').map(Number);
+  const dia = new Intl.DateTimeFormat('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+  return {
+    title: `${TIPOS_AVISO[c.tipo] || '📌'} ${c.titulo}`,
+    body: `${cuando[0].toUpperCase()}${cuando.slice(1)}, ${dia}${c.hora ? ` a las ${c.hora}` : ''}${c.lugar ? ` · ${c.lugar}` : ''}${c.quien ? ` · ${c.quien}` : ''}`,
+    tag: `cita-${c.id || ''}-${c.aviso || ''}`,
+  };
+}
+
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { title: 'Menú familiar', body: event.data && event.data.text() }; }
-  event.waitUntil(self.registration.showNotification(data.title || '📌 Cita', {
-    body: data.body || '',
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }
+  const mostrar = (n) => self.registration.showNotification(n.title, {
+    body: n.body || '',
     icon: 'icons/icon-192.png',
     badge: 'icons/icon-192.png',
-    tag: data.tag || undefined,
-    data: { url: data.url || './#citas' },
-  }));
+    tag: n.tag || undefined,
+    data: { url: './#citas' },
+  });
+  event.waitUntil(
+    abrirAviso(data.p).then((c) => mostrar(textoAviso(c)))
+      // Sin la clave (por ejemplo, tras borrar los datos del navegador): un aviso sin detalles
+      .catch(() => mostrar({ title: data.title || '📌 Tienes una cita', body: data.body || 'Abre Menú familiar para verla.' })),
+  );
 });
 
 // Al tocar el aviso se abre la app en la pestaña Citas

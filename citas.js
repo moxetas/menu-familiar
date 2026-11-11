@@ -5,8 +5,9 @@
 //              notas, avisos: { semana, dia }, zona (zona horaria del móvil que la apuntó) }
 //
 // Avisos:
-// - En el móvil, aunque la app esté cerrada: cada móvil se suscribe con «Activar avisos». Un proceso de GitHub
-//   (.github/workflows/avisos.yml) mira las citas cada hora y envía el aviso una semana antes y un día antes.
+// - En el móvil, aunque la app esté cerrada: cada móvil se suscribe con «Activar avisos». La app deja los avisos
+//   cifrados en la cola (avisos.js) y el servicio de avisos (repositorio moxetas/avisos-familia) los envía cada hora:
+//   una semana antes y un día antes.
 // - Dentro de la app: al abrirla sale un recordatorio con las citas que tocan.
 
 const TIPOS_CITA = {
@@ -263,21 +264,20 @@ function bindAvisos() {
     if (!info) return;
     info.soloDe = b.dataset.v;
     try {
-      await Familia.raw(`push/${info.id}/soloDe`, 'PUT', info.soloDe || null);
-      localStorage.setItem(PUSH_LS, JSON.stringify(info));
+      await apuntarMovil(info);
       render();
     } catch (e) { toast('No se ha podido guardar. ¿Hay conexión?'); }
   });
   // Cuándo pasó por última vez el servicio que envía los avisos
   const el = $('#push-servidor');
-  if (el) {
-    Familia.raw('servidor').then((s) => {
+  if (el && Familia.code) {
+    fetch(`${dbFor(Familia.code)}/estado-avisos.json`, { cache: 'no-store' }).then((r) => r.json()).then((s) => {
       if (!document.body.contains(el)) return;
       if (s?.ultimaVez) {
         const min = Math.round((Date.now() - s.ultimaVez) / 60000);
         el.textContent = `El servicio de avisos pasó por última vez ${min < 2 ? 'hace un momento' : min < 120 ? `hace ${min} minutos` : `hace ${Math.round(min / 60)} horas`}.${min > 180 ? ' Debería pasar cada hora: algo no va bien.' : ''}`;
       } else {
-        el.textContent = 'El servicio de avisos todavía no ha pasado. Si dentro de una hora sigue así, falta ponerle el código de familia en GitHub (secreto FAMILIA_CODIGO).';
+        el.textContent = 'El servicio de avisos todavía no ha pasado. Debería pasar cada hora: si dentro de una hora sigue así, algo no va bien.';
       }
     }).catch(() => { el.textContent = ''; });
   }
@@ -286,39 +286,50 @@ function bindAvisos() {
 const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const fromB64url = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (ch) => ch.charCodeAt(0));
 
-// Claves para firmar los avisos (VAPID). Las crea el primer móvil que activa los avisos y se guardan con la familia.
-async function clavesAvisos() {
-  let pub = await Familia.raw('vapid/publicKey');
-  if (pub) return pub;
-  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
-  const mine = b64url(await crypto.subtle.exportKey('raw', kp.publicKey));
-  const jwk = await crypto.subtle.exportKey('jwk', kp.privateKey);
-  await Familia.raw('vapid', 'PUT', { publicKey: mine, privateKey: jwk.d, creada: Date.now() });
-  // Por si otro móvil las ha creado a la vez: se usa la que quede guardada
-  await new Promise((r) => setTimeout(r, 1200));
-  pub = await Familia.raw('vapid/publicKey');
-  return pub || mine;
+// Apunta este móvil en el servicio de avisos (avisos.js): /subs/<huella de la familia>/m_<móvil>
+async function apuntarMovil(info) {
+  const code = Familia.code;
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  // Los móviles apuntados antes usaban las claves de cada familia: se cambian por las del servicio
+  if (sub && b64url(sub.options?.applicationServerKey || new ArrayBuffer(0)) !== Avisos.VAPID_PUBLIC) { await sub.unsubscribe(); sub = null; }
+  sub ||= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64url(Avisos.VAPID_PUBLIC) });
+  const json = sub.toJSON();
+  await Avisos.guardarClave(code);
+  const res = await fetch(`${dbFor(code)}/subs/${await Avisos.famId(code)}/m_${info.id}.json`, {
+    method: 'PUT',
+    body: JSON.stringify({ e: json.endpoint, k: json.keys, a: 'm', m: await Avisos.miembroId(code, info.soloDe), d: info.dispositivo, t: Date.now() }),
+  });
+  if (!res.ok) throw new Error(`Firebase respondió ${res.status}`);
+  info.v = 2;
+  localStorage.setItem(PUSH_LS, JSON.stringify(info));
 }
 
 async function activarAvisos() {
   try {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { toast('Sin permiso no puedo avisarte'); render(); return; }
-    const reg = await navigator.serviceWorker.ready;
-    const pub = await clavesAvisos();
-    let sub = await reg.pushManager.getSubscription();
-    if (sub && b64url(sub.options?.applicationServerKey || new ArrayBuffer(0)) !== pub) { await sub.unsubscribe(); sub = null; }
-    sub ||= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: fromB64url(pub) });
-    const json = sub.toJSON();
     const info = { id: deviceId(), dispositivo: nombreDispositivo(), soloDe: '' };
-    await Familia.raw(`push/${info.id}`, 'PUT', { endpoint: json.endpoint, keys: json.keys, dispositivo: info.dispositivo, desde: Date.now() });
-    localStorage.setItem(PUSH_LS, JSON.stringify(info));
+    await apuntarMovil(info);
+    await Avisos.actualizar(true, 0);   // se ponen ya en la cola los avisos de las próximas citas
     render();
     toast('Avisos activados');
+    const reg = await navigator.serviceWorker.ready;
     reg.showNotification('🔔 Avisos activados', { body: 'Te avisaré una semana antes y un día antes de cada cita.', icon: 'icons/icon-192.png', tag: 'prueba' }).catch(() => {});
   } catch (e) {
     toast(`No se han podido activar los avisos${e && e.message ? `: ${e.message}` : ''}`);
   }
+}
+
+// Al abrir la app: los móviles con los avisos del sistema de antes (solo para una familia) se pasan solos al servicio nuevo
+async function actualizarAvisosDeAntes() {
+  const info = pushInfo();
+  if (!Familia.code || !info || info.v === 2 || !('PushManager' in window) || Notification.permission !== 'granted') return;
+  try {
+    await apuntarMovil(info);
+    await Familia.raw(`push/${info.id}`, 'DELETE').catch(() => {});
+    await Familia.raw('vapid', 'DELETE').catch(() => {});   // las claves de antes estaban guardadas con la familia
+  } catch (e) { /* se intentará la próxima vez */ }
 }
 
 async function desactivarAvisos() {
@@ -327,7 +338,7 @@ async function desactivarAvisos() {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) await sub.unsubscribe();
-    if (info) await Familia.raw(`push/${info.id}`, 'DELETE');
+    if (info && Familia.code) await fetch(`${dbFor(Familia.code)}/subs/${await Avisos.famId(Familia.code)}/m_${info.id}.json`, { method: 'DELETE' });
   } catch (e) { /* aunque falle, se olvida en este móvil */ }
   try { localStorage.removeItem(PUSH_LS); } catch (e) { /* nada */ }
   render();

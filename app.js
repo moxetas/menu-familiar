@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 20;
+const APP_VERSION = 21;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -39,6 +39,7 @@ function saveLocal() {
 function save() {
   saveLocal();
   Familia.changed();
+  Avisos.actualizar();   // avisos con la app cerrada (solo si la familia los usa)
 }
 
 // ---------- Utilidades ----------
@@ -785,6 +786,8 @@ if (location.hash === '#citas') { view.tab = 'citas'; history.replaceState(null,
 
 render();
 Familia.start();
+// Avisos con la app cerrada: los móviles con el sistema de antes se pasan al nuevo, y se pone al día la cola
+actualizarAvisosDeAntes().then(() => Avisos.actualizar(false, 4000));
 guiaPrimeraVez();
 // Recordatorio de citas al abrir la app y al volver a ella
 setTimeout(comprobarAvisos, 800);

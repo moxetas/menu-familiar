@@ -12,8 +12,14 @@
 //   En Firebase (/familias/<código>/menu-c) solo hay textos cifrados: ni el dueño de la base de
 //   datos ni nadie sin el código puede leer los platos, menús, citas o la lista de la compra.
 
-const FIREBASE_DB = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
-const FAMILIA_VERSION = 20;
+// Dos bases de datos (las mismas que Finanzas familiares):
+// - la de siempre, para los códigos creados antes de publicar la app (los de la familia de Moxetas);
+// - la pública, para los códigos nuevos, que empiezan por «1» (los de antes nunca llevan «1»).
+// Así lo que haga la gente que descarga la app nunca llena la base de la familia.
+const FIREBASE_DB_FAMILIA = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
+const FIREBASE_DB_PUBLICA = 'https://moxetas-familias-default-rtdb.europe-west1.firebasedatabase.app';
+const dbFor = (code) => (String(code || '').toLowerCase().replace(/[^a-z0-9]/g, '').startsWith('1') ? FIREBASE_DB_PUBLICA : FIREBASE_DB_FAMILIA);
+const FAMILIA_VERSION = 21;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -43,7 +49,7 @@ const Familia = (() => {
   const stable = (v) => JSON.stringify(v ?? null, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)
     ? Object.keys(x).sort().reduce((o, kk) => { o[kk] = x[kk]; return o; }, {}) : x));
   const fbKey = (s) => norm(s).replace(/[.#$[\]/]/g, '_') || '_';
-  const url = () => `${FIREBASE_DB}/familias/${info.code}/menu-c.json`;
+  const url = () => `${dbFor(info.code)}/familias/${info.code}/menu-c.json`;
   // Partes de la familia que van cifradas (antes del cifrado estaban sin cifrar en la raíz de la familia)
   const MENU_KEYS = ['dishes', 'plan', 'dismissed', 'settings', 'shopping', 'members', 'agua', 'citas'];
   const EMPTY = { dishes: {}, plan: {}, dismissed: {}, shopping: {}, members: {}, agua: {}, citas: {} };
@@ -215,7 +221,7 @@ const Familia = (() => {
     if (!res.ok) throw new Error(String(res.status));
     const cur = await res.json();
     if (!cur || !count(cur)) {
-      const oldRes = await fetch(`${FIREBASE_DB}/familias/${info.code}.json`);
+      const oldRes = await fetch(`${dbFor(info.code)}/familias/${info.code}.json`);
       const all = oldRes.ok ? (await oldRes.json()) || {} : {};
       const old = Object.fromEntries(MENU_KEYS.filter((k) => all[k] !== undefined).map((k) => [k, all[k]]));
       if (count(old)) {
@@ -224,7 +230,7 @@ const Familia = (() => {
         for (const [p, v] of Object.entries(batch)) if (v !== null) tree = setPath(tree, p, v);
         const put = await fetch(url(), { method: 'PUT', body: JSON.stringify(tree) });
         if (!put.ok) throw new Error(String(put.status));
-        await fetch(`${FIREBASE_DB}/familias/${info.code}/menu-migrado.json`, { method: 'PUT', body: JSON.stringify(Date.now()) }).catch(() => {});
+        await fetch(`${dbFor(info.code)}/familias/${info.code}/menu-migrado.json`, { method: 'PUT', body: JSON.stringify(Date.now()) }).catch(() => {});
         note(`datos pasados a cifrado (${count(batch)} partes)`);
       }
     }
@@ -238,9 +244,9 @@ const Familia = (() => {
     if (cleaned || !info.code) return;
     cleaned = true;
     try {
-      const when = await (await fetch(`${FIREBASE_DB}/familias/${info.code}/menu-migrado.json`)).json();
+      const when = await (await fetch(`${dbFor(info.code)}/familias/${info.code}/menu-migrado.json`)).json();
       if (typeof when === 'number' && Date.now() - when > OLD_GRACE) {
-        await fetch(`${FIREBASE_DB}/familias/${info.code}.json`, { method: 'PATCH', body: JSON.stringify(Object.fromEntries(MENU_KEYS.map((k) => [k, null]))) });
+        await fetch(`${dbFor(info.code)}/familias/${info.code}.json`, { method: 'PATCH', body: JSON.stringify(Object.fromEntries(MENU_KEYS.map((k) => [k, null]))) });
         note('borrados los datos sin cifrar de antes');
       }
     } catch (e) { /* otro día */ }
@@ -399,16 +405,19 @@ const Familia = (() => {
 
   // ---------- Código de familia ----------
 
+  // Código nuevo: «1» (base de datos pública) y 19 letras o cifras al azar
   function newCode() {
     const abc = 'abcdefghjkmnpqrstuvwxyz23456789';
-    const r = new Uint32Array(20);
+    const r = new Uint32Array(19);
     crypto.getRandomValues(r);
-    const s = Array.from(r, (n) => abc[n % abc.length]).join('');
+    const s = '1' + Array.from(r, (n) => abc[n % abc.length]).join('');
     return s.match(/.{4}/g).join('-');
   }
   function readCode(text) {
     const m = String(text).toLowerCase().match(/[a-z0-9]{4}(?:-[a-z0-9]{4}){4}/);
-    const s = (m ? m[0] : String(text).toLowerCase()).replace(/[^a-z0-9]/g, '');
+    let s = (m ? m[0] : String(text).toLowerCase()).replace(/[^a-z0-9]/g, '');
+    // Los códigos nunca llevan «l» ni «i»: al principio, quien lo copia a mano ha querido poner «1»
+    if (/^[li]/.test(s)) s = '1' + s.slice(1);
     return s.length === 20 ? s.match(/.{4}/g).join('-') : null;
   }
 
@@ -596,10 +605,10 @@ const Familia = (() => {
   // (suscripciones a los avisos, claves para enviarlos, estado del servicio de avisos)
   async function raw(path, method = 'GET', value) {
     if (!info.code) throw new Error('sin familia');
-    const res = await fetch(`${FIREBASE_DB}/familias/${info.code}/${path}.json`, method === 'GET' ? {} : { method, body: JSON.stringify(value) });
+    const res = await fetch(`${dbFor(info.code)}/familias/${info.code}/${path}.json`, method === 'GET' ? {} : { method, body: JSON.stringify(value) });
     if (!res.ok) throw new Error(`Firebase respondió ${res.status}`);
     return res.json();
   }
 
-  return { start, changed, retry, card, bind, openJoin, raw, get active() { return !!info.code; } };
+  return { start, changed, retry, card, bind, openJoin, raw, get active() { return !!info.code; }, get code() { return info.code || null; }, get online() { return status === 'online'; } };
 })();
