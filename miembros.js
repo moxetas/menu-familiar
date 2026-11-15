@@ -294,7 +294,7 @@ function addAgua(m, ml) {
 }
 
 function consumo(from, to) {
-  const res = Object.fromEntries((state.members || []).map((m) => [m.id, { kcal: 0, p: 0, g: 0, h: 0, sal: 0, sat: 0, roja: 0, purinas: 0, days: new Set(), dishes: new Map() }]));
+  const res = Object.fromEntries((state.members || []).map((m) => [m.id, { kcal: 0, p: 0, g: 0, h: 0, sal: 0, sat: 0, roja: 0, purinas: 0, procesados: 0, comidas: 0, days: new Set(), dishes: new Map() }]));
   const sinReceta = new Set();
   for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
     const key = iso(d);
@@ -310,6 +310,8 @@ function consumo(from, to) {
           r.sal += pr.sal * f; r.sat += pr.sat * f;
           if (pr.roja) r.roja++;
           if (pr.purinas.length) r.purinas++;
+          if (pr.procesados.length) r.procesados++;
+          r.comidas++;
           r.days.add(key);
           // Desglose por plato: cuántas veces, en qué comidas y cuántas raciones en total
           const dk = norm(dish.name);
@@ -352,7 +354,7 @@ function periodRange(kind, off) {
 
 // ---------- Pestaña Familia ----------
 
-const famView = { periodo: 'semana', off: 0, open: null, nut: 'kcal', dish: null };
+const famView = { periodo: 'semana', off: 0, open: null, nut: 'kcal', dish: null, nums: null };
 
 // Nutrientes del desglose: [nombre, cómo se escribe el valor]
 const fmtG = (v) => `${v >= 10 ? fmtInt(v) : fmt1(v)} g`;
@@ -423,7 +425,7 @@ function renderFamily(main) {
         <span class="avatar" aria-hidden="true">${avatarOf(m)}</span>
         <span class="member-text">
           <strong>${esc(m.name)}</strong>
-          <span class="muted small">${[m.edad ? `${m.edad} años` : '', `≈ ${fmtInt(needKcal(m))} kcal al día`].filter(Boolean).join(' · ')}</span>
+          <span class="muted small">${[m.edad ? `${m.edad} años` : '', ACTIVIDAD[m.actividad] ? `actividad ${ACTIVIDAD[m.actividad].label.toLowerCase()}` : ''].filter(Boolean).join(' · ')}</span>
           ${m.salud?.activo ? `<span class="health-tag">🩺 ${esc(m.salud.nombre || 'Plan de salud')}</span>` : ''}
         </span>
         <span class="member-factor"><strong>${fmtFactor(factorOf(m))}</strong><span>ración</span></span>
@@ -447,15 +449,16 @@ function renderFamily(main) {
     ${healthMembers().some((m) => m.salud.ieca) ? `<div class="notice danger-note"><p class="small"><strong>⛔ Nunca sal de régimen ni «sal dietética»</strong> (Diätsalz, sal baja en sodio, sustitutos de sal): son cloruro potásico y, con ${esc(healthMembers().filter((m) => m.salud.ieca).map((m) => m.name).join(' y '))} tomando un IECA, pueden subir el potasio peligrosamente.</p></div>` : ''}
 
     ${members.length ? `
-      <h2>¿Cuánto come cada uno?</h2>
+      <h2>¿Cómo comemos?</h2>
       <div class="chips" id="per-kind">${Object.entries(PERIODOS).map(([k, l]) => chip(k, l, famView.periodo)).join('')}</div>
       <div class="week-nav">
         <button type="button" class="round" id="per-prev" aria-label="Anterior">‹</button>
         <strong style="text-align:center">${esc(range.label)}</strong>
         <button type="button" class="round" id="per-next" aria-label="Siguiente">›</button>
       </div>
+      ${variedadCard(range)}
       <div class="intake">${members.map((m) => intakeCard(m, res[m.id], range)).join('')}</div>
-      <p class="muted small">Cuenta la comida y la cena del menú, con la ración de cada uno. No incluye desayunos ni meriendas, por eso lo recomendado es el 60 % de lo que necesita al día.${sinReceta.length ? ` Sin receta no se pueden contar: ${esc(sinReceta.slice(0, 6).join(', '))}${sinReceta.length > 6 ? '…' : ''}.` : ''}</p>
+      ${sinReceta.length ? `<p class="muted small">Sin receta no se pueden contar la sal ni la proteína de: ${esc(sinReceta.slice(0, 6).join(', '))}${sinReceta.length > 6 ? '…' : ''}.</p>` : ''}
     ` : ''}
 
     <h2>Compartir entre móviles</h2>
@@ -471,6 +474,11 @@ function renderFamily(main) {
   main.querySelectorAll('#per-kind .chip').forEach((b) => b.onclick = () => { famView.periodo = b.dataset.v; famView.off = 0; render(); });
   $('#per-prev')?.addEventListener('click', () => { famView.off--; render(); });
   $('#per-next')?.addEventListener('click', () => { famView.off++; render(); });
+  main.querySelectorAll('[data-nums]').forEach((b) => b.onclick = () => {
+    famView.nums = famView.nums === b.dataset.nums ? null : b.dataset.nums;
+    famView.open = null; famView.dish = null;
+    render();
+  });
   main.querySelectorAll('[data-desglose]').forEach((b) => b.onclick = () => {
     famView.open = famView.open === b.dataset.desglose ? null : b.dataset.desglose;
     famView.dish = null;
@@ -496,48 +504,160 @@ function kcalText(m, avg, one) {
   return `${pre}<strong>va bien</strong>: ${base}`;
 }
 
+// ---------- Variedad del menú (para toda la familia) ----------
+// Raciones a la semana entre comida y cena, según las guías de alimentación habituales
+const VARIEDAD = [
+  { id: 'pescado', icon: '🐟', nombre: 'Pescado', cats: ['pescado'], min: 3, txt: '3 o 4 a la semana' },
+  { id: 'legumbres', icon: '🫘', nombre: 'Legumbres', cats: ['legumbres'], min: 2, txt: '2 a 4 a la semana' },
+  { id: 'verdura', icon: '🥦', nombre: 'Verdura de plato', cats: ['verdura'], min: 3, txt: 'al menos 3; además de la guarnición' },
+  { id: 'blanca', icon: '🍗', nombre: 'Pollo, pavo y conejo', cats: ['ave', 'conejo'], max: 4, txt: 'hasta 3 o 4' },
+  { id: 'roja', icon: '🥩', nombre: 'Ternera, cerdo y cordero', cats: ['carne', 'cerdo', 'cordero'], max: 2, txt: 'no más de 2' },
+  { id: 'huevos', icon: '🥚', nombre: 'Huevos', cats: ['huevos'], max: 4, txt: 'hasta 3 o 4' },
+];
+
+function variedad(from, to) {
+  const n = Object.fromEntries(VARIEDAD.map((v) => [v.id, 0]));
+  const days = new Set();
+  for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+    const day = state.plan[iso(d)];
+    if (!day) continue;
+    for (const meal of Object.keys(day)) {
+      const list = dishesOf(day[meal]);
+      if (list.length) days.add(iso(d));
+      for (const dish of list) {
+        const v = VARIEDAD.find((x) => x.cats.includes(dish.cat));
+        if (v) n[v.id]++;
+      }
+    }
+  }
+  return { n, days: days.size };
+}
+
+// Estado de una fila: ok (verde), casi (ámbar), mal (rojo)
+const DOT = { ok: '🟢', casi: '🟡', mal: '🔴', info: '⚪' };
+function filaSemaforo(lvl, icon, label, frase, detalle) {
+  return `<div class="sem-row sem-${lvl}">
+    <span class="sem-dot" aria-hidden="true">${DOT[lvl]}</span>
+    <span class="sem-txt"><strong>${icon} ${label}</strong> <span>${frase}</span>${detalle ? `<span class="muted small">${detalle}</span>` : ''}</span>
+  </div>`;
+}
+
+function variedadCard(range) {
+  const { n, days } = variedad(range.from, range.to);
+  if (!days) return '<div class="card"><p class="muted small">No hay menú en estas fechas.</p></div>';
+  if (range.days === 1) {
+    const hoy = VARIEDAD.filter((v) => n[v.id]).map((v) => `${v.icon} ${v.nombre.toLowerCase()}`);
+    return `<div class="card variedad"><p><strong>🍽️ En el menú de este día</strong></p><p class="small">${hoy.length ? esc(hoy.join(' · ')) : 'Platos de «otros».'}</p>
+      <p class="muted small">El equilibrio se ve mejor por semanas.</p></div>`;
+  }
+  const sem = days / 7;   // semanas con menú
+  const porSem = (x) => x / sem;
+  const cuenta = (x) => (range.days > 7 ? `${fmt1(porSem(x))} a la semana` : `${x} ${x === 1 ? 'vez' : 'veces'}`);
+  const rows = VARIEDAD.map((v) => {
+    const x = n[v.id]; const w = porSem(x);
+    let lvl; let frase;
+    if (v.min) {
+      lvl = w >= v.min - 0.01 ? 'ok' : w >= v.min * 0.6 ? 'casi' : 'mal';
+      frase = lvl === 'ok' ? 'bien' : lvl === 'casi' ? 'un poco escaso' : 'falta';
+    } else {
+      lvl = w <= v.max + 0.01 ? 'ok' : w <= v.max + 1.01 ? 'casi' : 'mal';
+      frase = lvl === 'ok' ? 'bien' : lvl === 'casi' ? 'algo de más' : 'demasiado';
+    }
+    return filaSemaforo(lvl, v.icon, v.nombre, `${cuenta(x)} · ${frase}`, `Lo recomendado: ${v.txt}.`);
+  }).join('');
+  const faltan = VARIEDAD.filter((v) => v.min && porSem(n[v.id]) < v.min - 0.01).map((v) => v.nombre.toLowerCase());
+  const sobran = VARIEDAD.filter((v) => v.max && porSem(n[v.id]) > v.max + 0.01).map((v) => v.nombre.toLowerCase());
+  const consejo = !faltan.length && !sobran.length ? '¡Menú muy equilibrado! 👏'
+    : [faltan.length ? `Pon más ${faltan.join(' y ')}` : '', sobran.length ? `${faltan.length ? 'y' : 'Pon'} menos ${sobran.join(' y ')}` : ''].filter(Boolean).join(' ') + '.';
+  return `<div class="card variedad">
+    <p><strong>🥗 ¿Es variado el menú?</strong> <span class="muted small">${days < range.days ? `${days} de ${range.days} días con menú` : ''}</span></p>
+    <div class="sem">${rows}</div>
+    <p class="small"><strong>${esc(consejo)}</strong></p>
+  </div>`;
+}
+
+// ---------- Tarjeta de cada persona ----------
 function intakeCard(m, r, range) {
   const daysWith = r.days.size;
-  const avg = daysWith ? r.kcal / daysWith : 0;
-  const rec = needKcal(m) * COMIDA_Y_CENA;
-  const pct = daysWith ? Math.round((avg / rec) * 100) : 0;
   const one = range.days === 1;
+  const nums = famView.nums === m.id;
   return `<div class="intake-card">
-    <div class="intake-head"><span class="avatar small" aria-hidden="true">${avatarOf(m)}</span><strong>${esc(m.name)}</strong></div>
+    <div class="intake-head"><span class="avatar small" aria-hidden="true">${avatarOf(m)}</span><strong>${esc(m.name)}</strong>
+      <span class="muted small">${daysWith ? `${r.comidas} ${r.comidas === 1 ? 'plato' : 'platos'} · ración ${fmtFactor(factorOf(m))}` : ''}</span></div>
     ${daysWith ? `
-      <div class="hero"><strong>${fmtInt(r.kcal)}</strong><span>kcal en comida y cena${one ? '' : ', en total'}</span></div>
-      ${one ? '' : `<p class="small">Media de <strong>${fmtInt(avg)} kcal</strong> al día, en ${daysWith} ${daysWith === 1 ? 'día' : 'días'} con menú</p>`}
-      <div class="meter" role="img" aria-label="${pct} % de lo que le toca para comida y cena">
-        <span style="width:${Math.min(100, pct)}%"></span>
-      </div>
-      <p class="small">${kcalText(m, avg, one)}</p>
-      <div class="macros small-macros">
-        <div><strong>${fmtInt(r.p / daysWith)} g</strong><span>proteínas</span></div>
-        <div><strong>${fmtInt(r.g / daysWith)} g</strong><span>grasas</span></div>
-        <div><strong>${fmtInt(r.h / daysWith)} g</strong><span>hidratos</span></div>
-      </div>
-      <p class="muted small" style="text-align:center">${one ? 'en este día' : 'media por día'}</p>
       ${m.salud?.activo ? healthIntake(m, r, range, daysWith) : ''}
-      <button type="button" class="btn small" data-desglose="${m.id}" aria-expanded="${famView.open === m.id}">${famView.open === m.id ? 'Ocultar el desglose' : '📊 Ver de dónde sale'}</button>
-      ${famView.open === m.id ? breakdown(m, r, range) : ''}`
+      <button type="button" class="btn small" data-nums="${m.id}" aria-expanded="${nums}">${nums ? 'Ocultar los números' : '🔢 Ver números (aproximados)'}</button>
+      ${nums ? numerosCard(m, r, range, daysWith, one) : ''}`
     : '<p class="muted small">No hay comidas suyas en el menú de estas fechas.</p>'}
   </div>`;
 }
 
+function numerosCard(m, r, range, daysWith, one) {
+  const avg = r.kcal / daysWith;
+  return `<div class="numeros">
+    <p class="notice small">Son <strong>orientativos</strong>: salen de las recetas con raciones medias. Lo que de verdad se sirve en el plato puede variar bastante, y no cuentan desayunos ni meriendas.</p>
+    <div class="macros small-macros">
+      <div><strong>≈ ${fmtInt(Math.round(avg / 50) * 50)}</strong><span>kcal${one ? '' : ' al día'}</span></div>
+      <div><strong>${fmtInt(r.p / daysWith)} g</strong><span>proteínas</span></div>
+      <div><strong>${fmtInt(r.g / daysWith)} g</strong><span>grasas</span></div>
+      <div><strong>${fmtInt(r.h / daysWith)} g</strong><span>hidratos</span></div>
+    </div>
+    <p class="muted small" style="text-align:center">${one ? 'comida y cena de este día' : `media por día de comida y cena, en ${daysWith} ${daysWith === 1 ? 'día' : 'días'}`}</p>
+    <p class="small">${kcalText(m, avg, one)}</p>
+    <button type="button" class="btn small" data-desglose="${m.id}" aria-expanded="${famView.open === m.id}">${famView.open === m.id ? 'Ocultar el desglose' : '📊 Ver de dónde sale'}</button>
+    ${famView.open === m.id ? breakdown(m, r, range) : ''}
+  </div>`;
+}
+
+// Semáforo del plan de salud. Comida y cena son más o menos el 60 % del día, y el desayuno
+// y la merienda suelen sumar 15–20 g de proteína: con eso se comparan los límites de todo el día.
 function healthIntake(m, r, range, daysWith) {
   const s = m.salud;
   const sal = r.sal / daysWith;
   const prot = r.p / daysWith;
-  const weeks = range.days / 7;
-  const row = (icon, label, value, extra) => `<div class="hrow"><span>${icon}</span><span>${label}</span><strong>${value}</strong>${extra ? `<span class="muted small hextra">${extra}</span>` : ''}</div>`;
+  const sat = r.sat / daysWith;
+  const sem = range.days === 1 ? 1 : daysWith / 7;
+  const one = range.days === 1;
+  const vez = (x) => `${fmt1(x)} ${x === 1 ? 'vez' : 'veces'}`;
+  const porSem = (x) => (one ? `${x} hoy` : range.days > 7 ? `${fmt1(x / sem)} a la semana` : vez(x));
+  const rows = [];
+  if (s.sal) {
+    const lvl = sal <= s.sal * 0.6 ? 'ok' : sal <= s.sal * 0.8 ? 'casi' : 'mal';
+    const frase = { ok: 'bien', casi: 'justito: poca sal al cocinar', mal: 'demasiada: el día se pasará de ' + s.sal + ' g' }[lvl];
+    rows.push(filaSemaforo(lvl, '🧂', 'Sal', frase, `≈ ${fmt1(sal)} g ${one ? '' : 'al día '}en comida y cena, sin la del salero. Su máximo: ${s.sal} g en todo el día.`));
+  }
+  if (s.protMax) {
+    const lo = Math.max(0, (s.protMin || 0) - 20); const hi = s.protMax - 15;
+    const lvl = prot > s.protMax ? 'mal' : prot > hi ? 'casi' : prot < lo * 0.8 ? 'casi' : 'ok';
+    const frase = prot > s.protMax ? 'demasiada: menos carne o pescado en el plato' : prot > hi ? 'algo alta: un poco menos de carne o pescado' : prot < lo * 0.8 ? 'algo baja' : 'bien';
+    rows.push(filaSemaforo(lvl, '🍖', 'Proteína', frase, `≈ ${fmtInt(prot)} g ${one ? '' : 'al día '}en comida y cena; con desayuno y merienda, unos ${fmtInt(prot + 15)}–${fmtInt(prot + 20)} g. Su objetivo: ${s.protMin || 0}–${s.protMax} g en todo el día.`));
+  }
+  if (s.rojaMax != null) {
+    const w = r.roja / sem;
+    const lvl = one ? (r.roja ? 'info' : 'ok') : w <= s.rojaMax + 0.01 ? 'ok' : w <= s.rojaMax + 1.01 ? 'casi' : 'mal';
+    const frase = one ? (r.roja ? 'hoy toca: cuenta para la semana' : 'nada hoy') : { ok: 'bien', casi: 'una de más', mal: 'demasiada' }[lvl];
+    rows.push(filaSemaforo(lvl, '🥩', 'Carne roja', frase, `${porSem(r.roja)}. Su máximo: ${s.rojaMax} a la semana.`));
+  }
+  if (s.procesados) {
+    const w = r.procesados / sem;
+    const lvl = one ? (r.procesados ? 'casi' : 'ok') : w <= 1.01 ? 'ok' : w <= 3.01 ? 'casi' : 'mal';
+    rows.push(filaSemaforo(lvl, '🏭', 'Ultraprocesados', { ok: 'bien', casi: 'mejor caseros', mal: 'demasiados' }[lvl], `Platos con embutido, salchichas o similares: ${porSem(r.procesados)}.`));
+  }
+  if (s.urico) {
+    const w = r.purinas / sem;
+    const lvl = one ? (r.purinas ? 'info' : 'ok') : w <= 2.01 ? 'ok' : w <= 4.01 ? 'casi' : 'mal';
+    rows.push(filaSemaforo(lvl, '🦐', 'Purinas', { ok: 'bien', casi: 'con moderación', mal: 'demasiadas', info: 'hoy hay alguno' }[lvl], `Platos con purinas altas (marisco, vísceras, sardinas…): ${porSem(r.purinas)}.`));
+  }
+  if (s.satBaja) {
+    const lvl = sat <= 13 ? 'ok' : sat <= 18 ? 'casi' : 'mal';
+    rows.push(filaSemaforo(lvl, '🧈', 'Grasa saturada', { ok: 'bien', casi: 'algo alta', mal: 'alta' }[lvl], `≈ ${fmt1(sat)} g ${one ? '' : 'al día '}en comida y cena, sin contar el aceite de oliva.`));
+  }
+  const malos = (rows.join('').match(/sem-mal/g) || []).length;
+  const casi = (rows.join('').match(/sem-casi/g) || []).length;
+  const resumen = malos ? `Hay ${malos} ${malos === 1 ? 'cosa' : 'cosas'} que cambiar` : casi ? 'Casi todo bien' : 'Todo bien 👏';
   return `<div class="health-intake">
-    <p class="small"><strong>🩺 Su plan${s.nombre ? `: ${esc(s.nombre)}` : ''}</strong> <span class="muted">(media por día en comida y cena)</span></p>
-    ${s.sal ? row('🧂', 'Sal', `${fmt1(sal)} g`, `máximo ${s.sal} g en todo el día · sin contar la que se añada al cocinar`) : ''}
-    ${s.sal ? `<div class="meter" role="img" aria-label="${Math.round((sal / s.sal) * 100)} % de su máximo de sal"><span style="width:${Math.min(100, (sal / s.sal) * 100)}%"></span></div>` : ''}
-    ${s.protMax ? row('🍖', 'Proteína', `${fmtInt(prot)} g`, `objetivo ${s.protMin || 0}–${s.protMax} g en todo el día; el desayuno y la merienda suelen sumar 15–20 g`) : ''}
-    ${s.satBaja ? row('🧈', 'Grasa saturada', `${fmt1(r.sat / daysWith)} g`, 'cuanto menos, mejor para el colesterol') : ''}
-    ${s.rojaMax != null ? row('🥩', 'Carne roja', `${r.roja} ${r.roja === 1 ? 'vez' : 'veces'}`, range.days >= 7 ? `máximo ${s.rojaMax} a la semana${weeks > 1 ? ` (${fmt1(r.roja / weeks)} por semana)` : ''}` : `máximo ${s.rojaMax} a la semana`) : ''}
-    ${s.urico ? row('🦐', 'Platos con purinas altas', `${r.purinas}`, 'con moderación por el ácido úrico') : ''}
+    <p class="small"><strong>🩺 ${esc(s.nombre || 'Su plan')}: ${resumen}</strong></p>
+    <div class="sem">${rows.join('')}</div>
   </div>`;
 }
 

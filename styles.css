@@ -480,6 +480,19 @@ textarea.short { min-height: 96px; }
 .danger-note { background: color-mix(in srgb, var(--carne) 14%, var(--surface)); }
 .danger-text { color: var(--carne); font-weight: 600; }
 .health-intake { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sem { display: grid; gap: 6px; }
+.sem-row { display: grid; grid-template-columns: 1.4em 1fr; gap: 6px; align-items: start; padding: 6px 10px; border-radius: 12px; background: var(--chip, rgba(127,127,127,.08)); }
+.sem-row.sem-mal { background: rgba(220, 38, 38, .10); }
+.sem-row.sem-casi { background: rgba(234, 179, 8, .13); }
+.sem-row.sem-ok { background: rgba(22, 163, 74, .08); }
+.sem-dot { font-size: .9rem; line-height: 1.5; }
+.sem-txt { font-size: .92rem; line-height: 1.35; }
+.sem-txt > span:not(.muted) { font-weight: 600; }
+.sem-txt > span:not(.muted)::before { content: '· '; color: var(--muted, #888); font-weight: 400; }
+.sem-txt > .muted { display: block; margin-top: 1px; }
+.variedad { display: grid; gap: 8px; }
+.numeros { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.intake-head .muted { margin-left: auto; }
 .hrow { display: grid; grid-template-columns: 1.5em 1fr auto; align-items: baseline; gap: 4px 8px; font-size: 0.92rem; }
 .hrow strong { font-variant-numeric: tabular-nums; }
 .hextra { grid-column: 2 / -1; margin-top: -2px; }
