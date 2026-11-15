@@ -26,13 +26,18 @@ App para planificar las comidas de la semana en casa, por colores. Se instala en
 | Color | Tipo |
 | --- | --- |
 | 🔵 Azul | Pescado |
-| 🔴 Rojo | Carne |
+| 🔴 Rojo | Ternera |
+| 🌸 Rosa | Cerdo |
+| 🩵 Verde azulado | Cordero |
+| 🟫 Marrón claro | Conejo |
 | 🟠 Naranja | Pollo y pavo |
 | 🟢 Verde | Verdura |
 | 🟤 Marrón | Legumbres |
 | 🟡 Amarillo | Pasta y arroz |
 | 🟣 Morado | Huevos |
 | ⚪ Gris | Otros |
+
+Cada plato lleva un dibujo parecido a lo que es (albóndigas, chuletas, costillas, jamón, lentejas, cremas, croquetas, lasaña, calamares…). Para que el menú varíe, las cuatro carnes cuentan juntas como «carne».
 
 Los platos se guardan en el teléfono. Si se activa «Familia», también en la base de datos de Firebase del proyecto, en `/familias/<código>/menu-c`, **cifrados de extremo a extremo**: cada dato se cifra en el móvil (AES-GCM) con una clave que sale del código de familia, así que en Firebase solo hay textos cifrados y ni el dueño de la base de datos ni nadie sin el código puede leer platos, menús, citas, miembros ni la lista de la compra. Los datos de antes del cifrado (en la raíz de la familia) se pasan solos a cifrados al abrir la versión 17 y se borran una semana después.
 

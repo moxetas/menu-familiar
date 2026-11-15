@@ -16,6 +16,9 @@
   /* Colores de cada tipo */
   --pescado: #1f6fd1;
   --carne: #d23131;
+  --cerdo: #d4517d;
+  --cordero: #0f8b8d;
+  --conejo: #9a6b5b;
   --ave: #e07a12;
   --verdura: #2f9a3c;
   --legumbres: #8a5a2b;
@@ -40,6 +43,9 @@
     --shadow: none;
     --pescado: #5aa2f5;
     --carne: #f26b6b;
+    --cerdo: #f08aab;
+    --cordero: #4fc4c6;
+    --conejo: #d29c8a;
     --ave: #f5a14a;
     --verdura: #5fca6c;
     --legumbres: #c4925f;
@@ -70,6 +76,9 @@ button { cursor: pointer; }
 
 .c-pescado { --c: var(--pescado); }
 .c-carne { --c: var(--carne); }
+.c-cerdo { --c: var(--cerdo); }
+.c-cordero { --c: var(--cordero); }
+.c-conejo { --c: var(--conejo); }
 .c-ave { --c: var(--ave); }
 .c-verdura { --c: var(--verdura); }
 .c-legumbres { --c: var(--legumbres); }

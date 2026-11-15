@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 22;
+const APP_VERSION = 23;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -67,10 +67,29 @@ function weekDays(offset) {
 const fmtDay = new Intl.DateTimeFormat('es-ES', { weekday: 'long' });
 const fmtShort = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' });
 
+// Gana la palabra que sale antes en el nombre; si empiezan igual, la más larga.
+// Dentro de la carne, el tipo (cerdo, cordero, conejo) se mira en todo el nombre: «Solomillo de cerdo» → cerdo.
 function guessCat(name) {
   const n = norm(name);
-  for (const [cat, words] of PALABRAS) if (words.some((w) => n.includes(norm(w)))) return cat;
-  return 'otros';
+  let best = 'otros', pos = Infinity, len = 0;
+  for (const [cat, words] of PALABRAS) {
+    for (const w of words) {
+      const i = n.indexOf(norm(w));
+      if (i >= 0 && (i < pos || (i === pos && w.length > len))) { best = cat; pos = i; len = w.length; }
+    }
+  }
+  // «Pimientos rellenos de carne», «Berenjenas rellenas de carne»: manda lo del relleno si es carne
+  const rel = n.indexOf('rellen');
+  if (rel >= 0 && !CARNES.includes(best)) {
+    const resto = n.slice(rel);
+    for (const [cat, words] of PALABRAS) if (CARNES.includes(cat) && words.some((w) => resto.includes(norm(w)))) { best = cat; break; }
+  }
+  if (CARNES.includes(best)) {
+    for (const tipo of ['conejo', 'cordero', 'cerdo']) {
+      if (PALABRAS.find(([c]) => c === tipo)[1].some((w) => n.includes(norm(w)))) return tipo;
+    }
+  }
+  return best;
 }
 
 function toast(msg) {
@@ -102,21 +121,21 @@ function weekContext(days) {
 }
 function addToContext(ctx, p) {
   if (!p) return;
-  ctx.count[p.cat] = (ctx.count[p.cat] || 0) + 1;
+  ctx.count[grupoCat(p.cat)] = (ctx.count[grupoCat(p.cat)] || 0) + 1;
   ctx.used.add(norm(p.name));
-  ctx.prevCat = p.cat;
+  ctx.prevCat = grupoCat(p.cat);
   if (perRacion(p.name)?.roja) ctx.roja = (ctx.roja || 0) + 1;
 }
 
 function score(cand, meal, ctx, sameDayCat) {
   let s = Math.random() * 3;
-  const c = ctx.count[cand.cat] || 0;
-  const t = ctx.target[cand.cat] ?? 1;
+  const c = ctx.count[grupoCat(cand.cat)] || 0;
+  const t = ctx.target[grupoCat(cand.cat)] ?? 1;
   if (c < t) s += 1.5; else s -= (c - t + 1) * 2.5;
   if (ctx.used.has(norm(cand.name))) s -= 8;
   if (ctx.lastWeek.has(norm(cand.name))) s -= 1.5;
-  if (cand.cat === ctx.prevCat) s -= 3;
-  if (cand.cat === sameDayCat) s -= 2;
+  if (grupoCat(cand.cat) === ctx.prevCat) s -= 3;
+  if (grupoCat(cand.cat) === grupoCat(sameDayCat)) s -= 2;
   if (cand.fav) s += 0.8;
   s -= healthPenalty(cand.name, ctx);
   return s;
@@ -160,7 +179,7 @@ function fillWeek(days, redo) {
     const day = (state.plan[key] ||= {});
     let sameDayCat = null;
     for (const m of meals) {
-      if (!redo && day[m]) { sameDayCat = day[m].cat; ctx.prevCat = day[m].cat; continue; }
+      if (!redo && day[m]) { sameDayCat = day[m].cat; ctx.prevCat = grupoCat(day[m].cat); continue; }
       const p = pickMine(m, ctx, sameDayCat);
       if (!p) continue;
       day[m] = { ...p, ...pickWho(day[m]), ...(day[m]?.mas ? { mas: day[m].mas } : {}) };
@@ -199,7 +218,27 @@ function slotContext(key, meal) {
 
 const view = { tab: 'semana', week: 0, filter: 'todas', idea: null };
 
+// Una sola vez: los platos que estaban en «Carne» pasan a su tipo (cerdo, cordero, conejo…) o a lo que sean
+// según lo que va primero en el nombre («Huevos con jamón» → huevos). Se comparte con la familia.
+function separarCarnes() {
+  if (state.settings.carnesSeparadas || !state.dishes.length) return;
+  const cambios = {};
+  for (const d of state.dishes) {
+    if (d.cat !== 'carne') continue;
+    const g = guessCat(d.name);
+    if (g !== 'carne' && g !== 'otros') { d.cat = g; cambios[norm(d.name)] = g; }
+  }
+  for (const day of Object.values(state.plan)) {
+    for (const slot of Object.values(day || {})) {
+      for (const x of [slot, ...((slot && slot.mas) || [])]) if (x && cambios[norm(x.name || '')]) x.cat = cambios[norm(x.name)];
+    }
+  }
+  state.settings.carnesSeparadas = true;
+  save();
+}
+
 function render() {
+  separarCarnes();
   document.querySelectorAll('#tabs button').forEach((b) => {
     if (b.dataset.tab === view.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });

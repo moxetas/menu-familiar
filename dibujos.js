@@ -163,37 +163,307 @@ const DIBUJOS = {
     ${cara(50, 56)}`,
 };
 
-// Palabras del nombre → dibujo. Se miran en orden.
+// ---------- Más dibujos, uno por tipo de plato ----------
+const plato = (cy = 76, rx = 40) => `<ellipse cx="50" cy="${cy}" rx="${rx}" ry="10" fill="#ffffff" ${S}/>`;
+// Cuenco con caldo de un color y tropezones (lentejas, garbanzos, alubias, cremas…)
+const cuenco = (caldo, bolas = [], vapor = true) => `
+  ${vapor ? `<path d="M40 30 q-4 -5 0 -10 t0 -10 M60 30 q-4 -5 0 -10 t0 -10" fill="none" stroke="#c9b8aa" stroke-width="3" stroke-linecap="round"/>` : ''}
+  <path d="M14 48 Q14 86 50 86 Q86 86 86 48 Z" fill="#fff8ee" ${S}/>
+  <ellipse cx="50" cy="48" rx="36" ry="8" fill="${caldo}" ${S}/>
+  ${bolas.map(([x, y, r, c]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="${LINEA}" stroke-width="1.2"/>`).join('')}
+  ${cara(50, 68)}`;
+const sarten = (arroz, extra = '') => `
+  <ellipse cx="12" cy="58" rx="7" ry="4" fill="#3f3f46" ${S}/><ellipse cx="88" cy="58" rx="7" ry="4" fill="#3f3f46" ${S}/>
+  <ellipse cx="50" cy="58" rx="38" ry="20" fill="#3f3f46" ${S}/>
+  <ellipse cx="50" cy="56" rx="33" ry="15.5" fill="${arroz}"/>
+  ${extra}`;
+
+Object.assign(DIBUJOS, {
+  albondigas: () => `
+    ${plato(74, 42)}
+    <ellipse cx="50" cy="70" rx="34" ry="9" fill="#d9573f"/>
+    <circle cx="32" cy="62" r="12" fill="#8a5132" ${S}/><circle cx="68" cy="62" r="12" fill="#8a5132" ${S}/>
+    <circle cx="50" cy="55" r="15" fill="#9c5c39" ${S}/>
+    <circle cx="27" cy="57" r="3" fill="#b77a52"/><circle cx="63" cy="57" r="3" fill="#b77a52"/>
+    <path d="M24 70 q8 4 14 0 M62 71 q8 3 14 -1" fill="none" stroke="#e86a4f" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="41" cy="46" r="2.4" fill="#6cc35e"/><circle cx="57" cy="44" r="2" fill="#6cc35e"/>
+    ${cara(50, 57, 0.75)}`,
+
+  chuleta: () => `
+    <rect x="58" y="26" width="30" height="9" rx="4.5" fill="#fff6e6" ${S} transform="rotate(-30 73 30)"/>
+    <path d="M16 52 C14 34 30 24 48 28 C62 31 72 42 70 58 C68 74 50 82 34 78 C22 75 17 64 16 52 Z" fill="#fbe1d6" ${S}/>
+    <path d="M24 53 C23 41 34 34 47 36 C58 38 63 47 62 57 C60 68 48 72 37 70 C29 68 25 62 24 53 Z" fill="#f2a28b"/>
+    <path d="M30 46 q8 -4 16 0" fill="none" stroke="#f8c3b2" stroke-width="3" stroke-linecap="round"/>
+    ${cara(43, 57)}`,
+
+  costillas: () => `
+    <rect x="22" y="18" width="7" height="22" rx="3.5" fill="#fff6e6" ${S}/><rect x="38" y="15" width="7" height="24" rx="3.5" fill="#fff6e6" ${S}/>
+    <rect x="54" y="15" width="7" height="24" rx="3.5" fill="#fff6e6" ${S}/><rect x="70" y="18" width="7" height="22" rx="3.5" fill="#fff6e6" ${S}/>
+    <path d="M14 40 Q50 28 86 40 L82 74 Q50 84 18 74 Z" fill="#a4512b" ${S}/>
+    <path d="M34 40 L32 76 M50 36 L50 80 M66 40 L68 76" stroke="#7c3a1d" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M22 46 q10 -5 22 -4" fill="none" stroke="#d07a45" stroke-width="3.5" stroke-linecap="round"/>
+    ${cara(50, 60)}`,
+
+  asado: () => `
+    ${plato(78, 42)}
+    <path d="M16 62 C16 40 34 30 52 30 C72 30 84 42 84 60 C84 74 66 78 50 78 C30 78 16 74 16 62 Z" fill="#a95a32" ${S}/>
+    <path d="M24 44 q26 -10 54 2" fill="none" stroke="#c97a4a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M34 33 L32 77 M54 30 L54 78 M72 35 L74 75" stroke="#fff6e6" stroke-width="2.6"/>
+    <path d="M66 26 q4 -10 12 -12 M70 22 l6 2 M68 18 l5 -1" fill="none" stroke="#5fa04e" stroke-width="2.4" stroke-linecap="round"/>
+    ${cara(44, 58)}`,
+
+  cerdo: () => `
+    <path d="M24 30 L20 14 L38 24 Z M76 30 L80 14 L62 24 Z" fill="#f4a3b5" ${S}/>
+    <circle cx="50" cy="52" r="32" fill="#f9bccb" ${S}/>
+    <ellipse cx="50" cy="62" rx="14" ry="10" fill="#f28fa7" ${S}/>
+    <ellipse cx="45" cy="62" rx="2.5" ry="3.5" fill="${LINEA}"/><ellipse cx="55" cy="62" rx="2.5" ry="3.5" fill="${LINEA}"/>
+    <circle cx="38" cy="44" r="3" fill="${LINEA}"/><circle cx="62" cy="44" r="3" fill="${LINEA}"/>
+    <circle cx="39" cy="43" r="1" fill="#fff"/><circle cx="63" cy="43" r="1" fill="#fff"/>
+    <ellipse cx="29" cy="54" rx="4.5" ry="2.8" fill="#ff8fa3" opacity=".8"/><ellipse cx="71" cy="54" rx="4.5" ry="2.8" fill="#ff8fa3" opacity=".8"/>`,
+
+  conejo: () => `
+    <ellipse cx="38" cy="26" rx="8" ry="20" fill="#f2ede6" ${S}/><ellipse cx="62" cy="26" rx="8" ry="20" fill="#f2ede6" ${S}/>
+    <ellipse cx="38" cy="27" rx="3.5" ry="13" fill="#f7b8c6"/><ellipse cx="62" cy="27" rx="3.5" ry="13" fill="#f7b8c6"/>
+    <ellipse cx="50" cy="60" rx="30" ry="26" fill="#f2ede6" ${S}/>
+    <path d="M47 64 l3 3 l3 -3 Z" fill="#f28fa7"/>
+    <path d="M50 67 v3 M50 70 q-4 3 -7 0 M50 70 q4 3 7 0" fill="none" stroke="${LINEA}" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="40" cy="56" r="3" fill="${LINEA}"/><circle cx="60" cy="56" r="3" fill="${LINEA}"/>
+    <circle cx="41" cy="55" r="1" fill="#fff"/><circle cx="61" cy="55" r="1" fill="#fff"/>
+    <ellipse cx="32" cy="66" rx="4.5" ry="2.8" fill="#ff8fa3" opacity=".75"/><ellipse cx="68" cy="66" rx="4.5" ry="2.8" fill="#ff8fa3" opacity=".75"/>`,
+
+  cordero: () => `
+    ${silueta(`<circle cx="30" cy="40" r="13"/><circle cx="50" cy="32" r="14"/><circle cx="70" cy="40" r="13"/><circle cx="26" cy="58" r="12"/><circle cx="74" cy="58" r="12"/><circle cx="38" cy="72" r="12"/><circle cx="62" cy="72" r="12"/><circle cx="50" cy="56" r="20"/>`, '#ffffff')}
+    <ellipse cx="22" cy="50" rx="9" ry="5" fill="#8c7a6b" ${S} transform="rotate(-20 22 50)"/><ellipse cx="78" cy="50" rx="9" ry="5" fill="#8c7a6b" ${S} transform="rotate(20 78 50)"/>
+    <ellipse cx="50" cy="58" rx="17" ry="19" fill="#d8c4b0" ${S}/>
+    ${cara(50, 58, 0.85)}`,
+
+  jamon: () => `
+    <rect x="66" y="16" width="10" height="24" rx="4" fill="#e8d6bc" ${S} transform="rotate(35 71 28)"/>
+    <path d="M30 86 C10 76 12 50 30 38 C42 30 58 30 66 38 C74 46 72 58 64 68 C56 78 46 92 30 86 Z" fill="#b3412f" ${S}/>
+    <path d="M30 86 C18 80 18 60 30 50 C40 42 56 44 60 52" fill="none" stroke="#fbe6da" stroke-width="5" stroke-linecap="round"/>
+    <path d="M38 64 q8 -6 16 -2" fill="none" stroke="#d96b55" stroke-width="3" stroke-linecap="round"/>
+    ${cara(44, 70, 0.85)}`,
+
+  salchichas: () => `
+    ${plato(76, 40)}
+    <rect x="16" y="46" width="68" height="16" rx="8" fill="#c8553d" ${S} transform="rotate(-8 50 54)"/>
+    <rect x="18" y="58" width="64" height="15" rx="7.5" fill="#d8694d" ${S} transform="rotate(6 50 65)"/>
+    <path d="M28 51 l3 6 M40 49 l3 6 M60 47 l3 6" stroke="#e8907a" stroke-width="2.4" stroke-linecap="round" transform="rotate(-8 50 54)"/>
+    ${cara(50, 65, 0.8)}`,
+
+  polloasado: () => `
+    ${plato(80, 42)}
+    <rect x="20" y="40" width="12" height="16" rx="5" fill="#fff6e6" ${S} transform="rotate(-35 26 48)"/><rect x="68" y="40" width="12" height="16" rx="5" fill="#fff6e6" ${S} transform="rotate(35 74 48)"/>
+    <ellipse cx="50" cy="62" rx="32" ry="20" fill="#e39a4c" ${S}/>
+    <ellipse cx="28" cy="58" rx="10" ry="13" fill="#d98a3c" ${S} transform="rotate(-25 28 58)"/><ellipse cx="72" cy="58" rx="10" ry="13" fill="#d98a3c" ${S} transform="rotate(25 72 58)"/>
+    <path d="M38 52 q12 -6 24 0" fill="none" stroke="#f3bd7d" stroke-width="4" stroke-linecap="round"/>
+    ${cara(50, 66, 0.85)}`,
+
+  pechuga: () => `
+    ${plato(74, 42)}
+    <path d="M18 60 C16 44 32 38 48 40 C66 42 84 48 82 62 C80 72 62 76 46 74 C30 72 19 70 18 60 Z" fill="#f4d7a4" ${S}/>
+    <path d="M30 50 L40 66 M44 46 L54 70 M58 46 L68 68" stroke="#c98f4e" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M70 40 q6 -4 12 0 q-6 4 -12 0 Z" fill="#6cc35e" ${S}/>
+    ${cara(50, 59, 0.8)}`,
+
+  salmon: () => `
+    ${plato(76, 42)}
+    <path d="M14 60 C20 44 46 40 66 44 C80 47 88 54 86 62 C84 70 70 74 50 74 C30 74 12 70 14 60 Z" fill="#fb9a76" ${S}/>
+    <path d="M30 50 q-4 10 0 20 M44 46 q-5 13 0 27 M58 46 q-5 13 0 27 M72 50 q-4 10 0 20" fill="none" stroke="#ffd2bf" stroke-width="3" stroke-linecap="round"/>
+    <path d="M78 40 l8 -6 M80 46 l9 -2" stroke="#f7d23e" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="82" cy="38" r="6" fill="#ffe56b" ${S}/>
+    ${cara(50, 60, 0.8)}`,
+
+  sardinas: () => `
+    <g transform="rotate(-12 50 40)">
+      <path d="M78 40 L92 32 L90 40 L92 48 Z" fill="#7d93a8" ${S}/>
+      <path d="M12 40 C20 30 50 28 78 40 C50 52 20 50 12 40 Z" fill="#b9c8d6" ${S}/>
+      <path d="M24 38 q20 -4 46 0" fill="none" stroke="#5f7d97" stroke-width="2.5"/>
+    </g>
+    <g transform="rotate(8 50 66)">
+      <path d="M78 66 L92 58 L90 66 L92 74 Z" fill="#7d93a8" ${S}/>
+      <path d="M12 66 C20 56 50 54 78 66 C50 78 20 76 12 66 Z" fill="#c9d6e2" ${S}/>
+      <path d="M24 64 q20 -4 46 0" fill="none" stroke="#5f7d97" stroke-width="2.5"/>
+    </g>
+    ${cara(30, 67, 0.7)}`,
+
+  mejillones: () => `
+    <path d="M50 82 C20 80 10 50 26 26 C34 16 44 22 48 34 C52 22 62 16 72 26 C88 48 80 80 50 82 Z" fill="#2f2b3a" ${S}/>
+    <path d="M50 76 C30 74 22 54 32 36 C38 28 46 34 48 44 C52 34 60 28 68 36 C78 54 70 74 50 76 Z" fill="#f2a05c"/>
+    <path d="M36 44 q-4 16 6 26 M64 44 q4 16 -6 26" fill="none" stroke="#e08440" stroke-width="2.5" stroke-linecap="round"/>
+    ${cara(50, 58, 0.8)}`,
+
+  calamares: () => `
+    ${plato(78, 42)}
+    <circle cx="34" cy="58" r="15" fill="none" stroke="${LINEA}" stroke-width="13"/><circle cx="34" cy="58" r="15" fill="none" stroke="#f0c46a" stroke-width="8.5"/>
+    <circle cx="64" cy="54" r="15" fill="none" stroke="${LINEA}" stroke-width="13"/><circle cx="64" cy="54" r="15" fill="none" stroke="#f3cf7d" stroke-width="8.5"/>
+    <path d="M70 76 l12 -2 l-6 -8 Z" fill="#fff07a" ${S}/>
+    ${cara(64, 40, 0.65)}`,
+
+  bogavante: () => `
+    <path d="M20 26 q-8 -12 4 -16 q10 4 6 16 Z M80 26 q8 -12 -4 -16 q-10 4 -6 16 Z" fill="#d6402f" ${S}/>
+    <path d="M30 30 L40 46 M70 30 L60 46" stroke="${LINEA}" stroke-width="6" stroke-linecap="round"/><path d="M30 30 L40 46 M70 30 L60 46" stroke="#d6402f" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="50" cy="56" rx="17" ry="20" fill="#e2503c" ${S}/>
+    <path d="M38 74 L50 90 L62 74 Z" fill="#c63a2a" ${S}/>
+    <path d="M36 64 h28 M38 70 h24" stroke="#b8321f" stroke-width="2.4"/>
+    ${cara(50, 52, 0.8)}`,
+
+  caviar: () => `
+    <ellipse cx="50" cy="68" rx="36" ry="12" fill="#c9ccd3" ${S}/>
+    <rect x="14" y="52" width="72" height="16" fill="#c9ccd3"/>
+    <path d="M14 52 v16 M86 52 v16" stroke="${LINEA}" stroke-width="2.5"/>
+    <ellipse cx="50" cy="52" rx="36" ry="12" fill="#22252b" ${S}/>
+    ${[[34, 50], [42, 47], [50, 52], [58, 47], [66, 51], [40, 55], [60, 55], [50, 45]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="#3d434d"/><circle cx="${x - 0.8}" cy="${y - 0.8}" r="0.8" fill="#9aa3b2"/>`).join('')}
+    ${cara(50, 70, 0.8)}`,
+
+  lentejas: () => cuenco('#9a6b3c', [[30, 47, 2.6, '#6e4523'], [40, 50, 2.6, '#6e4523'], [56, 46, 2.6, '#6e4523'], [64, 50, 2.6, '#6e4523'], [48, 46, 3, '#f28b3b'], [70, 46, 3, '#c0392b']]),
+  garbanzos: () => cuenco('#d9a65b', [[30, 47, 4, '#f0d39a'], [42, 50, 4, '#f0d39a'], [56, 46, 4, '#f0d39a'], [68, 49, 4, '#f0d39a'], [48, 45, 3, '#4e9a45']]),
+  alubias: () => cuenco('#c8834f', [[30, 47, 4, '#fbf3e4'], [42, 50, 4, '#fbf3e4'], [56, 46, 4, '#fbf3e4'], [68, 49, 4, '#fbf3e4'], [50, 45, 4, '#b8382c']]),
+  cremanaranja: () => cuenco('#f59a3c', [[42, 47, 2, '#ffffff'], [50, 48, 2.6, '#6cc35e']]),
+  cremaverde: () => cuenco('#8cc152', [[42, 47, 2, '#ffffff'], [56, 48, 2, '#ffffff']]),
+  cremaroja: () => cuenco('#e2533c', [[42, 47, 2.4, '#7fd36e'], [56, 48, 2.4, '#f7f2e6']], false),
+  hummus: () => cuenco('#e9cf98', [[50, 47, 3, '#c0392b'], [38, 47, 2, '#7fb04a']], false),
+
+  revuelto: () => `
+    ${plato(74, 42)}
+    ${silueta(`<circle cx="32" cy="60" r="12"/><circle cx="48" cy="54" r="14"/><circle cx="66" cy="60" r="12"/><circle cx="50" cy="66" r="12"/>`, '#ffd85c')}
+    <circle cx="36" cy="54" r="3" fill="#a7744b"/><circle cx="62" cy="56" r="3" fill="#a7744b"/><circle cx="54" cy="66" r="2.5" fill="#6cc35e"/>
+    ${cara(48, 58, 0.8)}`,
+
+  croquetas: () => `
+    ${plato(76, 42)}
+    <rect x="16" y="54" width="34" height="18" rx="9" fill="#d8923f" ${S}/>
+    <rect x="50" y="54" width="34" height="18" rx="9" fill="#d8923f" ${S}/>
+    <rect x="32" y="38" width="36" height="18" rx="9" fill="#e5a24d" ${S}/>
+    ${[[24, 60], [38, 66], [58, 60], [74, 66], [40, 44], [58, 48]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="#a8641f"/>`).join('')}
+    ${cara(50, 47, 0.7)}`,
+
+  lasana: () => `
+    <path d="M18 44 L50 32 L82 44 L82 72 L50 84 L18 72 Z" fill="#f5c55a" ${S}/>
+    <path d="M18 44 L50 56 L82 44 L50 32 Z" fill="#f7d77a" ${S}/>
+    <path d="M18 56 L50 68 L82 56 M18 64 L50 76 L82 64" fill="none" stroke="#d9473a" stroke-width="4"/>
+    <path d="M30 42 q6 -4 12 0 M56 40 q6 -4 12 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="50" cy="42" r="3" fill="#6cc35e"/>
+    ${cara(66, 66, 0.7)}`,
+
+  macarrones: () => `
+    <path d="M16 52 Q16 84 50 84 Q84 84 84 52 Z" fill="#eaf4ff" ${S}/>
+    ${[[30, 44, -30], [44, 40, 20], [58, 44, -15], [70, 42, 35], [38, 50, 60], [62, 50, -50]].map(([x, y, r]) => `<rect x="${x - 8}" y="${y - 4}" width="16" height="8" rx="2" fill="#f2b03a" ${S} transform="rotate(${r} ${x} ${y})"/>`).join('')}
+    <path d="M24 50 q26 8 52 0" fill="none" stroke="#d9473a" stroke-width="5" stroke-linecap="round"/>
+    ${cara(50, 68)}`,
+
+  arroznegro: () => sarten('#2a2a30', `
+    <circle cx="36" cy="52" r="5" fill="none" stroke="#f1e7da" stroke-width="3"/><circle cx="62" cy="50" r="5" fill="none" stroke="#f1e7da" stroke-width="3"/>
+    <path d="M68 62 l10 2 l-6 6 Z" fill="#fff07a" ${S}/>
+    <g fill="#fff">${cara(50, 58, 0.9).replace(/fill="#4a3428"/g, 'fill="#ffffff"').replace(/stroke="#4a3428"/g, 'stroke="#ffffff"')}</g>`),
+
+  arrozcubana: () => `
+    ${plato(78, 42)}
+    <path d="M20 72 Q20 42 46 40 Q66 40 68 72 Z" fill="#fdfaf3" ${S}/>
+    <path d="M18 74 q20 6 52 0" fill="none" stroke="#d9473a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M48 44 C38 36 50 26 58 32 C68 26 80 38 70 46 C74 56 56 58 52 52 C42 56 40 48 48 44 Z" fill="#ffffff" ${S}/>
+    <circle cx="58" cy="42" r="7" fill="#ffc23d" ${S}/>
+    <path d="M70 70 q12 -4 16 -20 q2 18 -14 24 Z" fill="#f6d55c" ${S}/>
+    ${cara(42, 60, 0.8)}`,
+
+  pimientos: () => `
+    <path d="M50 22 q-2 -10 8 -12" fill="none" stroke="#3f8f3a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M38 26 q12 -8 24 0 q-12 6 -24 0 Z" fill="#4fa548" ${S}/>
+    <path d="M24 46 C24 28 40 24 50 30 C60 24 76 28 76 46 C76 64 70 84 50 84 C30 84 24 64 24 46 Z" fill="#e2392f" ${S}/>
+    <path d="M34 40 q-4 14 2 30" fill="none" stroke="#f57b6c" stroke-width="4" stroke-linecap="round"/>
+    ${cara(52, 56)}`,
+
+  berenjena: () => `
+    <path d="M58 26 q4 -12 14 -14" fill="none" stroke="#3f8f3a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M48 30 q10 -10 24 -2 q-4 8 -10 8 q-6 4 -14 -6 Z" fill="#4fa548" ${S}/>
+    <path d="M52 34 C66 30 78 40 74 56 C70 74 56 88 38 86 C22 84 18 70 26 58 C34 46 40 38 52 34 Z" fill="#7a3f9d" ${S}/>
+    <path d="M36 62 q2 -10 10 -16" fill="none" stroke="#a76cc8" stroke-width="4" stroke-linecap="round"/>
+    ${cara(48, 64)}`,
+
+  champinon: () => `
+    <path d="M38 52 L36 80 Q50 86 64 80 L62 52 Z" fill="#f4ead9" ${S}/>
+    <path d="M14 54 C14 30 34 18 50 18 C66 18 86 30 86 54 Q50 62 14 54 Z" fill="#c99566" ${S}/>
+    <circle cx="34" cy="36" r="4" fill="#e3bf98"/><circle cx="58" cy="30" r="5" fill="#e3bf98"/><circle cx="70" cy="44" r="3.5" fill="#e3bf98"/>
+    ${cara(50, 68, 0.8)}`,
+
+  alcachofa: () => `
+    <rect x="46" y="76" width="8" height="12" rx="3" fill="#7da34a" ${S}/>
+    ${silueta(`<path d="M50 14 C64 24 76 40 74 58 C72 74 62 80 50 80 C38 80 28 74 26 58 C24 40 36 24 50 14 Z"/>`, '#8cbf5a')}
+    <path d="M32 48 Q50 40 68 48 M30 60 Q50 52 70 60 M36 36 Q50 28 64 36" fill="none" stroke="#5d8f36" stroke-width="2.6" stroke-linecap="round"/>
+    ${cara(50, 66, 0.8)}`,
+
+  patata: () => `
+    <path d="M18 54 C16 36 34 24 54 26 C74 28 86 42 84 58 C82 74 66 82 48 80 C30 78 20 70 18 54 Z" fill="#d9a65b" ${S}/>
+    <circle cx="34" cy="44" r="2" fill="#a8743a"/><circle cx="70" cy="48" r="2" fill="#a8743a"/><circle cx="60" cy="70" r="2" fill="#a8743a"/>
+    ${cara(50, 56)}`,
+});
+
+// Palabras del nombre → dibujo. Gana la que sale antes en el nombre y, si empiezan igual, la más larga
+// («pollo asado» antes que «pollo»). Sin acentos.
 const DIBUJO_POR_PALABRA = [
   ['pizza', ['pizza']],
-  ['hamburguesa', ['hamburguesa']],
-  ['sandwich', ['sandwich', 'tosta', 'bocadillo', 'montadito']],
+  ['hamburguesa', ['hamburguesa', 'burger']],
+  ['sandwich', ['sandwich', 'tosta', 'bocadillo', 'montadito', 'tostada']],
   ['fajita', ['fajita', 'burrito', 'taco', 'wrap', 'quesadilla']],
   ['paella', ['paella', 'arroz', 'fideua', 'risotto']],
-  ['pasta', ['pasta', 'macarr', 'espagueti', 'spaghetti', 'lasana', 'canelon', 'noqui', 'tallarin', 'fideo', 'cuscus']],
-  ['gamba', ['gamba', 'langostino', 'marisco', 'mejill', 'almeja', 'zarzuela', 'cigala', 'bogavante', 'langosta', 'necora', 'centollo']],
-  ['pulpo', ['pulpo', 'calamar', 'sepia', 'chipir', 'chopito']],
+  ['arroznegro', ['arroz negro']],
+  ['arrozcubana', ['arroz a la cubana', 'arroz cubana']],
+  ['pasta', ['pasta', 'espagueti', 'spaghetti', 'noqui', 'tallarin', 'fideo', 'cuscus', 'tortellini', 'raviol']],
+  ['macarrones', ['macarr']],
+  ['lasana', ['lasana', 'canelon', 'musaka']],
+  ['gamba', ['gamba', 'langostino', 'marisco', 'almeja', 'zarzuela', 'cigala', 'necora', 'centollo']],
+  ['mejillones', ['mejill']],
+  ['bogavante', ['bogavante', 'langosta']],
+  ['pulpo', ['pulpo', 'sepia', 'chipir', 'chopito']],
+  ['calamares', ['calamar']],
+  ['caviar', ['caviar', 'huevas']],
   ['tortilla', ['tortilla']],
-  ['huevo', ['huevo', 'revuelto', 'frittata', 'shakshuka']],
-  ['sopa', ['crema', 'sopa', 'pure', 'gazpacho', 'salmorejo', 'vichyssoise', 'caldo']],
-  ['muslo', ['pollo', 'pavo', 'alita', 'muslo', 'pechuga']],
-  ['ensalada', ['ensalada', 'hummus']],
-  ['olla', ['lenteja', 'garbanzo', 'alubia', 'fabada', 'cocido', 'potaje', 'estofado', 'guiso', 'marmitako', 'judion', 'carrillada', 'ragu', 'callos', 'riojana']],
-  ['empanada', ['empanada', 'croqueta', 'quiche', 'crepe', 'hojaldre']],
-  ['filete', ['carne', 'ternera', 'cerdo', 'lomo', 'filete', 'chuleta', 'costilla', 'solomillo', 'secreto', 'conejo', 'albondiga', 'cordero', 'entrecot']],
-  ['pez', ['merluza', 'bacalao', 'salmon', 'dorada', 'lubina', 'sardina', 'boqueron', 'rape', 'atun', 'bonito', 'trucha', 'emperador', 'caballa', 'lenguado', 'pescad']],
-  ['brocoli', ['verdura', 'brocoli', 'menestra', 'pisto', 'judias verdes', 'espinaca', 'coliflor', 'berenjena', 'pimiento', 'alcachofa', 'calabac', 'escalivada', 'wok', 'parrillada']],
+  ['huevo', ['huevo', 'frittata', 'shakshuka']],
+  ['revuelto', ['revuelto', 'huevos revueltos']],
+  ['sopa', ['sopa', 'caldo', 'consome']],
+  ['cremanaranja', ['crema', 'crema de calabaza', 'crema de zanahoria', 'pure', 'vichyssoise']],
+  ['cremaverde', ['crema de calabacin', 'crema de verdura', 'crema de espinaca', 'crema de brocoli', 'crema de guisante', 'pure de verdura']],
+  ['cremaroja', ['gazpacho', 'salmorejo']],
+  ['muslo', ['pollo', 'pavo', 'alita', 'muslo', 'contramuslo']],
+  ['polloasado', ['pollo asado', 'pollo al horno', 'pollo entero', 'pollo a l']],
+  ['pechuga', ['pechuga', 'filete de pollo', 'filetes de pollo', 'pavo a la plancha']],
+  ['ensalada', ['ensalada']],
+  ['hummus', ['hummus', 'humus']],
+  ['lentejas', ['lenteja']],
+  ['garbanzos', ['garbanzo']],
+  ['alubias', ['alubia', 'fabada', 'judion', 'pochas']],
+  ['olla', ['cocido', 'potaje', 'estofado', 'guiso', 'marmitako', 'carrillada', 'ragu', 'callos', 'riojana', 'caldereta', 'rabo']],
+  ['empanada', ['empanada', 'quiche', 'crepe', 'hojaldre', 'empanadilla']],
+  ['croquetas', ['croqueta', 'nugget', 'san jacobo', 'flamenquin']],
+  ['filete', ['carne', 'ternera', 'filete', 'entrecot', 'chuleton', 'solomillo', 'cachopo', 'buey', 'vaca', 'escalope']],
+  ['albondigas', ['albondiga']],
+  ['chuleta', ['chuleta', 'chuletilla']],
+  ['costillas', ['costilla', 'costillar']],
+  ['asado', ['asado', 'lomo', 'secreto', 'presa', 'pluma', 'cuello', 'paletilla', 'cochinillo', 'lechazo', 'magro', 'codillo', 'pierna']],
+  ['cerdo', ['cerdo', 'panceta', 'torrezno']],
+  ['jamon', ['jamon']],
+  ['salchichas', ['salchicha', 'chorizo', 'butifarra', 'longaniza', 'morcilla', 'perrito']],
+  ['conejo', ['conejo', 'liebre']],
+  ['cordero', ['cordero', 'cabrito']],
+  ['salmon', ['salmon']],
+  ['sardinas', ['sardina', 'boqueron', 'anchoa', 'caballa', 'jurel']],
+  ['pez', ['merluza', 'bacalao', 'dorada', 'lubina', 'rape', 'atun', 'bonito', 'trucha', 'emperador', 'lenguado', 'pescad', 'mero', 'besugo', 'rodaballo', 'gallo', 'pez']],
+  ['brocoli', ['verdura', 'brocoli', 'menestra', 'pisto', 'judias verdes', 'espinaca', 'coliflor', 'calabac', 'escalivada', 'wok', 'parrillada', 'acelga', 'esparrago']],
+  ['pimientos', ['pimiento']],
+  ['berenjena', ['berenjena']],
+  ['champinon', ['champinon', 'seta', 'boletus']],
+  ['alcachofa', ['alcachofa']],
+  ['patata', ['patata', 'papas']],
 ];
-const DIBUJO_POR_TIPO = { pescado: 'pez', carne: 'filete', ave: 'muslo', verdura: 'brocoli', legumbres: 'olla', pasta: 'pasta', huevos: 'huevo', otros: 'plato' };
+const DIBUJO_POR_TIPO = { pescado: 'pez', carne: 'filete', cerdo: 'cerdo', cordero: 'cordero', conejo: 'conejo', ave: 'muslo', verdura: 'brocoli', legumbres: 'olla', pasta: 'pasta', huevos: 'huevo', otros: 'plato' };
 
-// Gana la palabra que sale antes en el nombre (en español lo principal va delante: «Pollo al curry con arroz», «Arroz con pollo»)
 function dibujoDe(name, cat) {
   const n = norm(name);
-  let best = null, pos = Infinity;
+  let best = null, pos = Infinity, len = 0;
   for (const [d, words] of DIBUJO_POR_PALABRA) {
     for (const w of words) {
       const i = n.indexOf(w);
-      if (i >= 0 && i < pos) { best = d; pos = i; }
+      if (i >= 0 && (i < pos || (i === pos && w.length > len))) { best = d; pos = i; len = w.length; }
     }
   }
   return best || DIBUJO_POR_TIPO[cat] || 'plato';

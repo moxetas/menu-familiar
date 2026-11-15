@@ -4,7 +4,10 @@
 
 const CATEGORIAS = [
   { id: 'pescado',   nombre: 'Pescado',        emoji: '🐟' },
-  { id: 'carne',     nombre: 'Carne',          emoji: '🥩' },
+  { id: 'carne',     nombre: 'Ternera',        emoji: '🐄' },
+  { id: 'cerdo',     nombre: 'Cerdo',          emoji: '🐖' },
+  { id: 'cordero',   nombre: 'Cordero',        emoji: '🐑' },
+  { id: 'conejo',    nombre: 'Conejo',         emoji: '🐇' },
   { id: 'ave',       nombre: 'Pollo y pavo',   emoji: '🍗' },
   { id: 'verdura',   nombre: 'Verdura',        emoji: '🥦' },
   { id: 'legumbres', nombre: 'Legumbres',      emoji: '🫘' },
@@ -13,16 +16,23 @@ const CATEGORIAS = [
   { id: 'otros',     nombre: 'Otros',          emoji: '🍽️' },
 ];
 
-// Cuántas veces a la semana conviene cada tipo, contando comida y cena (14 platos)
+// Cuántas veces a la semana conviene cada tipo, contando comida y cena (14 platos).
+// Ternera, cerdo, cordero y conejo cuentan juntos como «carne».
 const OBJETIVO_SEMANAL = { pescado: 3, carne: 2, ave: 2, verdura: 3, legumbres: 2, pasta: 2, huevos: 1, otros: 1 };
+const CARNES = ['carne', 'cerdo', 'cordero', 'conejo'];
+const grupoCat = (cat) => (CARNES.includes(cat) ? 'carne' : cat);
 
-// Palabras para adivinar el tipo de un plato escrito a mano. Se miran en este orden.
+// Palabras para adivinar el tipo de un plato escrito a mano. Gana la que sale antes en el nombre
+// («Huevos con jamón» → huevos; «Champiñones con jamón» → verdura); si empiezan igual, la más larga.
 const PALABRAS = [
   ['legumbres', ['lenteja', 'garbanzo', 'alubia', 'judión', 'judiones', 'fabada', 'cocido', 'potaje', 'hummus', 'humus', 'pochas', 'caparrones']],
   ['huevos',    ['huevo', 'tortilla', 'revuelto', 'frittata', 'shakshuka']],
-  ['pescado',   ['merluza', 'bacalao', 'salmón', 'salmon', 'atún', 'atun', 'dorada', 'lubina', 'sardina', 'boquer', 'rape', 'gamba', 'langostino', 'calamar', 'sepia', 'pulpo', 'mejill', 'almeja', 'pescad', 'trucha', 'emperador', 'pez espada', 'lenguado', 'gallo', 'marisco', 'chipir', 'bonito', 'caballa', 'rosada', 'mero', 'besugo', 'marmitako', 'zarzuela', 'chopitos']],
+  ['pescado',   ['merluza', 'bacalao', 'salmón', 'salmon', 'atún', 'atun', 'dorada', 'lubina', 'sardina', 'boquer', 'rape', 'gamba', 'langostino', 'calamar', 'sepia', 'pulpo', 'mejill', 'almeja', 'pescad', 'trucha', 'emperador', 'pez espada', 'lenguado', 'gallo', 'marisco', 'chipir', 'bonito', 'caballa', 'rosada', 'mero', 'besugo', 'marmitako', 'zarzuela', 'chopitos', 'bogavante', 'langosta', 'caviar', 'anchoa']],
   ['ave',       ['pollo', 'pavo', 'pato', 'codorni', 'alitas', 'pechuga', 'muslo', 'nugget', 'contramuslo']],
-  ['carne',     ['ternera', 'cerdo', 'lomo', 'filete', 'chuleta', 'hamburguesa', 'albóndiga', 'albondiga', 'carne', 'cordero', 'costilla', 'solomillo', 'chorizo', 'salchicha', 'jamón', 'jamon', 'rabo', 'callos', 'secreto', 'presa', 'entrecot', 'morcilla', 'carrillada', 'cachopo', 'flamenquín', 'flamenquin', 'san jacobo', 'magro', 'conejo', 'kebab']],
+  ['carne',     ['ternera', 'filete', 'hamburguesa', 'albóndiga', 'albondiga', 'carne', 'rabo', 'callos', 'entrecot', 'chuletón', 'chuleton', 'cachopo', 'buey', 'vaca', 'kebab', 'ragú', 'ragu', 'estofado', 'solomillo', 'escalope']],
+  ['cerdo',     ['cerdo', 'lomo', 'chuleta', 'costilla', 'secreto', 'presa', 'pluma', 'carrillada', 'carrillera', 'cochinillo', 'panceta', 'chorizo', 'salchicha', 'jamón', 'jamon', 'morcilla', 'cuello', 'magro', 'flamenquín', 'flamenquin', 'san jacobo', 'codillo', 'torrezno', 'butifarra', 'longaniza']],
+  ['cordero',   ['cordero', 'lechazo', 'chuletillas', 'paletilla', 'cabrito']],
+  ['conejo',    ['conejo', 'liebre']],
   ['pasta',     ['pasta', 'macarr', 'espagueti', 'spaghetti', 'lasaña', 'canelon', 'arroz', 'paella', 'risotto', 'fideo', 'fideuá', 'fideua', 'tallarin', 'ñoqui', 'gnocchi', 'noodle', 'cuscús', 'cuscus', 'tortellini', 'raviol']],
   ['verdura',   ['verdura', 'ensalada', 'crema', 'puré', 'pure', 'pisto', 'menestra', 'judías verdes', 'judias verdes', 'brócoli', 'brocoli', 'coliflor', 'espinaca', 'acelga', 'calabac', 'berenjena', 'gazpacho', 'salmorejo', 'champiñ', 'seta', 'alcachofa', 'puerro', 'calabaza', 'vichyssoise', 'pimiento', 'escalivada', 'parrillada', 'coles', 'repollo', 'borraja', 'cardo', 'espárrago', 'esparrago']],
 ];
@@ -51,16 +61,16 @@ const CATALOGO = [
   ['Zarzuela de pescado', 'pescado', 'comida'],
   // Carne
   ['Albóndigas en salsa', 'carne', 'comida'],
-  ['Lomo a la plancha con pimientos', 'carne', ''],
+  ['Lomo a la plancha con pimientos', 'cerdo', ''],
   ['Filetes de ternera empanados', 'carne', ''],
   ['Hamburguesas caseras', 'carne', 'cena'],
   ['Estofado de ternera', 'carne', 'comida'],
-  ['Carrillada al vino tinto', 'carne', 'comida'],
-  ['Costillas de cerdo al horno', 'carne', 'comida'],
-  ['Solomillo de cerdo a la mostaza', 'carne', ''],
-  ['Secreto ibérico con patatas', 'carne', 'comida'],
-  ['Chuletas de cerdo con manzana', 'carne', ''],
-  ['Conejo al ajillo', 'carne', 'comida'],
+  ['Carrillada al vino tinto', 'cerdo', 'comida'],
+  ['Costillas de cerdo al horno', 'cerdo', 'comida'],
+  ['Solomillo de cerdo a la mostaza', 'cerdo', ''],
+  ['Secreto ibérico con patatas', 'cerdo', 'comida'],
+  ['Chuletas de cerdo con manzana', 'cerdo', ''],
+  ['Conejo al ajillo', 'conejo', 'comida'],
   ['Pimientos rellenos de carne', 'carne', 'comida'],
   ['Ragú de ternera con puré', 'carne', 'comida'],
   // Pollo y pavo
