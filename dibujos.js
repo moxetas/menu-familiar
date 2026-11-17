@@ -453,7 +453,7 @@ const DIBUJO_POR_PALABRA = [
   ['berenjena', ['berenjena']],
   ['champinon', ['champinon', 'seta', 'boletus']],
   ['alcachofa', ['alcachofa']],
-  ['patata', ['patata', 'papas']],
+  ['patata', ['patata', 'papas', 'pure de patata', 'pure de patatas', 'patatas fritas', 'patatas asadas']],
 ];
 const DIBUJO_POR_TIPO = { pescado: 'pez', carne: 'filete', cerdo: 'cerdo', cordero: 'cordero', conejo: 'conejo', ave: 'muslo', verdura: 'brocoli', legumbres: 'olla', pasta: 'pasta', huevos: 'huevo', otros: 'plato' };
 

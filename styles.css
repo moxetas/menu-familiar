@@ -185,9 +185,9 @@ p { margin: 0; }
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 10px;
+  padding: 12px 10px;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 .day.today { outline: 2px solid var(--accent); outline-offset: -2px; }
 .day-head { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 6px; }
@@ -199,8 +199,8 @@ p { margin: 0; }
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 52px;
-  padding: 8px 12px;
+  min-height: 68px;
+  padding: 10px 10px 10px 12px;
   border: 0;
   border-left: 6px solid var(--c, var(--line));
   border-radius: 10px;
@@ -213,6 +213,11 @@ p { margin: 0; }
 .slot-name { font-weight: 600; }
 .slot.empty .slot-name { font-weight: 400; color: var(--muted); }
 .slot-emoji { font-size: 1.2rem; }
+.slot-main { display: block; }
+.slot-icons { display: grid; justify-items: center; align-content: center; gap: 2px; }
+.slot-ico .cute { width: 46px; height: 46px; }
+.slot-icons.varios .slot-ico .cute { width: 42px; height: 42px; }
+.slot-icons.varios .slot-ico.acomp .cute { width: 34px; height: 34px; }
 .tag-new {
   display: inline-block;
   margin-left: 6px;
@@ -420,7 +425,7 @@ textarea.short { min-height: 96px; }
 }
 
 /* ---------- Comida con varios platos ---------- */
-.slot-more { display: block; margin-top: 2px; font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+.slot-more { display: block; margin-top: 4px; font-size: 0.86rem; font-weight: 500; color: var(--muted); }
 .slot-more .dot { display: inline-block; width: 8px; height: 8px; margin: 0 4px 0 6px; vertical-align: 0; }
 .slot-more .dot:first-child { margin-left: 0; }
 .meal-dish {

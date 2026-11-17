@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 24;
+const APP_VERSION = 25;
 const COMIDAS = { comida: 'Comida', cena: 'Cena' };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -329,8 +329,8 @@ function renderWeek(main, actions) {
         if (!p) return `<button type="button" class="slot empty" data-key="${key}" data-meal="${m}"><span class="slot-meal">${COMIDAS[m]}</span><span class="slot-name">+ Elegir plato</span><span></span></button>`;
         return `<button type="button" class="slot c-${p.cat}" data-key="${key}" data-meal="${m}">
           <span class="slot-meal">${COMIDAS[m]}</span>
-          <span class="slot-name">${esc(p.name)}${p.nuevo ? '<span class="tag-new">✨ Nuevo</span>' : ''}${slotHealth(list)}${list.length > 1 ? `<span class="slot-more">${list.slice(1).map((x) => `<span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}`).join(' ')}</span>` : ''}</span>
-          <span class="slot-emoji" aria-label="${esc(CAT[p.cat]?.nombre || '')}">${CAT[p.cat]?.emoji || ''}</span>
+          <span class="slot-name"><span class="slot-main">${esc(p.name)}${p.nuevo ? '<span class="tag-new">✨ Nuevo</span>' : ''}${slotHealth(list)}</span>${list.slice(1).map((x) => `<span class="slot-more"><span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}</span>`).join('')}</span>
+          <span class="slot-icons ${list.length > 1 ? 'varios' : ''}" aria-hidden="true">${list.slice(0, 3).map((x, i) => `<span class="slot-ico ${i ? 'acomp' : ''}">${dibujo(x.name, x.cat)}</span>`).join('')}</span>
         </button>`;
       }).join('')}
     </section>`;
