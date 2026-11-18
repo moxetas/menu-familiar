@@ -15,11 +15,12 @@ function catalogIngredients(name) {
 }
 
 // Los ingredientes que ha apuntado la familia y, si no hay, los del catálogo
+// Salen en el idioma del móvil (los de las ideas están en español y se traducen)
 function ingredientsFor(name) {
   const d = state.dishes.find((x) => norm(x.name) === norm(name));
-  if (d?.recipe?.ing?.length) return recipeShoppingNames(d.recipe);
-  if (d?.ingredients?.length) return d.ingredients;
-  return catalogIngredients(name) || [];
+  if (d?.recipe?.ing?.length) return recipeShoppingNames(d.recipe).map(nombreIngrediente);
+  if (d?.ingredients?.length) return d.ingredients.map(nombreIngrediente);
+  return (catalogIngredients(name) || []).map(nombreIngrediente);
 }
 
 // "leche, pan" o una cosa por línea
@@ -31,8 +32,11 @@ function parseList(text) {
 }
 
 function guessSection(name) {
-  const n = norm(name);
+  // Un ingrediente traducido se mira con su nombre en español; y además, con las palabras del idioma del móvil
+  const n = norm(ingredienteEnEspanol(name));
+  const n2 = norm(name);
   for (const [sec, words] of PALABRAS_COMPRA) if (words.some((w) => n.includes(norm(w)))) return sec;
+  for (const [sec, words] of Object.entries(trRecetas()?.compra || {})) if (words.some((w) => n2.includes(norm(w)))) return sec;
   return 'otros';
 }
 
@@ -136,8 +140,8 @@ function itemRow(i) {
     <button type="button" class="item-main" data-toggle="${i.id}" aria-pressed="${!!i.done}">
       <span class="tick" aria-hidden="true">${i.done ? '✓' : ''}</span>
       <span class="item-text">
-        <span class="item-name">${findFood(i.name)?.flags.includes('k') ? '⛔ ' : ''}${esc(i.name)}</span>
-        ${i.from?.length && !i.done ? `<span class="item-from">${T('para {platos}', { platos: esc(i.from.join(', ')) })}</span>` : ''}
+        <span class="item-name">${findFood(ingredienteEnEspanol(i.name))?.flags.includes('k') ? '⛔ ' : ''}${esc(i.name)}</span>
+        ${i.from?.length && !i.done ? `<span class="item-from">${T('para {platos}', { platos: esc(i.from.map(nombrePlato).join(', ')) })}</span>` : ''}
       </span>
     </button>
     <button type="button" class="item-edit" data-edit="${i.id}" aria-label="${T('Cambiar')} ${esc(i.name)}">⋯</button>
@@ -198,7 +202,7 @@ function openFromMenu(week) {
     const body = dishes.map((e) => {
       const ing = ingredientsFor(e.name);
       const mine = state.dishes.find((x) => norm(x.name) === norm(e.name));
-      const title = `<div class="from-title"><span class="dot"></span>${esc(e.name)}${e.n > 1 ? ` <span class="muted">×${e.n}</span>` : ''}</div>`;
+      const title = `<div class="from-title"><span class="dot"></span>${esc(nombrePlato(e.name))}${e.n > 1 ? ` <span class="muted">×${e.n}</span>` : ''}</div>`;
       if (!ing.length) {
         return `<div class="from-dish c-${e.cat}">${title}
           ${mine

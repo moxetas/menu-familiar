@@ -95,3 +95,41 @@ function idiomaParaAvisos() {
 
 // Un nombre dentro de una frase, en minúscula («añadido a tus platos como pescado»), salvo en alemán, donde los sustantivos van con mayúscula
 const minus = (s) => (IDIOMA === 'de' ? s : s.toLocaleLowerCase(LOCALE));
+
+// ---------- Platos, ingredientes y recetas ----------
+// Los platos de las ideas y sus recetas se guardan siempre con su nombre en español (así toda la familia
+// comparte los mismos, aunque cada móvil esté en un idioma). Solo al enseñarlos se traducen, con lang/recetas-<idioma>.js:
+// RECETAS_I18N.de = { platos: { 'Lentejas estofadas': 'Linseneintopf' }, ingredientes: { 'lentejas': 'Linsen' },
+//   pasos: { 'Lentejas estofadas': ['…', '…'] }, tiempos: { '45 min': '45 Min.' }, unidades: { 'cdas': 'EL' },
+//   palabras: { legumbres: ['linse', …] }, compra: { lacteos: ['milch', …] } }
+const RECETAS_I18N = {};
+const normIdioma = (s) => String(s).toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+const trRecetas = () => (IDIOMA && RECETAS_I18N[IDIOMA]) || null;
+const indices = {};
+function indice(campo, alReves) {
+  const t = trRecetas();
+  if (!t || !t[campo]) return {};
+  const k = campo + (alReves ? '<' : '>');
+  indices[k] ||= Object.fromEntries(Object.entries(t[campo]).map(([es, tr]) => (alReves ? [normIdioma(tr), es] : [normIdioma(es), tr])));
+  return indices[k];
+}
+const mayus = (s) => (s ? s.charAt(0).toLocaleUpperCase(LOCALE) + s.slice(1) : s);
+
+// Nombre de un plato en el idioma del móvil (los que escribe cada uno se quedan como están)
+const nombrePlato = (name) => indice('platos')[normIdioma(name)] || name;
+// Al revés: si alguien escribe «Linseneintopf», se guarda como «Lentejas estofadas» (la idea con su receta)
+const platoEnEspanol = (name) => indice('platos', true)[normIdioma(name)] || name;
+// Un ingrediente («Pimientos choriceros») en el idioma del móvil, con mayúscula si la llevaba
+function nombreIngrediente(name) {
+  const tr = indice('ingredientes')[normIdioma(name)];
+  if (!tr) return name;
+  return /^\p{Lu}/u.test(name) ? mayus(tr) : tr;
+}
+const ingredienteEnEspanol = (name) => indice('ingredientes', true)[normIdioma(name)] || name;
+// Los pasos traducidos de una receta de las ideas (las recetas que escribe la familia no se tocan)
+function pasosReceta(key, pasos) {
+  const tr = trRecetas()?.pasos?.[key];
+  return tr && tr.length === pasos.length ? tr : pasos;
+}
+const tiempoReceta = (s) => trRecetas()?.tiempos?.[s] || s;
+const unidadReceta = (s) => trRecetas()?.unidades?.[s] || s;

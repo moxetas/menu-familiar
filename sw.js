@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v26';
+const CACHE = 'menu-familiar-v27';
 const FILES = [
   './',
   'index.html',
@@ -21,6 +21,13 @@ const FILES = [
   'lang/ru.js',
   'lang/fr.js',
   'lang/ar.js',
+  'lang/recetas-de.js',
+  'lang/recetas-en.js',
+  'lang/recetas-pl.js',
+  'lang/recetas-ro.js',
+  'lang/recetas-ru.js',
+  'lang/recetas-fr.js',
+  'lang/recetas-ar.js',
   'ajustes.js',
   'temas/tema1.webp',
   'temas/tema2.webp',

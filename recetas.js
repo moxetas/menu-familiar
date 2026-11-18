@@ -681,7 +681,7 @@ function fmtQty(r, factor) {
   if (unit === 'g' && n >= 1000) { n = Math.round(n / 100) / 10; unit = 'kg'; }
   if (unit === 'ml' && n >= 1000) { n = Math.round(n / 100) / 10; unit = 'l'; }
   const [one, many] = LABEL[unit];
-  return `${weight ? String(n).replace('.', ',') : fmtNum(n)} ${n > 1 ? many : one}`;
+  return `${weight ? String(n).replace('.', ',') : fmtNum(n)} ${unidadReceta(n > 1 ? many : one)}`;
 }
 
 // Quita lo que va entre paréntesis para mostrar el nombre limpio
@@ -694,7 +694,7 @@ function catalogRecipe(name) {
   const entry = Object.entries(RECETAS).find(([k]) => norm(k) === key);
   if (!entry) return null;
   const [tiempo, ing, pasos] = entry[1];
-  return { personas: 4, tiempo, ing: ing.split(/\s*;\s*/), pasos: pasos.split('|') };
+  return { key: entry[0], personas: 4, tiempo, ing: ing.split(/\s*;\s*/), pasos: pasos.split('|') };
 }
 
 function recipeFor(name) {
@@ -772,7 +772,7 @@ function openRecipe(name, opts = {}) {
   const recipe = recipeFor(name);
   const cat = dish?.cat || opts.dish?.cat || CATALOGO.find((c) => norm(c[0]) === norm(name))?.[1] || 'otros';
   const back = opts.back ? `<button type="button" class="close" id="rc-back" aria-label="${T('Volver')}">‹</button>` : '';
-  const head = `<div class="sheet-head">${back}<h3>${esc(dish?.name || name)}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>`;
+  const head = `<div class="sheet-head">${back}<h3>${esc(nombrePlato(dish?.name || name))}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>`;
   const bindBack = () => $('#rc-back')?.addEventListener('click', opts.back);
 
   if (!recipe) {
@@ -781,7 +781,7 @@ function openRecipe(name, opts = {}) {
       <div class="notice">
         <p><strong>${T('Este plato todavía no tiene receta.')}</strong></p>
         <p class="small">${T('Escríbela una vez, con las cantidades para 4 personas, y la app calculará las calorías y ajustará las cantidades a quien coma.')}</p>
-        ${dish && base ? `<button type="button" class="btn primary" id="rc-base">📋 ${T('Empezar con la de «{nombre}»', { nombre: esc(base) })}</button>` : ''}
+        ${dish && base ? `<button type="button" class="btn primary" id="rc-base">📋 ${T('Empezar con la de «{nombre}»', { nombre: esc(nombrePlato(base)) })}</button>` : ''}
         ${dish ? `<button type="button" class="btn ${base ? '' : 'primary'}" id="rc-write">✍️ ${T('Escribirla desde cero')}</button>` : ''}
       </div>
       ${dish ? `<button type="button" class="btn" id="rc-dish">${T('Editar el plato')}</button>` : ''}
@@ -814,7 +814,7 @@ function openRecipe(name, opts = {}) {
   openSheet(`${head}
     <div class="recipe-meta c-${cat}">
       <span class="dot"></span>${esc(CAT[cat]?.nombre || '')}
-      ${recipe.tiempo ? `<span>⏱ ${esc(recipe.tiempo)}</span>` : ''}
+      ${recipe.tiempo ? `<span>⏱ ${esc(recipe.mine ? recipe.tiempo : tiempoReceta(recipe.tiempo))}</span>` : ''}
       <span>🔥 ${T('{n} kcal por ración', { n: Math.round(porRacion) })}</span>
     </div>
     <p class="muted small">${T('Receta base para {n} personas.', { n: recipe.personas || 4 })} ${members.length ? T('Elige quién come y las cantidades se ajustan a la ración de cada uno.') : T('Cambia el número de personas y se ajustan las cantidades.')}</p>
@@ -826,7 +826,7 @@ function openRecipe(name, opts = {}) {
     <table class="ing-table">
       <thead><tr><th>${T('Ingrediente')}</th><th>${T('Cantidad')}</th><th>kcal</th></tr></thead>
       <tbody>${nut.rows.map((r) => `<tr>
-        <td>${r.food?.flags.includes('k') ? '⛔ ' : ''}${esc(cleanName(r.name))}</td>
+        <td>${r.food?.flags.includes('k') ? '⛔ ' : ''}${esc(nombreIngrediente(cleanName(r.name)))}</td>
         <td>${esc(sinSal && r.qty == null && r.food?.key === 'sal' ? T('sin sal añadida') : r.qtyText)}</td>
         <td>${r.qty == null ? '' : !r.eaten ? '—' : r.kcal == null ? '?' : Math.round(r.kcal)}</td>
       </tr>`).join('')}</tbody>
@@ -840,9 +840,9 @@ function openRecipe(name, opts = {}) {
       <div><strong>${Math.round(nut.g / raciones)} g</strong><span>${T('grasas')}</span></div>
       <div><strong>${Math.round(nut.h / raciones)} g</strong><span>${T('hidratos')}</span></div>
     </div>
-    <p class="muted small">${T('Por ración estándar. Calorías aproximadas, calculadas con los ingredientes tal como se compran.')}${nut.unknown.length ? ' ' + T('No sé las calorías de: {cosas}.', { cosas: esc(nut.unknown.join(', ')) }) : ''}</p>` : `<p class="muted">${T('No come nadie: elige a alguien.')}</p>`}
+    <p class="muted small">${T('Por ración estándar. Calorías aproximadas, calculadas con los ingredientes tal como se compran.')}${nut.unknown.length ? ' ' + T('No sé las calorías de: {cosas}.', { cosas: esc(nut.unknown.map(nombreIngrediente).join(', ')) }) : ''}</p>` : `<p class="muted">${T('No come nadie: elige a alguien.')}</p>`}
     <h4 class="steps-title">${T('Preparación')}</h4>
-    <ol class="steps">${recipe.pasos.filter(Boolean).map((p) => `<li>${esc(p)}</li>`).join('')}</ol>
+    <ol class="steps">${(recipe.mine || !recipe.key ? recipe.pasos : pasosReceta(recipe.key, recipe.pasos)).filter(Boolean).map((p) => `<li>${esc(p)}</li>`).join('')}</ol>
     ${recipe.mine ? `<p class="muted small">${T('Esta es vuestra receta.')}</p>` : ''}
     <div class="row">
       ${dish ? `<button type="button" class="btn grow" id="rc-edit">✏️ ${recipe.mine ? T('Cambiar la receta') : T('Hacerla a nuestra manera')}</button>` : ''}
@@ -862,17 +862,17 @@ function openRecipeEditor(id, baseName, blank) {
   const base = dish.recipe || (blank ? empty : catalogRecipe(baseName || dish.name)) || empty;
   const original = catalogRecipe(dish.name);
   openSheet(`
-    <div class="sheet-head"><h3>${T('Receta: {nombre}', { nombre: esc(dish.name) })}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+    <div class="sheet-head"><h3>${T('Receta: {nombre}', { nombre: esc(nombrePlato(dish.name)) })}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
     <div class="row">
       <label class="field grow">${T('Personas')}<input type="number" id="re-pers" min="1" max="20" value="${base.personas || 4}" inputmode="numeric"></label>
-      <label class="field grow">${T('Tiempo')}<input type="text" id="re-time" value="${esc(base.tiempo || '')}" placeholder="${T('Ej.: 45 min')}"></label>
+      <label class="field grow">${T('Tiempo')}<input type="text" id="re-time" value="${esc(base.key ? tiempoReceta(base.tiempo || '') : base.tiempo || '')}" placeholder="${T('Ej.: 45 min')}"></label>
     </div>
     <label class="field">${T('Ingredientes, uno por línea, con su cantidad')}
       <textarea id="re-ing" placeholder="400 g lentejas&#10;2 zanahorias&#10;1 cebolla&#10;3 dientes ajo&#10;2 cdas aceite de oliva&#10;sal">${esc(base.ing.join('\n'))}</textarea>
     </label>
     <p class="muted small">${T('Así entiende las cantidades: «400 g», «1 l», «2 cdas», «1 cdta», «3 dientes», «2 cebollas», «1 lata», «sal» (sin cantidad = al gusto).')}</p>
     <label class="field">${T('Preparación, un paso por línea')}
-      <textarea id="re-steps" placeholder="${esc(T('Pocha la cebolla…\nAñade las lentejas…')).replace(/\n/g, '&#10;')}">${esc(base.pasos.join('\n'))}</textarea>
+      <textarea id="re-steps" placeholder="${esc(T('Pocha la cebolla…\nAñade las lentejas…')).replace(/\n/g, '&#10;')}">${esc((base.key ? pasosReceta(base.key, base.pasos) : base.pasos).join('\n'))}</textarea>
     </label>
     <div class="row">
       <button type="button" class="btn primary grow" id="re-ok">${T('Guardar receta')}</button>

@@ -3,7 +3,7 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 26;
+const APP_VERSION = 27;
 const COMIDAS = { comida: T('Comida'), cena: T('Cena') };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
@@ -70,9 +70,12 @@ const fmtShort = new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'short
 // Gana la palabra que sale antes en el nombre; si empiezan igual, la más larga.
 // Dentro de la carne, el tipo (cerdo, cordero, conejo) se mira en todo el nombre: «Solomillo de cerdo» → cerdo.
 function guessCat(name) {
+  // Un plato de las ideas escrito en otro idioma («Linseneintopf») tiene ya su tipo
+  const idea = CATALOGO.find((c) => norm(c[0]) === norm(platoEnEspanol(name)));
+  if (idea) return idea[1];
   const n = norm(name);
   let best = 'otros', pos = Infinity, len = 0;
-  for (const [cat, words] of PALABRAS) {
+  for (const [cat, words] of [...PALABRAS, ...Object.entries(trRecetas()?.palabras || {})]) {
     for (const w of words) {
       const i = n.indexOf(norm(w));
       if (i >= 0 && (i < pos || (i === pos && w.length > len))) { best = cat; pos = i; len = w.length; }
@@ -329,7 +332,7 @@ function renderWeek(main, actions) {
         if (!p) return `<button type="button" class="slot empty" data-key="${key}" data-meal="${m}"><span class="slot-meal">${COMIDAS[m]}</span><span class="slot-name">+ ${T('Elegir plato')}</span><span></span></button>`;
         return `<button type="button" class="slot c-${p.cat}" data-key="${key}" data-meal="${m}">
           <span class="slot-meal">${COMIDAS[m]}</span>
-          <span class="slot-name"><span class="slot-main">${esc(p.name)}${p.nuevo ? `<span class="tag-new">✨ ${T('Nuevo')}</span>` : ''}${slotHealth(list)}</span>${list.slice(1).map((x) => `<span class="slot-more"><span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}</span>`).join('')}</span>
+          <span class="slot-name"><span class="slot-main">${esc(nombrePlato(p.name))}${p.nuevo ? `<span class="tag-new">✨ ${T('Nuevo')}</span>` : ''}${slotHealth(list)}</span>${list.slice(1).map((x) => `<span class="slot-more"><span class="dot c-${x.cat}"></span>${esc(nombrePlato(x.name))}${x.nuevo ? ' ✨' : ''}</span>`).join('')}</span>
           <span class="slot-icons ${list.length > 1 ? 'varios' : ''}" aria-hidden="true">${list.slice(0, 3).map((x, i) => `<span class="slot-ico ${i ? 'acomp' : ''}">${dibujo(x.name, x.cat)}</span>`).join('')}</span>
         </button>`;
       }).join('')}
@@ -376,7 +379,7 @@ async function shareWeek(days) {
   const lines = [T('Menú del {a} al {b}', { a: fmtShort.format(days[0]), b: fmtShort.format(days[6]) }), ''];
   for (const d of days) {
     const day = state.plan[iso(d)] || {};
-    const parts = meals.map((m) => { const l = dishesOf(day[m]); return l.length ? l.map((x) => `${CAT[x.cat]?.emoji || ''} ${x.name}`).join(' + ') : '—'; });
+    const parts = meals.map((m) => { const l = dishesOf(day[m]); return l.length ? l.map((x) => `${CAT[x.cat]?.emoji || ''} ${nombrePlato(x.name)}`).join(' + ') : '—'; });
     lines.push(`${cap(fmtDay.format(d))}: ${parts.join('  /  ')}`);
   }
   const text = lines.join('\n');
@@ -440,7 +443,7 @@ function openMeal(key, meal) {
         <div class="md-head">
           ${dibujo(p.name, p.cat)}
           <div class="md-title">
-            <strong>${esc(p.name)}</strong>${p.nuevo ? `<span class="tag-new">✨ ${T('Nuevo')}</span>` : ''}
+            <strong>${esc(nombrePlato(p.name))}</strong>${p.nuevo ? `<span class="tag-new">✨ ${T('Nuevo')}</span>` : ''}
             <span class="muted small">${esc(whoText(p))}</span>
           </div>
         </div>
@@ -501,12 +504,12 @@ function openPicker(key, meal, i) {
     if (current.some((x, j) => j !== i && norm(x.name) === norm(dish.name))) { toast(T('Ese plato ya está en esta comida')); return; }
     setDish(key, meal, i, dish); render(); openMeal(key, meal);
   };
-  const title = cur ? T('Cambiar «{nombre}»', { nombre: cur.name }) : current.length ? T('Añadir otro plato') : `${cap(fmtDay.format(d))} · ${COMIDAS[meal]}`;
+  const title = cur ? T('Cambiar «{nombre}»', { nombre: nombrePlato(cur.name) }) : current.length ? T('Añadir otro plato') : `${cap(fmtDay.format(d))} · ${COMIDAS[meal]}`;
 
   const draw = () => {
     const list = state.dishes
       .filter((x) => (filter === 'todas' || x.cat === filter))
-      .sort((a, b) => a.name.localeCompare(b.name, LOCALE));
+      .sort((a, b) => nombrePlato(a.name).localeCompare(nombrePlato(b.name), LOCALE));
     openSheet(`
       <div class="sheet-head">
         ${current.length ? '<button type="button" class="close" id="pk-back" aria-label="' + T('Volver') + '">‹</button>' : ''}
@@ -522,7 +525,7 @@ function openPicker(key, meal, i) {
         <button type="submit" class="btn">${T('Poner')}</button>
       </form>
       <div class="chips">${chip('todas', T('Todos'), filter)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, filter)).join('')}</div>
-      <div class="pick-list">${list.length ? list.map((x) => `<button type="button" class="dish c-${x.cat}" data-id="${x.id}"><span class="dot"></span><span class="name">${esc(x.name)}</span>${x.fav ? '⭐' : ''}</button>`).join('') : `<p class="muted small">${T('No tienes platos de este tipo todavía.')}</p>`}</div>
+      <div class="pick-list">${list.length ? list.map((x) => `<button type="button" class="dish c-${x.cat}" data-id="${x.id}"><span class="dot"></span><span class="name">${esc(nombrePlato(x.name))}</span>${x.fav ? '⭐' : ''}</button>`).join('') : `<p class="muted small">${T('No tienes platos de este tipo todavía.')}</p>`}</div>
     `);
     const sheet = $('#sheet');
     $('#pk-back')?.addEventListener('click', () => openMeal(key, meal));
@@ -543,7 +546,7 @@ function openPicker(key, meal, i) {
     };
     $('#free').onsubmit = (e) => {
       e.preventDefault();
-      const name = $('#free-name').value.trim();
+      const name = platoEnEspanol($('#free-name').value.trim());
       if (!name) return;
       const existing = state.dishes.find((x) => norm(x.name) === norm(name));
       const dish = existing || addDish(name, guessCat(name), 'ambos');
@@ -561,6 +564,7 @@ function chip(v, label, current) {
 // ---------- Mis platos ----------
 
 function addDish(name, cat, when) {
+  name = platoEnEspanol(name);
   const ex = state.dishes.find((x) => norm(x.name) === norm(name));
   if (ex) return ex;
   const d = { id: uid(), name: cap(name.trim()), cat, when: when || 'ambos', fav: false };
@@ -590,7 +594,7 @@ function renderDishes(main, same) {
     main.querySelectorAll('#add-cats .chip').forEach((b) => b.onclick = () => { view.newCat = b.dataset.v; pressCat(b.dataset.v); });
     $('#add').onsubmit = (e) => {
       e.preventDefault();
-      const name = $('#add-name').value.trim();
+      const name = platoEnEspanol($('#add-name').value.trim());
       if (!name) return;
       if (state.dishes.some((x) => norm(x.name) === norm(name))) { toast(T('Ese plato ya está')); return; }
       const c = (view.newCat || 'auto') === 'auto' ? guessCat(name) : view.newCat;
@@ -606,7 +610,7 @@ function renderDishes(main, same) {
     $('#bulk').onclick = openBulk;
   }
 
-  const groups = CATEGORIAS.map((c) => ({ c, items: state.dishes.filter((d) => d.cat === c.id).sort((a, b) => a.name.localeCompare(b.name, LOCALE)) }));
+  const groups = CATEGORIAS.map((c) => ({ c, items: state.dishes.filter((d) => d.cat === c.id).sort((a, b) => nombrePlato(a.name).localeCompare(nombrePlato(b.name), LOCALE)) }));
   const meals = state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0];
   const sinReceta = state.dishes.filter((d) => !recipeFor(d.name)).length;
   const region = $('#dish-region');
@@ -618,7 +622,7 @@ function renderDishes(main, same) {
         <div class="tiles">${g.items.map((d) => `
           <button type="button" class="tile c-${d.cat}" data-id="${d.id}">
             ${dibujo(d.name, d.cat)}
-            <span class="tile-name">${esc(d.name)}</span>
+            <span class="tile-name">${esc(nombrePlato(d.name))}</span>
             ${d.fav ? `<span class="tile-fav" aria-label="${T('Favorito')}">⭐</span>` : ''}
             ${recipeFor(d.name) ? '' : `<span class="tile-badge">${T('sin receta')}</span>`}
             ${healthIcons(d.name) ? `<span class="tile-health" aria-label="${T('Con moderación para quien tiene plan de salud')}">${healthIcons(d.name)}</span>` : ''}
@@ -643,7 +647,8 @@ function openBulk() {
     let added = 0;
     for (const line of lines) {
       // Admite "Plato · Tipo", que es como sale al compartir la lista
-      const [name, tipo] = line.split(/\s+[·|]\s+/);
+      const [escrito, tipo] = line.split(/\s+[·|]\s+/);
+      const name = platoEnEspanol(escrito);
       const forced = tipo && CATEGORIAS.find((c) => norm(c.nombre) === norm(tipo.replace(/^\S+\s/, '')) || norm(c.nombre) === norm(tipo));
       if (state.dishes.some((x) => norm(x.name) === norm(name))) continue;
       addDish(name, forced ? forced.id : guessCat(name), 'ambos');
@@ -663,7 +668,7 @@ function openDish(id) {
   const draw = () => {
     openSheet(`
       <div class="sheet-head"><h3>${T('Editar plato')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
-      <label class="field">${T('Nombre')}<input type="text" id="ed-name" value="${esc(d.name)}" autocomplete="off"></label>
+      <label class="field">${T('Nombre')}<input type="text" id="ed-name" value="${esc(nombrePlato(d.name))}" autocomplete="off"></label>
       <label class="field">${T('Tipo')}</label>
       <div class="chips" id="ed-cat">${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, d.cat)).join('')}</div>
       <label class="field">${T('Cuándo')}</label>
@@ -693,8 +698,10 @@ function openDish(id) {
   const keepName = () => {
     const t = $('#ed-ing');
     if (t) { const list = parseList(t.value); if (list.length) d.ingredients = list; else delete d.ingredients; }
-    const v = $('#ed-name')?.value.trim();
+    let v = $('#ed-name')?.value.trim();
     if (!v) return;
+    if (v === nombrePlato(d.name)) v = d.name;   // sin tocar el nombre traducido, se queda el de siempre
+    v = platoEnEspanol(v);
     const old = d.name;
     d.name = v;
     // Actualiza el menú para que el color y el nombre coincidan
@@ -706,7 +713,7 @@ function openDish(id) {
 async function exportList() {
   const text = state.dishes
     .slice().sort((a, b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name, LOCALE))
-    .map((d) => `${d.name} · ${CAT[d.cat].nombre}`).join('\n');
+    .map((d) => `${nombrePlato(d.name)} · ${CAT[d.cat].nombre}`).join('\n');
   if (!text) { toast(T('Todavía no hay platos')); return; }
   try {
     if (navigator.share) { await navigator.share({ text }); return; }
@@ -732,7 +739,7 @@ function renderIdeas(main) {
     ${i ? `
       <div class="card idea c-${i.cat}">
         <div class="big">${CAT[i.cat].emoji}</div>
-        <div class="title">${esc(i.name)}</div>
+        <div class="title">${esc(nombrePlato(i.name))}</div>
         <div class="muted small">${esc(CAT[i.cat].nombre)}${i.when ? ` · ${T('mejor para {comida}', { comida: minus(COMIDAS[i.when]) })}` : ''}</div>
         <div class="row" style="justify-content:center">
           <button type="button" class="btn primary" id="i-save">${T('Me gusta, guardar')}</button>
@@ -768,13 +775,13 @@ function putInWeek(i) {
   const meals = state.settings.meals;
   openSheet(`
     <div class="sheet-head"><h3>${T('¿Cuándo?')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
-    <p class="muted small">${esc(i.name)}</p>
+    <p class="muted small">${esc(nombrePlato(i.name))}</p>
     <div class="pick-list">
       ${days.filter((d) => iso(d) >= today).flatMap((d) => meals.filter((m) => fits(i.when, m)).map((m) => {
         const l = dishesOf(state.plan[iso(d)]?.[m]);
         const p = l[0];
         return `<button type="button" class="dish ${p ? 'c-' + p.cat : 'c-otros'}" data-key="${iso(d)}" data-meal="${m}">
-          <span class="name">${cap(fmtDay.format(d))} · ${COMIDAS[m]}</span><span class="badge">${p ? T('junto a {platos}', { platos: esc(l.map((x) => x.name).join(' + ')) }) : T('libre')}</span></button>`;
+          <span class="name">${cap(fmtDay.format(d))} · ${COMIDAS[m]}</span><span class="badge">${p ? T('junto a {platos}', { platos: esc(l.map((x) => nombrePlato(x.name)).join(' + ')) }) : T('libre')}</span></button>`;
       })).join('')}
     </div>
   `);

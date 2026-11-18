@@ -1,0 +1,1165 @@
+{
+ "platos": [
+  "Merluza en salsa verde",
+  "Bacalao a la vizcaína",
+  "Salmón al horno con limón",
+  "Dorada a la sal",
+  "Lubina a la espalda",
+  "Sardinas a la plancha",
+  "Boquerones fritos",
+  "Calamares a la romana",
+  "Sepia a la plancha con alioli",
+  "Pulpo a la gallega",
+  "Mejillones al vapor",
+  "Marmitako de bonito",
+  "Rape en salsa de almendras",
+  "Atún encebollado",
+  "Trucha a la navarra",
+  "Emperador a la plancha",
+  "Caballa al horno con verduras",
+  "Bacalao al pil pil",
+  "Lenguado a la plancha",
+  "Zarzuela de pescado",
+  "Albóndigas en salsa",
+  "Lomo a la plancha con pimientos",
+  "Filetes de ternera empanados",
+  "Hamburguesas caseras",
+  "Estofado de ternera",
+  "Carrillada al vino tinto",
+  "Costillas de cerdo al horno",
+  "Solomillo de cerdo a la mostaza",
+  "Secreto ibérico con patatas",
+  "Chuletas de cerdo con manzana",
+  "Conejo al ajillo",
+  "Pimientos rellenos de carne",
+  "Ragú de ternera con puré",
+  "Pollo al ajillo",
+  "Pollo asado con patatas",
+  "Pechuga a la plancha con ensalada",
+  "Pollo al curry con arroz",
+  "Pollo en pepitoria",
+  "Muslos de pollo al horno",
+  "Pavo con champiñones",
+  "Fajitas de pollo",
+  "Pollo al chilindrón",
+  "Alitas de pollo al horno",
+  "Pollo al limón",
+  "Menestra de verduras",
+  "Pisto con huevo",
+  "Crema de calabaza",
+  "Crema de calabacín",
+  "Judías verdes con patata",
+  "Berenjenas rellenas",
+  "Espinacas a la catalana",
+  "Coliflor gratinada",
+  "Ensalada mixta",
+  "Gazpacho",
+  "Salmorejo",
+  "Alcachofas con jamón",
+  "Escalivada",
+  "Wok de verduras",
+  "Vichyssoise",
+  "Parrillada de verduras",
+  "Brócoli salteado con ajo",
+  "Puré de verduras",
+  "Lentejas estofadas",
+  "Garbanzos con espinacas",
+  "Cocido madrileño",
+  "Fabada asturiana",
+  "Alubias blancas con verduras",
+  "Potaje de vigilia",
+  "Ensalada de garbanzos",
+  "Hummus con verduras para mojar",
+  "Lentejas con arroz",
+  "Alubias rojas",
+  "Ensalada de lentejas",
+  "Paella mixta",
+  "Arroz a la cubana",
+  "Arroz negro",
+  "Arroz al horno",
+  "Fideuá",
+  "Macarrones con tomate",
+  "Espaguetis a la carbonara",
+  "Lasaña de verduras",
+  "Canelones",
+  "Risotto de setas",
+  "Ensalada de pasta",
+  "Ñoquis con salsa de tomate",
+  "Cuscús con verduras",
+  "Arroz con verduras",
+  "Tortilla de patatas",
+  "Huevos rotos con jamón",
+  "Revuelto de setas",
+  "Tortilla francesa con ensalada",
+  "Huevos a la flamenca",
+  "Tortilla de calabacín",
+  "Huevos rellenos",
+  "Shakshuka",
+  "Revuelto de espárragos trigueros",
+  "Frittata de verduras",
+  "Pizza casera",
+  "Croquetas caseras",
+  "Empanada gallega",
+  "Crepes salados",
+  "Sopa de picadillo",
+  "Patatas a la riojana",
+  "Sopa de cebolla",
+  "Tostas variadas",
+  "Quiche de verduras",
+  "Sándwiches calientes",
+  "Huevos fritos y patatas con jamón",
+  "Bogavante",
+  "Caviar"
+ ],
+ "ingredientes": [
+  "aceite de oliva",
+  "aceitunas",
+  "agua",
+  "aguacate",
+  "ajo",
+  "albahaca",
+  "alcachofas",
+  "alitas de pollo",
+  "almejas",
+  "almendras",
+  "alubias blancas",
+  "alubias rojas",
+  "anchoas",
+  "arroz",
+  "arroz arborio",
+  "arroz bomba",
+  "atún en lata",
+  "atún fresco",
+  "azafrán",
+  "azúcar",
+  "bacalao",
+  "bacalao desalado",
+  "bacon",
+  "bechamel",
+  "berenjena",
+  "berenjenas",
+  "bogavante",
+  "bonito",
+  "boquerones",
+  "boquerones enteros",
+  "brócoli",
+  "caballa",
+  "caballa entera",
+  "calabacín",
+  "calabacines",
+  "calabaza",
+  "calamares",
+  "caldo",
+  "caldo de carne",
+  "caldo de cocido",
+  "caldo de pescado",
+  "caldo de pollo",
+  "caldo de verduras",
+  "carne picada",
+  "carrilleras de cerdo",
+  "caviar",
+  "cebolla",
+  "cebollas",
+  "champiñones",
+  "chorizo",
+  "chuletas de cerdo",
+  "coliflor",
+  "comino",
+  "conejo troceado",
+  "costillas de cerdo",
+  "curry",
+  "cuscús",
+  "dorada",
+  "dorada entera",
+  "emperador",
+  "espaguetis",
+  "espárragos trigueros",
+  "espinacas",
+  "fabes",
+  "fideos",
+  "fideos gruesos",
+  "filetes de ternera",
+  "gallina",
+  "gambas",
+  "garbanzos",
+  "garbanzos cocidos",
+  "garbanzos secos",
+  "guindilla",
+  "guisantes",
+  "harina",
+  "hierbabuena",
+  "hueso de jamón",
+  "huevo",
+  "huevos",
+  "jamón serrano",
+  "jamón york",
+  "judías verdes",
+  "lacón",
+  "laurel",
+  "leche",
+  "leche de coco",
+  "lechuga",
+  "lenguado",
+  "lenguado entero",
+  "lentejas",
+  "lentejas cocidas",
+  "limón",
+  "limones",
+  "lomo de cerdo",
+  "lubina",
+  "lubina entera",
+  "macarrones",
+  "maíz dulce",
+  "mantequilla",
+  "manzanas",
+  "masa de empanada",
+  "masa de pizza",
+  "masa quebrada",
+  "mayonesa",
+  "mejillones",
+  "mejillones con concha",
+  "merluza",
+  "merluza en rodajas",
+  "morcilla",
+  "morcillo de ternera",
+  "mostaza",
+  "mozzarella",
+  "muslos de pollo",
+  "nata",
+  "nata para cocinar",
+  "ñoquis",
+  "orégano",
+  "pan",
+  "pan de hamburguesa",
+  "pan de molde",
+  "pan de pita",
+  "pan de pueblo",
+  "pan rallado",
+  "panceta",
+  "panes de hamburguesa",
+  "panes de pita",
+  "pasas",
+  "pasta",
+  "patata",
+  "patatas",
+  "pechuga de pavo",
+  "pechugas de pollo",
+  "pepino",
+  "perejil",
+  "pimentón",
+  "pimienta",
+  "pimiento",
+  "pimiento rojo",
+  "pimiento verde",
+  "pimientos",
+  "pimientos choriceros",
+  "pimientos de padrón",
+  "pimientos rojos",
+  "pimientos verdes",
+  "piñones",
+  "placas de canelones",
+  "placas de lasaña",
+  "plátanos",
+  "pollo entero",
+  "pollo troceado",
+  "puerro",
+  "puerros",
+  "pulpo",
+  "quesitos",
+  "queso",
+  "queso en lonchas",
+  "queso parmesano",
+  "queso rallado",
+  "rape",
+  "rape en rodajas",
+  "repollo",
+  "sal",
+  "sal gruesa",
+  "salmón",
+  "salsa de soja",
+  "sardinas",
+  "sardinas enteras",
+  "secreto ibérico",
+  "sepia",
+  "setas",
+  "solomillo de cerdo",
+  "tahini",
+  "ternera para guisar",
+  "tinta de calamar",
+  "tocino",
+  "tomate",
+  "tomate frito",
+  "tomate triturado",
+  "tomates",
+  "tomates cherry",
+  "tomates maduros",
+  "tortillas de trigo",
+  "truchas",
+  "truchas enteras",
+  "vinagre",
+  "vino blanco",
+  "vino tinto",
+  "zanahoria",
+  "zanahorias"
+ ],
+ "tiempos": [
+  "30 min",
+  "60 min (y 48 h de desalado)",
+  "35 min",
+  "15 min",
+  "25 min",
+  "20 min",
+  "60 min",
+  "50 min",
+  "40 min",
+  "40 min (y 48 h de desalado)",
+  "2 h",
+  "3 h",
+  "75 min",
+  "2 h 30 min",
+  "45 min",
+  "90 min",
+  "15 min (y 1 h de nevera)",
+  "3 h 30 min (y remojo la noche antes)",
+  "3 h (y remojo la noche antes)",
+  "90 min (y remojo la noche antes)",
+  "2 h 30 min (y remojo la noche antes)",
+  "2 h (y remojo la noche antes)",
+  "90 min (y 4 h de nevera)"
+ ],
+ "unidades": [
+  "cda",
+  "cdas",
+  "cdta",
+  "cdtas",
+  "diente",
+  "dientes",
+  "lata",
+  "latas",
+  "vaso",
+  "vasos",
+  "taza",
+  "tazas",
+  "pizca",
+  "pizcas",
+  "chorrito",
+  "chorritos",
+  "rama",
+  "ramas",
+  "hoja",
+  "hojas",
+  "manojo",
+  "manojos",
+  "puñado",
+  "puñados",
+  "loncha",
+  "lonchas",
+  "rebanada",
+  "rebanadas",
+  "sobre",
+  "sobres",
+  "ud"
+ ],
+ "pasosKeys": [
+  "Merluza en salsa verde",
+  "Bacalao a la vizcaína",
+  "Salmón al horno con limón",
+  "Dorada a la sal",
+  "Lubina a la espalda",
+  "Sardinas a la plancha",
+  "Boquerones fritos",
+  "Calamares a la romana",
+  "Sepia a la plancha con alioli",
+  "Pulpo a la gallega",
+  "Mejillones al vapor",
+  "Marmitako de bonito",
+  "Rape en salsa de almendras",
+  "Atún encebollado",
+  "Trucha a la navarra",
+  "Emperador a la plancha",
+  "Caballa al horno con verduras",
+  "Bacalao al pil pil",
+  "Lenguado a la plancha",
+  "Zarzuela de pescado",
+  "Albóndigas en salsa",
+  "Lomo a la plancha con pimientos",
+  "Filetes de ternera empanados",
+  "Hamburguesas caseras",
+  "Estofado de ternera",
+  "Carrillada al vino tinto",
+  "Costillas de cerdo al horno",
+  "Solomillo de cerdo a la mostaza",
+  "Secreto ibérico con patatas",
+  "Chuletas de cerdo con manzana",
+  "Conejo al ajillo",
+  "Pimientos rellenos de carne",
+  "Ragú de ternera con puré",
+  "Pollo al ajillo",
+  "Pollo asado con patatas",
+  "Pechuga a la plancha con ensalada",
+  "Pollo al curry con arroz",
+  "Pollo en pepitoria",
+  "Muslos de pollo al horno",
+  "Pavo con champiñones",
+  "Fajitas de pollo",
+  "Pollo al chilindrón",
+  "Alitas de pollo al horno",
+  "Pollo al limón",
+  "Menestra de verduras",
+  "Pisto con huevo",
+  "Crema de calabaza",
+  "Crema de calabacín",
+  "Judías verdes con patata",
+  "Berenjenas rellenas",
+  "Espinacas a la catalana",
+  "Coliflor gratinada",
+  "Ensalada mixta",
+  "Gazpacho",
+  "Salmorejo",
+  "Alcachofas con jamón",
+  "Escalivada",
+  "Wok de verduras",
+  "Vichyssoise",
+  "Parrillada de verduras",
+  "Brócoli salteado con ajo",
+  "Puré de verduras",
+  "Lentejas estofadas",
+  "Garbanzos con espinacas",
+  "Cocido madrileño",
+  "Fabada asturiana",
+  "Alubias blancas con verduras",
+  "Potaje de vigilia",
+  "Ensalada de garbanzos",
+  "Hummus con verduras para mojar",
+  "Lentejas con arroz",
+  "Alubias rojas",
+  "Ensalada de lentejas",
+  "Paella mixta",
+  "Arroz a la cubana",
+  "Arroz negro",
+  "Arroz al horno",
+  "Fideuá",
+  "Macarrones con tomate",
+  "Espaguetis a la carbonara",
+  "Lasaña de verduras",
+  "Canelones",
+  "Risotto de setas",
+  "Ensalada de pasta",
+  "Ñoquis con salsa de tomate",
+  "Cuscús con verduras",
+  "Arroz con verduras",
+  "Tortilla de patatas",
+  "Huevos rotos con jamón",
+  "Revuelto de setas",
+  "Tortilla francesa con ensalada",
+  "Huevos a la flamenca",
+  "Tortilla de calabacín",
+  "Huevos rellenos",
+  "Shakshuka",
+  "Revuelto de espárragos trigueros",
+  "Frittata de verduras",
+  "Pizza casera",
+  "Croquetas caseras",
+  "Empanada gallega",
+  "Crepes salados",
+  "Sopa de picadillo",
+  "Patatas a la riojana",
+  "Sopa de cebolla",
+  "Tostas variadas",
+  "Quiche de verduras",
+  "Huevos fritos y patatas con jamón",
+  "Bogavante",
+  "Caviar",
+  "Sándwiches calientes"
+ ],
+ "pasos": [
+  [
+   "Deja las almejas 30 minutos en agua con sal para que suelten la arena.",
+   "Sala la merluza. En una cazuela ancha, dora a fuego suave el ajo picado en el aceite.",
+   "Añade la harina, remueve 1 minuto y echa el vino; deja que reduzca 2 minutos.",
+   "Vierte el caldo poco a poco moviendo la cazuela hasta que la salsa espese un poco.",
+   "Coloca la merluza y las almejas, tapa y cuece 5–6 minutos moviendo la cazuela de vez en cuando.",
+   "Espolvorea el perejil picado y sirve enseguida."
+  ],
+  [
+   "El bacalao tiene que estar desalado: 48 horas en agua fría en la nevera, cambiando el agua 3 veces al día.",
+   "Pon los pimientos choriceros en remojo en agua templada 1 hora y raspa la carne con una cuchara.",
+   "Pocha a fuego lento la cebolla y el ajo picados en el aceite durante 20 minutos.",
+   "Añade la carne de los choriceros y el tomate, cocina 15 minutos y tritura la salsa.",
+   "Coloca el bacalao en una cazuela con la piel hacia arriba, cúbrelo con la salsa y cuece a fuego suave 10 minutos. Prueba antes de salar: el bacalao ya lo es."
+  ],
+  [
+   "Precalienta el horno a 200 °C.",
+   "Corta las patatas en rodajas finas, ponlas en una bandeja con la mitad del aceite y sal, y hornéalas 20 minutos.",
+   "Coloca encima el salmón salpimentado y rodajas de limón, y riega con el resto del aceite y el zumo de medio limón.",
+   "Hornea 12–15 minutos más, hasta que el salmón esté jugoso por dentro.",
+   "Sirve con más limón al gusto."
+  ],
+  [
+   "Precalienta el horno a 220 °C. Limpia las doradas por dentro pero sin quitarles las escamas.",
+   "Mezcla la sal gruesa con un poco de agua para que quede como arena mojada.",
+   "Pon una capa de sal en una bandeja, coloca encima las doradas con unas rodajas de limón en la tripa y cúbrelas del todo con el resto.",
+   "Hornea 20–25 minutos.",
+   "Rompe la costra de sal, quita la piel y sirve los lomos con un chorrito de aceite."
+  ],
+  [
+   "Precalienta el horno a 200 °C. Pide en la pescadería que te abran las lubinas a la espalda.",
+   "Ponlas abiertas en una bandeja con la piel hacia abajo, sálalas y riégalas con un poco de aceite.",
+   "Hornea 12–15 minutos según el tamaño.",
+   "Mientras, dora el ajo laminado y la guindilla en el resto del aceite. Fuera del fuego, añade el vinagre.",
+   "Vierte el refrito sobre las lubinas y sirve con limón."
+  ],
+  [
+   "Limpia las sardinas quitándoles las tripas y lávalas con agua fría. Sécalas bien.",
+   "Calienta mucho la plancha con un poco de aceite.",
+   "Échales sal gruesa y hazlas 2–3 minutos por cada lado.",
+   "Sirve con perejil picado, un chorrito de aceite y limón."
+  ],
+  [
+   "Limpia los boquerones quitando la cabeza y las tripas. Lávalos y sécalos bien.",
+   "Sálalos y pásalos por harina, sacudiendo la que sobre.",
+   "Fríelos en abundante aceite muy caliente, en tandas pequeñas, 1–2 minutos hasta que estén dorados.",
+   "Escúrrelos sobre papel de cocina y sirve con limón."
+  ],
+  [
+   "Limpia los calamares y córtalos en anillas. Sécalos bien y sálalos.",
+   "Pásalos por harina y después por huevo batido.",
+   "Fríelos en tandas en aceite abundante muy caliente hasta que estén dorados.",
+   "Escúrrelos sobre papel de cocina y sirve enseguida con limón."
+  ],
+  [
+   "Limpia la sepia y córtala en trozos grandes. Sécala bien.",
+   "Para el alioli: pon en el vaso de la batidora el huevo, 1 diente de ajo, sal y los 120 ml de aceite. Bate sin mover hasta que espese y luego sube y baja la batidora.",
+   "Calienta la plancha con un poco de aceite y haz la sepia 3–4 minutos por cada lado.",
+   "Al final, échale el otro ajo y el perejil picados con un chorrito de aceite.",
+   "Sirve con el alioli y limón."
+  ],
+  [
+   "Si el pulpo es fresco, congélalo antes al menos 2 días para que quede tierno (o cómpralo ya cocido).",
+   "Pon a hervir una olla grande con agua. «Asusta» el pulpo: mételo y sácalo tres veces y luego déjalo dentro.",
+   "Cuécelo unos 40 minutos, hasta que al pincharlo entre bien. Déjalo reposar 10 minutos en el agua.",
+   "En esa misma agua cuece las patatas peladas y en rodajas unos 20 minutos.",
+   "Corta el pulpo con tijeras sobre las patatas y termina con sal gruesa, pimentón y aceite."
+  ],
+  [
+   "Limpia los mejillones raspando las conchas y quitando las barbas. Tira los que estén abiertos.",
+   "Pon en una olla el vino, el laurel y unas rodajas de limón, y añade los mejillones.",
+   "Tapa y cocina a fuego fuerte 4–5 minutos, moviendo la olla, hasta que se abran.",
+   "Tira los que no se hayan abierto y sirve con limón."
+  ],
+  [
+   "Pica la cebolla, el pimiento y el ajo y póchalos en el aceite 10 minutos en una cazuela.",
+   "Añade el tomate y cocina 5 minutos más.",
+   "Echa las patatas peladas y «cascadas» (rompiendo el último corte para que suelten almidón) y rehoga 2 minutos.",
+   "Cubre con el caldo caliente y cuece 20–25 minutos, hasta que las patatas estén tiernas.",
+   "Apaga el fuego, añade el bonito en dados con sal y deja reposar tapado 5 minutos: se hace con el calor."
+  ],
+  [
+   "Sala el rape, pásalo por harina y dóralo en el aceite. Resérvalo.",
+   "En el mismo aceite fríe las almendras, el ajo y el pan hasta que se doren. Tritúralos con un poco de caldo.",
+   "Pocha la cebolla picada 10 minutos, añade el vino y deja que reduzca.",
+   "Agrega el majado de almendras, el azafrán y el resto del caldo, y cuece 5 minutos.",
+   "Incorpora el rape y cocina 6–8 minutos a fuego suave."
+  ],
+  [
+   "Corta las cebollas en juliana y póchalas a fuego lento en el aceite con el ajo y el laurel 25 minutos, hasta que estén muy blandas.",
+   "Añade el vino y deja que se evapore el alcohol.",
+   "Corta el atún en tacos, salpimiéntalo y añádelo a la cebolla.",
+   "Cocina solo 3–4 minutos, dándole la vuelta: si se hace de más, queda seco."
+  ],
+  [
+   "Limpia las truchas, sécalas y sálalas por dentro.",
+   "Mete una loncha de jamón dentro de cada trucha.",
+   "Pásalas por harina y fríelas en el aceite 4–5 minutos por cada lado.",
+   "Sirve con limón."
+  ],
+  [
+   "Pica el ajo y el perejil y mézclalos con el aceite y un poco de zumo de limón.",
+   "Sala los filetes de emperador.",
+   "Hazlos en la plancha muy caliente 2–3 minutos por cada lado.",
+   "Sirve con el aliño de ajo y perejil por encima."
+  ],
+  [
+   "Precalienta el horno a 200 °C.",
+   "Corta las patatas, la cebolla y el pimiento en rodajas finas, ponlos en una bandeja con la mitad del aceite y sal, y hornea 20 minutos.",
+   "Coloca encima las caballas limpias y saladas, y riega con el vino y el resto del aceite.",
+   "Hornea 15 minutos más."
+  ],
+  [
+   "El bacalao tiene que estar desalado (48 horas en agua fría, cambiándola 3 veces al día). Sécalo bien.",
+   "Dora a fuego suave el ajo laminado y la guindilla en el aceite. Retíralos.",
+   "Deja templar el aceite y pon el bacalao con la piel hacia arriba. Cocina a fuego muy suave 5 minutos por cada lado.",
+   "Retira el bacalao y mueve la cazuela en círculos (o bate con un colador) hasta que la gelatina del bacalao ligue el aceite en una salsa espesa.",
+   "Vuelve a poner el bacalao, cúbrelo con la salsa y decora con el ajo y la guindilla."
+  ],
+  [
+   "Sala los lenguados limpios y sécalos bien.",
+   "Pincela la plancha con aceite y, cuando esté muy caliente, pon los lenguados.",
+   "Hazlos 3–4 minutos por cada lado según el grosor.",
+   "Sirve con limón y una ensalada de lechuga aliñada con aceite, vinagre y sal."
+  ],
+  [
+   "Abre los mejillones al vapor y resérvalos. Pela las gambas.",
+   "En una cazuela sofríe la cebolla y el ajo picados en el aceite 10 minutos. Añade el tomate y cocina 10 minutos más.",
+   "Agrega el vino, deja que reduzca y vierte el caldo con el azafrán y las almendras picadas.",
+   "Añade los calamares en anillas y cuece 10 minutos.",
+   "Incorpora el rape y la merluza en trozos y las gambas, y cuece 5–6 minutos. Añade los mejillones al final."
+  ],
+  [
+   "Mezcla la carne con el huevo, el pan rallado mojado en la leche, 1 ajo y el perejil picados, y sal. Forma bolas.",
+   "Pásalas por harina y dóralas en el aceite. Resérvalas.",
+   "En ese aceite pocha la cebolla, el otro ajo y la zanahoria picados 15 minutos.",
+   "Añade el tomate y el vino, deja reducir y vierte el caldo. Cuece 10 minutos y tritura la salsa.",
+   "Vuelve a poner las albóndigas en la salsa y cuece 15 minutos a fuego suave."
+  ],
+  [
+   "Corta las patatas en bastones y fríelas en abundante aceite hasta que estén doradas. Escúrrelas y sálalas.",
+   "Fríe los pimientos de Padrón en un poco de aceite hasta que se arruguen y échales sal gruesa.",
+   "Sala los filetes de lomo y hazlos en la plancha muy caliente 1–2 minutos por cada lado.",
+   "Sirve el lomo con los pimientos y las patatas."
+  ],
+  [
+   "Sala los filetes y pásalos por huevo batido y después por pan rallado, apretando bien.",
+   "Fríelos en aceite caliente 1–2 minutos por cada lado y escúrrelos sobre papel.",
+   "Fríe las patatas cortadas en bastones y sálalas.",
+   "Sirve con limón."
+  ],
+  [
+   "Salpimienta la carne, divídela en 4 bolas y aplánalas hasta dejarlas de 1,5 cm de grosor.",
+   "Hazlas en una sartén o plancha caliente con unas gotas de aceite, 3–4 minutos por cada lado.",
+   "En el último minuto pon encima el queso para que se funda.",
+   "Tuesta un poco el pan y monta las hamburguesas con lechuga, tomate y cebolla en rodajas."
+  ],
+  [
+   "Sala la carne en tacos, enharínala y dórala en el aceite en una olla. Resérvala.",
+   "En el mismo aceite pocha la cebolla, el ajo y la zanahoria picados 10 minutos.",
+   "Vuelve a poner la carne, añade el vino y deja que se evapore el alcohol.",
+   "Cubre con el caldo, añade el laurel y cuece tapado a fuego suave 1 hora y media (o 30 minutos en olla rápida).",
+   "Añade las patatas en trozos y los guisantes, y cuece 20 minutos más."
+  ],
+  [
+   "Quita la grasa a las carrilleras, salpimiéntalas, enharínalas y dóralas en el aceite. Resérvalas.",
+   "Pocha la cebolla, la zanahoria y el ajo picados 15 minutos.",
+   "Añade las carrilleras y el vino, y deja que reduzca 5 minutos.",
+   "Cubre con el caldo y cuece tapado a fuego muy suave 2 horas y media (o 40 minutos en olla rápida), hasta que se deshagan.",
+   "Tritura la salsa. Sirve con las patatas cocidas o en puré."
+  ],
+  [
+   "Precalienta el horno a 180 °C.",
+   "Mezcla el aceite, el ajo picado, el pimentón, el zumo de limón y sal, y unta bien las costillas.",
+   "Pon las patatas en rodajas en la bandeja y las costillas encima. Riega con el vino.",
+   "Hornea 1 hora, dándoles la vuelta a mitad. Sube a 220 °C los últimos 10 minutos para que se doren."
+  ],
+  [
+   "Cuece las patatas peladas en agua con sal 20 minutos.",
+   "Corta el solomillo en medallones, salpimiéntalos y dóralos en el aceite 2 minutos por cada lado. Resérvalos.",
+   "En la misma sartén echa el vino, deja que reduzca y añade la nata y la mostaza.",
+   "Cuece la salsa 3 minutos, vuelve a poner la carne y cocina 2 minutos más.",
+   "Sirve con las patatas."
+  ],
+  [
+   "Corta las patatas en rodajas y los pimientos en tiras, y fríelos a fuego medio hasta que estén tiernos y dorados. Escúrrelos y sálalos.",
+   "Calienta mucho una plancha sin aceite: el secreto ya tiene su grasa.",
+   "Haz el secreto 3–4 minutos por cada lado, córtalo en tiras y échale sal gruesa.",
+   "Sirve con las patatas y los pimientos."
+  ],
+  [
+   "Salpimienta las chuletas y dóralas en el aceite 3–4 minutos por cada lado. Resérvalas.",
+   "En la misma sartén pon la mantequilla, la cebolla en juliana y la manzana en gajos, y cocina 10 minutos.",
+   "Añade el vino y deja que reduzca.",
+   "Vuelve a poner las chuletas, tapa y cocina 3 minutos más."
+  ],
+  [
+   "Sala el conejo y dóralo bien en el aceite a fuego medio-alto, unos 15 minutos.",
+   "Añade los ajos enteros con piel un poco aplastados y el laurel, y cocina 5 minutos.",
+   "Riega con el vino, tapa y cocina a fuego suave 20 minutos, hasta que esté tierno.",
+   "Destapa, deja que se reduzca la salsa y termina con perejil picado."
+  ],
+  [
+   "Precalienta el horno a 190 °C. Corta la parte de arriba de los pimientos y quita las semillas.",
+   "Pocha la cebolla y el ajo picados en el aceite 10 minutos. Añade la carne y sal, y cocina hasta que pierda el color rosa.",
+   "Mezcla con la mitad del tomate frito y rellena los pimientos.",
+   "Cubre con el resto del tomate y el queso, ponles su «tapa» y hornea 40 minutos."
+  ],
+  [
+   "Dora la carne en tacos con el aceite y resérvala.",
+   "Pocha la cebolla, la zanahoria y el ajo picados 10 minutos.",
+   "Vuelve a poner la carne, añade el vino, deja reducir y agrega el tomate y el caldo.",
+   "Cuece tapado a fuego suave 2 horas (o 35 minutos en olla rápida), hasta que la carne se deshaga.",
+   "Para el puré, cuece las patatas 20 minutos, escúrrelas y aplástalas con la leche caliente, la mantequilla y sal. Sirve el ragú sobre el puré."
+  ],
+  [
+   "Sala el pollo y dóralo bien en el aceite a fuego medio, unos 20 minutos, dándole vueltas.",
+   "Añade los ajos con piel un poco aplastados y cocina 5 minutos más.",
+   "Riega con el vino y deja que se reduzca a fuego vivo.",
+   "Tapa y cocina 10 minutos a fuego suave. Termina con perejil picado."
+  ],
+  [
+   "Precalienta el horno a 200 °C.",
+   "Pon en una bandeja las patatas y las cebollas en rodajas con sal y la mitad del aceite.",
+   "Salpimienta el pollo por dentro y por fuera, mete dentro el limón partido y los ajos, y úntalo con el resto del aceite.",
+   "Ponlo sobre las patatas, riega con el vino y hornea 1 hora y cuarto, dándole la vuelta a mitad y regándolo con su jugo."
+  ],
+  [
+   "Corta las pechugas en filetes finos y sálalos.",
+   "Hazlos en la plancha caliente con unas gotas de aceite 2–3 minutos por cada lado.",
+   "Prepara la ensalada con la lechuga, el tomate y la cebolla, y alíñala con aceite, vinagre y sal.",
+   "Sirve la pechuga con la ensalada."
+  ],
+  [
+   "Cuece el arroz en agua con sal 18 minutos y escúrrelo.",
+   "Pocha la cebolla picada en el aceite 8 minutos.",
+   "Añade el pollo en dados y sal, y dóralo. Echa el curry y remueve 1 minuto.",
+   "Vierte la leche de coco y cocina 10 minutos a fuego suave hasta que espese.",
+   "Sirve con el arroz."
+  ],
+  [
+   "Cuece los huevos 10 minutos y separa las yemas de las claras.",
+   "Sala el pollo, enharínalo y dóralo en el aceite. Resérvalo.",
+   "Fríe en el mismo aceite el ajo y las almendras y resérvalos. Pocha la cebolla picada 10 minutos.",
+   "Vuelve a poner el pollo, añade el vino, deja reducir y cubre con el caldo. Cuece 30 minutos.",
+   "Machaca las almendras, el ajo, las yemas y el azafrán con un poco de caldo, échalo a la cazuela y cuece 5 minutos. Sirve con la clara picada por encima."
+  ],
+  [
+   "Precalienta el horno a 200 °C.",
+   "Pon las patatas y la cebolla en rodajas en una bandeja con sal y un poco de aceite.",
+   "Unta los muslos con el resto del aceite, el zumo del limón, el pimentón y sal, y colócalos encima.",
+   "Hornea 45–50 minutos, dándoles la vuelta a mitad, hasta que la piel esté dorada."
+  ],
+  [
+   "Corta el pavo en tiras, salpimiéntalo y dóralo en el aceite. Resérvalo.",
+   "En la misma sartén pocha la cebolla picada 5 minutos y añade los champiñones laminados. Cocina hasta que suelten el agua y se doren.",
+   "Vuelve a poner el pavo, añade la nata y cuece 5 minutos.",
+   "Queda bien con arroz o patatas."
+  ],
+  [
+   "Corta el pollo, los pimientos y la cebolla en tiras.",
+   "Saltea las verduras en el aceite a fuego fuerte 5 minutos y resérvalas.",
+   "Saltea el pollo con sal, comino y pimentón hasta que esté dorado, y mézclalo con las verduras.",
+   "Calienta las tortillas y rellénalas con el pollo, las verduras y el aguacate en láminas con unas gotas de limón."
+  ],
+  [
+   "Sala el pollo y dóralo en el aceite. Resérvalo.",
+   "Pocha la cebolla, el ajo y los pimientos en tiras 15 minutos. Añade el jamón en tacos.",
+   "Incorpora el tomate y cocina 10 minutos.",
+   "Vuelve a poner el pollo, riega con el vino y cuece tapado 25 minutos a fuego suave."
+  ],
+  [
+   "Precalienta el horno a 210 °C.",
+   "Mezcla el aceite, el ajo picado, el zumo de limón, el pimentón y sal, y embadurna las alitas.",
+   "Pon las patatas en gajos en una bandeja con las alitas encima.",
+   "Hornea 40 minutos, dándoles la vuelta a mitad, hasta que estén crujientes."
+  ],
+  [
+   "Cuece el arroz en agua con sal 18 minutos.",
+   "Corta el pollo en tiras, sálalo, enharínalo y dóralo en el aceite.",
+   "Añade el ajo laminado, el zumo y la ralladura de los limones, y el caldo.",
+   "Cocina 5 minutos, hasta que la salsa espese. Sirve con el arroz."
+  ],
+  [
+   "Limpia las alcachofas y cuécelas 15 minutos en agua con sal. Cuece aparte las judías, la zanahoria y los guisantes 10 minutos y guarda un vaso del agua.",
+   "Pocha la cebolla y el ajo picados en el aceite. Añade el jamón en tacos.",
+   "Echa la harina, remueve y añade el vaso de agua de cocer las verduras.",
+   "Incorpora todas las verduras escurridas y cocina 5 minutos para que se mezclen los sabores."
+  ],
+  [
+   "Pica todas las verduras en dados pequeños.",
+   "Pocha la cebolla y los pimientos en el aceite 10 minutos.",
+   "Añade la berenjena y el calabacín y cocina 15 minutos más.",
+   "Incorpora el tomate, el azúcar y sal, y cocina 15 minutos a fuego suave.",
+   "Sirve con un huevo frito o a la plancha encima."
+  ],
+  [
+   "Pela y trocea la calabaza, la patata y la zanahoria. Corta el puerro en rodajas.",
+   "Rehoga el puerro en el aceite 5 minutos.",
+   "Añade el resto de verduras, cubre con el caldo y cuece 25 minutos.",
+   "Tritura hasta que quede fina y prueba de sal."
+  ],
+  [
+   "Corta el puerro y rehógalo en el aceite 5 minutos.",
+   "Añade el calabacín y la patata en trozos y rehoga 2 minutos.",
+   "Cubre con el caldo y cuece 20 minutos.",
+   "Añade los quesitos y tritura hasta que quede fina."
+  ],
+  [
+   "Quita las puntas a las judías y córtalas en trozos. Pela y trocea las patatas.",
+   "Cuece todo en agua con sal 20 minutos y escurre.",
+   "Dora el ajo laminado en el aceite, aparta del fuego y añade el pimentón.",
+   "Vierte el refrito sobre las judías y las patatas y mezcla."
+  ],
+  [
+   "Precalienta el horno a 200 °C. Parte las berenjenas por la mitad a lo largo, haz cortes en la carne y hornéalas 25 minutos.",
+   "Vacía la pulpa con una cuchara, dejando un poco pegado a la piel.",
+   "Pocha la cebolla en el aceite, añade la carne y la pulpa picada con sal, y cocina 10 minutos. Agrega el tomate.",
+   "Rellena las berenjenas, cubre con queso y gratina 10 minutos."
+  ],
+  [
+   "Remoja las pasas en agua templada 10 minutos.",
+   "Lava las espinacas y escáldalas 1 minuto en agua hirviendo. Escúrrelas bien.",
+   "Dora el ajo laminado y los piñones en el aceite. Añade las pasas escurridas.",
+   "Incorpora las espinacas y sal y saltea 2 minutos."
+  ],
+  [
+   "Cuece la coliflor en ramilletes en agua con sal 10 minutos y escúrrela.",
+   "Para la bechamel, derrite la mantequilla, añade la harina y remueve 2 minutos. Vierte la leche poco a poco sin dejar de remover hasta que espese. Sala.",
+   "Pon la coliflor en una fuente y cúbrela con la bechamel y el queso.",
+   "Gratina en el horno a 220 °C 10–15 minutos, hasta que se dore."
+  ],
+  [
+   "Cuece los huevos 10 minutos, enfríalos y pélalos.",
+   "Lava y corta la lechuga, el tomate y la cebolla.",
+   "Ponlo todo en una fuente con el atún escurrido, los huevos en cuartos y las aceitunas.",
+   "Aliña con aceite, vinagre y sal justo antes de servir."
+  ],
+  [
+   "Lava y trocea los tomates, el pimiento y el pepino pelado.",
+   "Ponlo todo en la batidora con el ajo, el pan, el agua, el vinagre y sal.",
+   "Tritura bien y añade el aceite poco a poco sin dejar de triturar.",
+   "Cuélalo si lo quieres muy fino, ajusta de sal y vinagre y enfríalo al menos 1 hora."
+  ],
+  [
+   "Cuece los huevos 10 minutos y pícalos.",
+   "Tritura los tomates y cuela el puré.",
+   "Añade el pan troceado y el ajo, deja que el pan se empape 10 minutos y tritura de nuevo.",
+   "Agrega el aceite poco a poco triturando hasta que quede espeso y cremoso. Sala.",
+   "Sirve frío con el huevo y el jamón picados por encima."
+  ],
+  [
+   "Limpia las alcachofas quitando las hojas duras y las puntas, córtalas en cuartos y ponlas en agua con limón para que no se oscurezcan.",
+   "Cuécelas en agua con sal 15–20 minutos y escúrrelas, guardando un vaso del agua.",
+   "Dora el ajo laminado y el jamón en tacos en el aceite.",
+   "Añade la harina, remueve, vierte el agua reservada y agrega las alcachofas. Cocina 5 minutos."
+  ],
+  [
+   "Precalienta el horno a 200 °C.",
+   "Pon las verduras enteras en una bandeja, úntalas con un poco de aceite y hornéalas 45–50 minutos, dándoles la vuelta a mitad.",
+   "Mételas en un recipiente tapado 10 minutos para que suden y sea fácil pelarlas.",
+   "Pélalas, córtalas en tiras y alíñalas con aceite y sal. Sirve con las anchoas por encima."
+  ],
+  [
+   "Corta todas las verduras en tiras o trozos pequeños del mismo tamaño.",
+   "Calienta mucho el wok o una sartén grande con el aceite.",
+   "Saltea primero la zanahoria y el brócoli 3 minutos; luego el pimiento, el calabacín, los champiñones y el ajo, 3 minutos más, sin dejar de mover.",
+   "Añade la salsa de soja, saltea 1 minuto y sirve enseguida."
+  ],
+  [
+   "Corta la parte blanca de los puerros y la cebolla, y póchalos en la mantequilla 10 minutos sin que se doren.",
+   "Añade las patatas en trozos y el caldo, y cuece 25 minutos.",
+   "Tritura, añade la nata y vuelve a triturar.",
+   "Sirve fría o caliente."
+  ],
+  [
+   "Corta el calabacín, la berenjena y la cebolla en rodajas, y los pimientos en tiras.",
+   "Calienta bien la plancha y pincélala con aceite.",
+   "Haz las verduras por tandas, 3–4 minutos por cada lado, empezando por las más duras.",
+   "Sirve con sal gruesa y un chorrito de aceite."
+  ],
+  [
+   "Corta el brócoli en ramilletes y cuécelo 3 minutos en agua con sal. Escúrrelo.",
+   "Dora el ajo laminado y las almendras en el aceite.",
+   "Añade el brócoli y saltea 3–4 minutos a fuego fuerte. Sala y sirve."
+  ],
+  [
+   "Pela y trocea todas las verduras.",
+   "Pon el aceite en una olla y rehoga el puerro 5 minutos.",
+   "Añade el resto de verduras, cubre con agua, sala y cuece 25 minutos.",
+   "Tritura con parte del caldo hasta que tenga la textura que te guste."
+  ],
+  [
+   "Pica la cebolla, el pimiento y el ajo y póchalos en el aceite en una olla 10 minutos.",
+   "Añade el pimentón, remueve unos segundos y agrega las lentejas lavadas, la zanahoria y el chorizo en rodajas, y el laurel.",
+   "Cubre con agua fría (unos 1,5 l) y cuece 30 minutos a fuego suave.",
+   "Añade las patatas troceadas y sal, y cuece 20 minutos más hasta que todo esté tierno."
+  ],
+  [
+   "Fríe en el aceite el pan y 2 dientes de ajo hasta que se doren. Machácalos con el pimentón, el comino, el vinagre y un poco de agua.",
+   "En el mismo aceite rehoga el otro ajo y las espinacas hasta que se ablanden.",
+   "Añade los garbanzos escurridos, el majado y un vaso de agua.",
+   "Cocina 10 minutos a fuego suave y prueba de sal."
+  ],
+  [
+   "La noche anterior, pon los garbanzos en remojo en agua templada con sal.",
+   "Pon en una olla grande las carnes (menos el chorizo y la morcilla), el tocino y el hueso con agua fría. Al hervir, quita la espuma y añade los garbanzos metidos en una malla.",
+   "Cuece a fuego suave 2 horas y media (o 40 minutos en olla rápida). En la última media hora añade las zanahorias y las patatas.",
+   "Cuece aparte el chorizo y la morcilla, y también el repollo; rehoga el repollo con ajo y aceite.",
+   "Cuela el caldo y cuece en él los fideos para la sopa. Sirve primero la sopa y después los garbanzos, las verduras y las carnes."
+  ],
+  [
+   "La noche anterior, pon las fabes en remojo en agua fría, y el lacón en otro recipiente.",
+   "Pon las fabes en una olla con el lacón, la panceta, el chorizo y la morcilla, y cubre con agua fría.",
+   "Lleva a ebullición, quita la espuma y «asusta» las fabes con un chorrito de agua fría dos o tres veces.",
+   "Añade el azafrán y cuece a fuego muy suave 2 horas y media, sin remover (mueve la olla), hasta que estén tiernas. Sala al final."
+  ],
+  [
+   "Pon las alubias en remojo la noche anterior.",
+   "Cuécelas en agua fría con la mitad del puerro y una zanahoria, a fuego suave 1 hora, «asustándolas» con agua fría cuando hiervan.",
+   "Mientras, pocha en el aceite la cebolla, el pimiento, el ajo y el resto del puerro y la zanahoria picados. Añade el pimentón.",
+   "Echa el sofrito a las alubias, sala y cuece 20 minutos más hasta que estén tiernas."
+  ],
+  [
+   "Pon los garbanzos en remojo la noche anterior.",
+   "Cuécelos con el laurel en agua caliente 2 horas (o 30 minutos en olla rápida).",
+   "Pocha la cebolla y el ajo en el aceite, añade el pimentón y échalo a la olla con las espinacas.",
+   "Añade el bacalao desmigado y cuece 10 minutos.",
+   "Sirve con huevo duro picado por encima."
+  ],
+  [
+   "Cuece los huevos 10 minutos y pícalos.",
+   "Lava y escurre los garbanzos.",
+   "Pica el tomate, el pimiento y la cebolla en dados pequeños.",
+   "Mézclalo todo con el atún y aliña con aceite, vinagre y sal."
+  ],
+  [
+   "Tritura los garbanzos escurridos con el tahini, el zumo de limón, el ajo, el comino, sal y un poco de agua hasta que quede cremoso.",
+   "Pásalo a un cuenco y riégalo con el aceite.",
+   "Corta las zanahorias y el pepino en bastones.",
+   "Sirve con las verduras y el pan de pita tostado."
+  ],
+  [
+   "Pocha la cebolla, el pimiento y el ajo picados en el aceite 10 minutos. Añade el pimentón.",
+   "Agrega las lentejas lavadas, el laurel y 1,5 l de agua. Cuece 25 minutos.",
+   "Añade el arroz y sal, y cuece 15–18 minutos más, hasta que el arroz esté hecho.",
+   "Deja reposar 5 minutos antes de servir."
+  ],
+  [
+   "Pon las alubias en remojo la noche anterior.",
+   "Cuécelas en agua fría con media cebolla, a fuego suave, «asustándolas» con agua fría tres veces.",
+   "Mientras, sofríe el resto de la cebolla, el pimiento y el ajo picados en el aceite.",
+   "A la hora, añade el sofrito y el chorizo en rodajas, sala y cuece 40 minutos más hasta que estén tiernas."
+  ],
+  [
+   "Lava y escurre las lentejas.",
+   "Pica el tomate, el pimiento, la cebolla y el pepino en dados pequeños.",
+   "Mézclalo todo y aliña con aceite, vinagre y sal.",
+   "Déjala 15 minutos en la nevera antes de servir."
+  ],
+  [
+   "En la paellera, dora el pollo salado en el aceite. Añade los calamares en anillas y las judías troceadas y rehoga 5 minutos.",
+   "Añade el ajo picado y el tomate rallado y sofríe 5 minutos. Echa el pimentón.",
+   "Agrega el arroz, remueve 1 minuto y vierte el caldo caliente con el azafrán. Prueba de sal.",
+   "Cuece 10 minutos a fuego fuerte y 8 a fuego suave, sin remover. En los últimos minutos pon las gambas y los mejillones.",
+   "Deja reposar 5 minutos tapada con un paño antes de servir."
+  ],
+  [
+   "Cuece el arroz en agua con sal 18 minutos. Escúrrelo y saltéalo con un poco de aceite y el ajo.",
+   "Calienta el tomate frito.",
+   "Fríe los plátanos partidos a lo largo y después los huevos.",
+   "Sirve el arroz con el tomate, el huevo y el plátano."
+  ],
+  [
+   "Pica la cebolla y el ajo y póchalos en el aceite en la paellera 10 minutos.",
+   "Añade los calamares troceados y el tomate rallado, y cocina 5 minutos.",
+   "Agrega el arroz, remueve y vierte el caldo caliente con la tinta disuelta. Prueba de sal.",
+   "Cuece 18 minutos sin remover (10 a fuego fuerte y 8 a fuego suave) y deja reposar 5 minutos. Queda muy bien con alioli."
+  ],
+  [
+   "Precalienta el horno a 220 °C.",
+   "Dora en el aceite las costillas troceadas, las patatas en rodajas, un tomate en rodajas y los ajos. Retíralos.",
+   "En el mismo aceite sofríe el otro tomate rallado y el pimentón, añade el arroz y remueve.",
+   "Pásalo todo a una cazuela de barro y coloca encima las costillas, la morcilla en trozos, las patatas, el tomate, los garbanzos y los ajos.",
+   "Cubre con el caldo hirviendo, sala y hornea 20 minutos. Deja reposar 5 minutos."
+  ],
+  [
+   "Dora los fideos en el aceite en la paellera, moviéndolos, hasta que estén tostados. Retíralos.",
+   "Saltea las gambas y resérvalas. Sofríe los calamares troceados, el ajo picado y el tomate rallado 5 minutos.",
+   "Añade el pimentón, los fideos y el caldo caliente con el azafrán. Prueba de sal.",
+   "Cuece 10 minutos a fuego medio. Pon las gambas encima y, si quieres, gratina 2 minutos para que los fideos se levanten."
+  ],
+  [
+   "Cuece los macarrones en agua con sal el tiempo que diga el paquete y escúrrelos.",
+   "Pocha la cebolla picada en el aceite, añade el chorizo en dados y la carne, y cocina hasta que se dore.",
+   "Añade el tomate frito y cocina 5 minutos.",
+   "Mézclalo con los macarrones, cubre con queso y gratina 10 minutos en el horno a 220 °C."
+  ],
+  [
+   "Cuece los espaguetis en agua con sal. Guarda un vaso del agua de cocción.",
+   "Dora el bacon en tiras en una sartén sin aceite.",
+   "Bate los huevos con el parmesano rallado y mucha pimienta.",
+   "Escurre la pasta y échala en la sartén con el bacon, fuera del fuego. Añade la mezcla de huevo y un poco del agua de cocción y remueve rápido para que quede cremosa sin cuajarse."
+  ],
+  [
+   "Cuece las placas según el paquete (o usa placas precocidas).",
+   "Pocha la cebolla en el aceite, añade el calabacín y la berenjena en dados y cocina 15 minutos. Agrega las espinacas y el tomate y cocina 10 minutos más.",
+   "Haz la bechamel: derrite la mantequilla, añade la harina, remueve 2 minutos y vierte la leche poco a poco hasta que espese. Sala.",
+   "En una fuente alterna capas de placas, verduras y bechamel. Termina con bechamel y queso.",
+   "Hornea a 200 °C 25 minutos."
+  ],
+  [
+   "Cuece las placas según el paquete y extiéndelas sobre un paño.",
+   "Pocha la cebolla en el aceite, añade la carne y sal, y cocina 10 minutos. Mézclala con el tomate frito.",
+   "Haz la bechamel con la mantequilla, la harina y la leche, y sala. Añade un poco al relleno.",
+   "Rellena y enrolla las placas, colócalas en una fuente y cúbrelas con el resto de la bechamel y el queso.",
+   "Hornea a 200 °C 20 minutos, hasta que se doren."
+  ],
+  [
+   "Mantén el caldo caliente en un cazo.",
+   "Pocha la cebolla picada en el aceite. Añade las setas troceadas y saltea 5 minutos.",
+   "Echa el arroz, remueve 1 minuto y añade el vino.",
+   "Ve añadiendo el caldo cazo a cazo, removiendo, durante 18 minutos.",
+   "Apaga el fuego, añade la mantequilla y el parmesano, remueve y deja reposar 2 minutos."
+  ],
+  [
+   "Cuece la pasta en agua con sal, escúrrela y enfríala bajo el grifo.",
+   "Cuece los huevos 10 minutos y pícalos.",
+   "Parte los tomates por la mitad.",
+   "Mézclalo todo con el atún, el maíz y las aceitunas, y aliña con aceite, vinagre y sal."
+  ],
+  [
+   "Dora el ajo laminado en el aceite, añade el tomate, el azúcar y sal, y cocina 15 minutos.",
+   "Cuece los ñoquis en agua con sal: están listos cuando suben a la superficie.",
+   "Escúrrelos y mézclalos con la salsa y la albahaca troceada.",
+   "Sirve con parmesano rallado."
+  ],
+  [
+   "Corta todas las verduras en dados pequeños.",
+   "Pocha la cebolla y la zanahoria en el aceite 8 minutos. Añade el pimiento y el calabacín y cocina 8 minutos más. Agrega los garbanzos y el comino.",
+   "Calienta el caldo, viértelo sobre el cuscús en un bol, tapa y deja 5 minutos.",
+   "Suelta el cuscús con un tenedor y mézclalo con las verduras."
+  ],
+  [
+   "Sofríe en el aceite el pimiento en tiras, las judías troceadas y las alcachofas en cuartos 8 minutos.",
+   "Añade el tomate rallado y el pimentón y cocina 3 minutos.",
+   "Agrega el arroz, remueve y vierte el caldo caliente con el azafrán y los guisantes. Prueba de sal.",
+   "Cuece 18 minutos sin remover y deja reposar 5 minutos."
+  ],
+  [
+   "Pela las patatas, córtalas en láminas finas y la cebolla en juliana. Sala.",
+   "Confítalas a fuego medio en abundante aceite unos 20 minutos, hasta que estén tiernas. Escúrrelas bien.",
+   "Bate los huevos con sal y mézclalos con las patatas. Deja reposar 5 minutos.",
+   "Cuaja la mezcla en una sartén con unas gotas de aceite a fuego medio 3–4 minutos. Dale la vuelta con un plato y cuaja 2 minutos más."
+  ],
+  [
+   "Corta las patatas en bastones o rodajas y fríelas hasta que estén doradas. Sálalas.",
+   "Fríe los huevos en aceite bien caliente, dejando la yema líquida.",
+   "Pon las patatas en una fuente, los huevos encima y el jamón.",
+   "Rompe los huevos sobre las patatas justo antes de comer."
+  ],
+  [
+   "Limpia las setas y trocéalas.",
+   "Dora el ajo laminado en el aceite, añade las setas y saltea 5 minutos. Sala.",
+   "Baja el fuego, añade los huevos batidos con sal y remueve suavemente hasta que cuajen pero queden jugosos.",
+   "Termina con perejil picado."
+  ],
+  [
+   "Prepara la ensalada con la lechuga y el tomate y alíñala con aceite, vinagre y sal.",
+   "Bate 2 huevos por persona con una pizca de sal.",
+   "Cuaja cada tortilla en una sartén pequeña con unas gotas de aceite, doblándola cuando aún esté jugosa por dentro.",
+   "Sirve con la ensalada."
+  ],
+  [
+   "Precalienta el horno a 200 °C.",
+   "Pocha la cebolla en el aceite, añade el chorizo y el jamón en tacos y los guisantes, y cocina 5 minutos. Agrega el tomate.",
+   "Reparte la salsa en cazuelitas de barro y casca dos huevos en cada una.",
+   "Hornea 8–10 minutos, hasta que la clara cuaje y la yema siga líquida."
+  ],
+  [
+   "Corta el calabacín en dados y la cebolla en juliana.",
+   "Pocha la cebolla en el aceite 8 minutos y añade el calabacín. Cocina 10 minutos más, hasta que esté tierno. Sala.",
+   "Bate los huevos con sal y mézclalos con las verduras escurridas.",
+   "Cuaja la tortilla por los dos lados en una sartén con unas gotas de aceite."
+  ],
+  [
+   "Cuece los huevos 10 minutos, enfríalos en agua fría y pélalos.",
+   "Pártelos por la mitad a lo largo y saca las yemas.",
+   "Mezcla la mitad de las yemas con el atún, las aceitunas picadas y la mitad de la mayonesa.",
+   "Rellena las claras, cubre con el resto de la mayonesa y ralla por encima las yemas que sobran."
+  ],
+  [
+   "Pocha la cebolla, el pimiento y el ajo picados en el aceite 10 minutos.",
+   "Añade el comino, el pimentón, el tomate y sal, y cocina 10 minutos hasta que espese.",
+   "Haz huecos en la salsa y casca los huevos dentro.",
+   "Tapa y cocina a fuego suave 6–8 minutos, hasta que cuaje la clara. Sirve con perejil y pan para mojar."
+  ],
+  [
+   "Quita la parte dura de los espárragos y córtalos en trozos.",
+   "Saltéalos en el aceite con el ajo laminado 5–6 minutos. Sala.",
+   "Añade los huevos batidos con sal y remueve a fuego suave hasta que cuajen pero queden jugosos."
+  ],
+  [
+   "Precalienta el horno a 180 °C.",
+   "Pocha la cebolla, el pimiento y el calabacín en dados en el aceite 12 minutos, en una sartén que pueda ir al horno.",
+   "Bate los huevos con el queso y sal y viértelos sobre las verduras.",
+   "Cuaja 3 minutos al fuego y termina 10 minutos en el horno."
+  ],
+  [
+   "Precalienta el horno a 250 °C (o al máximo).",
+   "Estira la masa sobre papel de horno en una bandeja.",
+   "Extiende el tomate y reparte la mozzarella, el jamón y los champiñones laminados.",
+   "Riega con el aceite, echa orégano y hornea 10–12 minutos, hasta que los bordes estén dorados."
+  ],
+  [
+   "Derrite la mantequilla, añade el jamón picado y la harina y remueve 3 minutos.",
+   "Vierte la leche caliente poco a poco sin dejar de remover, unos 15 minutos, hasta tener una masa espesa que se despegue de la sartén. Prueba de sal.",
+   "Extiéndela en una fuente, tápala con film en contacto y déjala enfriar en la nevera al menos 4 horas.",
+   "Forma las croquetas y pásalas por huevo batido y pan rallado.",
+   "Fríelas en aceite abundante muy caliente, pocas a la vez, hasta que estén doradas."
+  ],
+  [
+   "Precalienta el horno a 190 °C. Cuece un huevo 10 minutos.",
+   "Pocha la cebolla y el pimiento en tiras en el aceite 20 minutos. Añade el tomate, el atún desmigado y el huevo duro picado.",
+   "Extiende una lámina de masa en la bandeja, reparte el relleno frío y cubre con la otra lámina. Cierra los bordes.",
+   "Haz un agujero en el centro, pinta con el otro huevo batido y hornea 35–40 minutos."
+  ],
+  [
+   "Bate la harina, los huevos, la leche, la mantequilla derretida y una pizca de sal hasta que no queden grumos. Deja reposar 15 minutos.",
+   "Calienta una sartén antiadherente con una gota de mantequilla y echa un cazo pequeño de masa, moviendo la sartén para que cubra el fondo.",
+   "Cuando se despegue, dale la vuelta y cuécela 30 segundos más.",
+   "Rellena cada crepe con jamón y queso, dóblala y caliéntala 1 minuto para que se funda el queso."
+  ],
+  [
+   "Cuece los huevos 10 minutos y pícalos.",
+   "Calienta el caldo y, cuando hierva, añade los fideos. Cuécelos 5 minutos.",
+   "Añade el jamón y el huevo picados.",
+   "Sirve con unas hojas de hierbabuena."
+  ],
+  [
+   "Pocha la cebolla, el pimiento y el ajo picados en el aceite 10 minutos.",
+   "Añade el chorizo en rodajas y rehoga 2 minutos. Echa el pimentón.",
+   "Agrega las patatas «cascadas» (rompiendo el último corte), rehoga y cubre con agua. Añade el laurel y sal.",
+   "Cuece 25–30 minutos a fuego suave, hasta que las patatas estén tiernas y el caldo espese."
+  ],
+  [
+   "Corta las cebollas en juliana fina y póchalas en la mantequilla a fuego lento 30 minutos, hasta que estén doradas.",
+   "Añade la harina, remueve y vierte el vino. Deja que reduzca.",
+   "Agrega el caldo y cuece 15 minutos. Prueba de sal.",
+   "Reparte en cuencos que puedan ir al horno, pon encima el pan tostado y el queso, y gratina hasta que se dore."
+  ],
+  [
+   "Tuesta el pan.",
+   "Ralla los tomates y alíñalos con aceite y sal.",
+   "Unta unas tostas con tomate y pon jamón; otras con queso; y otras con aguacate machacado con sal.",
+   "Termina con un chorrito de aceite."
+  ],
+  [
+   "Precalienta el horno a 190 °C. Forra un molde con la masa, pínchala con un tenedor y hornéala 10 minutos.",
+   "Pocha el puerro en el aceite 8 minutos y añade las espinacas hasta que se ablanden.",
+   "Bate los huevos con la nata, el queso y sal, y mézclalo con las verduras.",
+   "Vierte el relleno sobre la masa y hornea 30 minutos, hasta que cuaje."
+  ],
+  [
+   "Pela las patatas y córtalas en bastones. Lávalas y sécalas bien.",
+   "Fríelas en abundante aceite a fuego medio 10 minutos y luego sube el fuego 2–3 minutos para que se doren. Escúrrelas y sálalas.",
+   "Pasa el jamón en tiras unos segundos por ese aceite, o déjalo crudo, al gusto.",
+   "Fríe los huevos de uno en uno en aceite muy caliente, echándoles aceite por encima con la espumadera para que la clara quede con puntilla y la yema líquida.",
+   "Sirve dos huevos por persona con las patatas y el jamón."
+  ],
+  [
+   "Si el bogavante está vivo, mételo 15 minutos en el congelador para adormecerlo.",
+   "Pártelo por la mitad a lo largo con un cuchillo grande y casca un poco las pinzas.",
+   "Pica el ajo y el perejil y mézclalos con el aceite.",
+   "Pon los bogavantes en la plancha muy caliente con la carne hacia abajo 4–5 minutos. Dales la vuelta, píntalos con el aceite de ajo y perejil y hazlos 4–5 minutos más. Las pinzas necesitan 8–10 minutos.",
+   "Sirve con sal gruesa y limón."
+  ],
+  [
+   "Guarda el caviar en la nevera hasta el último momento y sírvelo sobre hielo, con una cucharilla que no sea de metal (de nácar, hueso o plástico).",
+   "Tuesta el pan, quítale la corteza y córtalo en triángulos pequeños.",
+   "Cuece los huevos 10 minutos, enfríalos y pica por separado la clara y la yema. Pica la cebolla muy fina.",
+   "Sirve el caviar en su lata con las tostas, la nata, el huevo, la cebolla y el limón, para que cada uno se prepare la suya."
+  ],
+  [
+   "Unta una cara de cada rebanada con un poco de mantequilla.",
+   "Monta los sándwiches con la mantequilla por fuera: jamón, queso y unas rodajas finas de tomate.",
+   "Tuéstalos en una sartén a fuego medio 2–3 minutos por cada lado, apretando un poco, hasta que el queso se funda."
+  ]
+ ]
+}

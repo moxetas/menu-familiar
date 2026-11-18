@@ -165,19 +165,19 @@ function healthNotes(m, name, f) {
   const t = perRacion(name);
   if (!s?.activo || !t) return [];
   const notes = [];
-  if (t.potasio.length) notes.push({ lvl: 'stop', icon: '⛔', short: T('sal de régimen'), text: (s.ieca ? T('Lleva {cosa}: es cloruro potásico y, con su IECA, puede subir el potasio peligrosamente. No usar.', { cosa: t.potasio.join(', ') }) : T('Lleva {cosa}: es cloruro potásico. No usar.', { cosa: t.potasio.join(', ') })) });
+  if (t.potasio.length) notes.push({ lvl: 'stop', icon: '⛔', short: T('sal de régimen'), text: (s.ieca ? T('Lleva {cosa}: es cloruro potásico y, con su IECA, puede subir el potasio peligrosamente. No usar.', { cosa: t.potasio.map(nombreIngrediente).join(', ') }) : T('Lleva {cosa}: es cloruro potásico. No usar.', { cosa: t.potasio.map(nombreIngrediente).join(', ') })) });
   const sal = t.sal * f;
   const muchaSal = s.sal && sal > s.sal * 0.3;
   if (muchaSal) {
     const tips = salTips(t, f);
-    notes.push({ lvl: 'warn', icon: '🧂', short: T('{n} g sal', { n: fmt1(sal) }), text: T('Mucha sal: {n} g, de sus {max} g al día', { n: fmt1(sal), max: s.sal }) + (t.salados.length ? T(', sobre todo por {cosas}', { cosas: t.salados.slice(0, 3).join(', ').toLowerCase() }) : '') + '.' + (tips.length ? ' ' + T('Para bajarla: {consejos}.', { consejos: tips.join('; ') }) : '') });
+    notes.push({ lvl: 'warn', icon: '🧂', short: T('{n} g sal', { n: fmt1(sal) }), text: T('Mucha sal: {n} g, de sus {max} g al día', { n: fmt1(sal), max: s.sal }) + (t.salados.length ? T(', sobre todo por {cosas}', { cosas: minus(t.salados.slice(0, 3).map(nombreIngrediente).join(', ')) }) : '') + '.' + (tips.length ? ' ' + T('Para bajarla: {consejos}.', { consejos: tips.join('; ') }) : '') });
   }
   const sat = t.sat * f;
   if (s.satBaja && sat > 7) {
     const tips = satTips(t);
-    notes.push({ lvl: 'warn', icon: '🧈', short: T('grasa saturada'), text: T('Bastante grasa saturada: {n} g sin contar el aceite de oliva', { n: fmt1(sat) }) + (t.grasos.length ? T(', sobre todo de {cosas}', { cosas: t.grasos.slice(0, 3).join(', ').toLowerCase() }) : '') + '.' + (tips.length ? ' ' + T('Para bajarla: {consejos}.', { consejos: tips.join('; ') }) : '') });
+    notes.push({ lvl: 'warn', icon: '🧈', short: T('grasa saturada'), text: T('Bastante grasa saturada: {n} g sin contar el aceite de oliva', { n: fmt1(sat) }) + (t.grasos.length ? T(', sobre todo de {cosas}', { cosas: minus(t.grasos.slice(0, 3).map(nombreIngrediente).join(', ')) }) : '') + '.' + (tips.length ? ' ' + T('Para bajarla: {consejos}.', { consejos: tips.join('; ') }) : '') });
   }
-  if (s.urico && t.purinas.length) notes.push({ lvl: 'warn', icon: '🦐', short: T('purinas'), text: T('Purinas altas ({cosas}): mejor de vez en cuando, por el ácido úrico.', { cosas: t.purinas.slice(0, 3).join(', ').toLowerCase() }) });
+  if (s.urico && t.purinas.length) notes.push({ lvl: 'warn', icon: '🦐', short: T('purinas'), text: T('Purinas altas ({cosas}): mejor de vez en cuando, por el ácido úrico.', { cosas: minus(t.purinas.slice(0, 3).map(nombreIngrediente).join(', ')) }) });
   // La proteína depende de cuánto se sirva: se da como consejo de cantidad, no como aviso del plato
   const p = t.p * f;
   const porComida = s.protMax ? Math.round(s.protMax * 0.4) : 0;
@@ -186,9 +186,9 @@ function healthNotes(m, name, f) {
     const parte = r >= 0.6 ? T('algo menos de lo normal') : r >= 0.4 ? T('la mitad') : T('un tercio');
     notes.push({ lvl: 'info', icon: '🍖', short: T('{n} g proteína', { n: fmtInt(p) }), text: T('Proteína: {n} g en su ración. Para quedarse en {min}–{max} g al día (unos {comida} g por comida), que tome {parte} de la carne, el pescado o el huevo y complete con verdura, ensalada, arroz, pasta o pan.', { n: fmtInt(p), min: s.protMin || 0, max: s.protMax, comida: porComida, parte }) });
   }
-  if ((s.sal || s.satBaja) && t.embutidos.length && !muchaSal) notes.push({ lvl: 'warn', icon: '🥓', short: T('embutido'), text: T('Lleva embutido o curado ({cosas}): sal y grasa.', { cosas: t.embutidos.slice(0, 3).join(', ').toLowerCase() }) });
+  if ((s.sal || s.satBaja) && t.embutidos.length && !muchaSal) notes.push({ lvl: 'warn', icon: '🥓', short: T('embutido'), text: T('Lleva embutido o curado ({cosas}): sal y grasa.', { cosas: minus(t.embutidos.slice(0, 3).map(nombreIngrediente).join(', ')) }) });
   if (s.rojaMax != null && t.roja) notes.push({ lvl: 'info', icon: '🥩', short: T('carne roja'), text: T('Carne roja: cuenta para su máximo de {n} a la semana.', { n: s.rojaMax }) });
-  if (s.procesados && t.procesados.length) notes.push({ lvl: 'info', icon: '🏭', short: T('ultraprocesado'), text: T('Ultraprocesados: {cosas}. Mejor la versión casera o la que no lleve fosfatos (E-338 a E-452).', { cosas: t.procesados.slice(0, 3).join(', ').toLowerCase() }) });
+  if (s.procesados && t.procesados.length) notes.push({ lvl: 'info', icon: '🏭', short: T('ultraprocesado'), text: T('Ultraprocesados: {cosas}. Mejor la versión casera o la que no lleve fosfatos (E-338 a E-452).', { cosas: minus(t.procesados.slice(0, 3).map(nombreIngrediente).join(', ')) }) });
   return notes;
 }
 
@@ -384,7 +384,7 @@ function breakdown(m, r, range) {
       const open = famView.dish === dk;
       return `<div class="bd-item ${open ? 'open' : ''}">
         <button type="button" class="bd-row" data-bd-dish="${esc(dk)}" aria-expanded="${open}">
-          <span class="bd-name"><span class="dot c-${e.cat}"></span>${esc(e.name)} <span class="muted">· ${esc(where(e))}</span></span>
+          <span class="bd-name"><span class="dot c-${e.cat}"></span>${esc(nombrePlato(e.name))} <span class="muted">· ${esc(where(e))}</span></span>
           <span class="bd-val">${fmt(e[nut])} <span class="muted">${pct} %</span></span>
           <span class="bd-bar"><span style="width:${Math.max(2, (e[nut] / max) * 100)}%"></span></span>
         </button>
@@ -405,7 +405,7 @@ function ingredientBreakdown(e, nut, fmt) {
   return `<table class="bd-ing">
     <thead><tr><th>${T('Ingrediente')}</th><th>${T('Comido')}</th><th>${esc(NUTRIENTES[nut][0])}</th></tr></thead>
     <tbody>${rows.map((x) => `<tr>
-      <td>${esc(x.name)}</td>
+      <td>${esc(nombreIngrediente(x.name))}</td>
       <td>${x.peso >= 1000 ? `${fmt1(x.peso / 1000)} kg` : `${fmtInt(x.peso)} g`}</td>
       <td>${fmt(x.v)} <span class="muted">${total ? Math.round((x.v / total) * 100) : 0} %</span></td>
     </tr>`).join('') || `<tr><td colspan="3" class="muted">${T('No lleva.')}</td></tr>`}</tbody>
@@ -458,7 +458,7 @@ function renderFamily(main) {
       </div>
       ${variedadCard(range)}
       <div class="intake">${members.map((m) => intakeCard(m, res[m.id], range)).join('')}</div>
-      ${sinReceta.length ? `<p class="muted small">${T('Sin receta no se pueden contar la sal ni la proteína de: {platos}.', { platos: esc(sinReceta.slice(0, 6).join(', ')) + (sinReceta.length > 6 ? '…' : '') })}</p>` : ''}
+      ${sinReceta.length ? `<p class="muted small">${T('Sin receta no se pueden contar la sal ni la proteína de: {platos}.', { platos: esc(sinReceta.slice(0, 6).map(nombrePlato).join(', ')) + (sinReceta.length > 6 ? '…' : '') })}</p>` : ''}
     ` : ''}
 
     <h2>${T('Compartir entre móviles')}</h2>
