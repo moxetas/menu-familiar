@@ -21,7 +21,7 @@ const FIREBASE_DB_FAMILIA = 'https://moxetas-casa-default-rtdb.europe-west1.fire
 const FIREBASE_DB_PUBLICA = 'https://moxetas-familias-default-rtdb.europe-west1.firebasedatabase.app';
 const FIREBASE_DB_ANTIGUA = 'https://menu-familiar-a2424-default-rtdb.europe-west1.firebasedatabase.app';
 const dbFor = (code) => (String(code || '').toLowerCase().replace(/[^a-z0-9]/g, '').startsWith('1') ? FIREBASE_DB_PUBLICA : FIREBASE_DB_FAMILIA);
-const FAMILIA_VERSION = 25;
+const FAMILIA_VERSION = 26;
 
 const Familia = (() => {
   const LS = 'menu-familiar-sync';
@@ -393,7 +393,7 @@ const Familia = (() => {
     saveLocal();
     const changedNow = stable(base) !== before;
     if (changedNow || announce) render();
-    if (announce) { toast(announce); announce = null; } else if (changedNow) toast('Actualizado desde otro móvil');
+    if (announce) { toast(announce); announce = null; } else if (changedNow) toast(T('Actualizado desde otro móvil'));
   }
 
   function retry() {
@@ -404,17 +404,17 @@ const Familia = (() => {
 
   const TEXTOS = {
     off: '',
-    connecting: 'Conectando…',
-    online: '✅ Conectado. Lo que cambiéis se ve en todos los móviles.',
-    offline: '📴 Sin conexión. Los cambios se enviarán cuando vuelva.',
-    denied: '⛔ Firebase no deja entrar. Revisa las reglas de la base de datos.',
+    connecting: T('Conectando…'),
+    online: '✅ ' + T('Conectado. Lo que cambiéis se ve en todos los móviles.'),
+    offline: '📴 ' + T('Sin conexión. Los cambios se enviarán cuando vuelva.'),
+    denied: '⛔ ' + T('Firebase no deja entrar. Revisa las reglas de la base de datos.'),
   };
-  const hhmm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const hhmm = (t) => new Date(t).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
   function statusText() {
     const extra = [];
-    if (lastSync) extra.push(`última vez a las ${hhmm(lastSync)}`);
+    if (lastSync) extra.push(T('última vez a las {h}', { h: hhmm(lastSync) }));
     const n = count(info.pending);
-    if (n) extra.push(`${n} ${n === 1 ? 'cambio' : 'cambios'} por enviar`);
+    if (n) extra.push(n === 1 ? T('1 cambio por enviar') : T('{n} cambios por enviar', { n }));
     return TEXTOS[status] + (extra.length ? ` (${extra.join(', ')})` : '');
   }
   function setStatus(s) {
@@ -468,13 +468,13 @@ const Familia = (() => {
   function appLink() { return location.href.split('#')[0].split('?')[0]; }
 
   async function shareCode() {
-    const text = `Únete a nuestro Menú familiar:\n1. Abre la app (${appLink()})\n2. Ve a la pestaña «Familia» → «Tengo un código»\n3. Pega este código: ${info.code}`;
+    const text = T('Únete a nuestro Menú familiar:\n1. Abre la app ({enlace})\n2. Ve a la pestaña «Familia» → «Tengo un código»\n3. Pega este código: {codigo}', { enlace: appLink(), codigo: info.code });
     try {
       if (navigator.share) { await navigator.share({ text }); return; }
       await navigator.clipboard.writeText(text);
-      toast('Código copiado. Pégalo en WhatsApp.');
+      toast(T('Código copiado. Pégalo en WhatsApp.'));
     } catch (e) {
-      if (e && e.name !== 'AbortError') toast('No se ha podido compartir');
+      if (e && e.name !== 'AbortError') toast(T('No se ha podido compartir'));
     }
   }
 
@@ -483,52 +483,52 @@ const Familia = (() => {
   function card() {
     if (!info.code) {
       return `<div class="card">
-        <p><strong>👨‍👩‍👧 Compartir con la familia</strong></p>
-        <p class="muted small">Conecta los móviles de casa: los platos, los menús, la familia y la lista de la compra serán los mismos en todos, y lo que cambie uno lo verán los demás.</p>
+        <p><strong>👨‍👩‍👧 ${T('Compartir con la familia')}</strong></p>
+        <p class="muted small">${T('Conecta los móviles de casa: los platos, los menús, la familia y la lista de la compra serán los mismos en todos, y lo que cambie uno lo verán los demás.')}</p>
         <div class="row">
-          <button type="button" class="btn primary grow" data-fam="create">Crear código de familia</button>
-          <button type="button" class="btn grow" data-fam="join">Tengo un código</button>
+          <button type="button" class="btn primary grow" data-fam="create">${T('Crear código de familia')}</button>
+          <button type="button" class="btn grow" data-fam="join">${T('Tengo un código')}</button>
         </div>
       </div>`;
     }
     return `<div class="card">
-      <p><strong>👨‍👩‍👧 Compartido con la familia</strong></p>
+      <p><strong>👨‍👩‍👧 ${T('Compartido con la familia')}</strong></p>
       <p class="small" data-fam-status>${statusText()}</p>
-      <p class="muted small">Código que termina en <strong>${esc(info.code.slice(-4))}</strong>. Tiene que ser el mismo en todos los móviles.</p>
+      <p class="muted small">${T('Código que termina en {fin}. Tiene que ser el mismo en todos los móviles.', { fin: `<strong>${esc(info.code.slice(-4))}</strong>` })}</p>
       <div class="row">
-        <button type="button" class="btn small grow" data-fam="sync">🔄 Sincronizar ahora</button>
-        <button type="button" class="btn small grow" data-fam="show">Ver código</button>
-        <button type="button" class="btn small grow" data-fam="diag">🩺 Diagnóstico</button>
+        <button type="button" class="btn small grow" data-fam="sync">🔄 ${T('Sincronizar ahora')}</button>
+        <button type="button" class="btn small grow" data-fam="show">${T('Ver código')}</button>
+        <button type="button" class="btn small grow" data-fam="diag">🩺 ${T('Diagnóstico')}</button>
       </div>
     </div>`;
   }
 
   function bind(root) {
     root.querySelectorAll('[data-fam]').forEach((b) => {
-      b.onclick = () => ({ create, join: openJoin, share: shareCode, show: openShow, diag: openDiag, sync: () => { resync(); toast('Sincronizando…'); } })[b.dataset.fam]();
+      b.onclick = () => ({ create, join: openJoin, share: shareCode, show: openShow, diag: openDiag, sync: () => { resync(); toast(T('Sincronizando…')); } })[b.dataset.fam]();
     });
   }
 
   function create() {
-    begin(newCode(), 'Familia creada. Envía el código a los demás.');
+    begin(newCode(), T('Familia creada. Envía el código a los demás.'));
     render();
     openShow();
   }
 
   function openJoin() {
     openSheet(`
-      <div class="sheet-head"><h3>Unirme a la familia</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <p class="muted small">Pega el código que te han enviado. Si ya tenías platos en este móvil, se juntarán con los de la familia.</p>
+      <div class="sheet-head"><h3>${T('Unirme a la familia')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <p class="muted small">${T('Pega el código que te han enviado. Si ya tenías platos en este móvil, se juntarán con los de la familia.')}</p>
       <form id="join-form" class="stack">
         <input type="text" id="join-code" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
-        <button type="submit" class="btn primary">Unirme</button>
+        <button type="submit" class="btn primary">${T('Unirme')}</button>
       </form>
     `);
     $('#join-form').onsubmit = (e) => {
       e.preventDefault();
       const code = readCode($('#join-code').value);
-      if (!code) { toast('Ese código no está completo. Son 5 grupos de 4.'); return; }
-      begin(code, 'Ya estáis conectados 🎉');
+      if (!code) { toast(T('Ese código no está completo. Son 5 grupos de 4.')); return; }
+      begin(code, T('Ya estáis conectados') + ' 🎉');
       closeSheet();
       render();
     };
@@ -537,20 +537,20 @@ const Familia = (() => {
 
   function openShow() {
     openSheet(`
-      <div class="sheet-head"><h3>Código de familia</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <p class="muted small">Envíalo a los demás de casa. En su app tienen que ir a la pestaña «Familia» → «Tengo un código» y pegarlo.</p>
+      <div class="sheet-head"><h3>${T('Código de familia')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <p class="muted small">${T('Envíalo a los demás de casa. En su app tienen que ir a la pestaña «Familia» → «Tengo un código» y pegarlo.')}</p>
       <div class="code-box">${esc(info.code)}</div>
       <p class="small" data-fam-status>${statusText()}</p>
-      <button type="button" class="btn primary" id="fam-share">Enviar código por WhatsApp…</button>
-      <button type="button" class="btn danger" id="fam-leave">Dejar de compartir en este móvil</button>
+      <button type="button" class="btn primary" id="fam-share">${T('Enviar código por WhatsApp…')}</button>
+      <button type="button" class="btn danger" id="fam-leave">${T('Dejar de compartir en este móvil')}</button>
     `);
     $('#fam-share').onclick = shareCode;
     $('#fam-leave').onclick = () => {
-      if (!confirm('Este móvil dejará de recibir los cambios de la familia. Los platos que tienes ahora se quedan. ¿Seguir?')) return;
+      if (!confirm(T('Este móvil dejará de recibir los cambios de la familia. Los platos que tienes ahora se quedan. ¿Seguir?'))) return;
       leave();
       closeSheet();
       render();
-      toast('Este móvil ya no comparte');
+      toast(T('Este móvil ya no comparte'));
     };
   }
 
@@ -579,20 +579,20 @@ const Familia = (() => {
 
   function openDiag() {
     openSheet(`
-      <div class="sheet-head"><h3>Diagnóstico</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <p class="muted small">Si algo no se sincroniza, copia esto y pégaselo a quien te ayuda con la app.</p>
+      <div class="sheet-head"><h3>${T('Diagnóstico')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <p class="muted small">${T('Si algo no se sincroniza, copia esto y pégaselo a quien te ayuda con la app.')}</p>
       <pre class="diag" id="diag-text">${esc(diagnostic())}</pre>
       <div class="row">
-        <button type="button" class="btn primary grow" id="diag-copy">Copiar</button>
-        <button type="button" class="btn grow" id="diag-again">Actualizar</button>
+        <button type="button" class="btn primary grow" id="diag-copy">${T('Copiar')}</button>
+        <button type="button" class="btn grow" id="diag-again">${T('Actualizar')}</button>
       </div>
     `);
     $('#diag-copy').onclick = async () => {
       const text = diagnostic();
       try {
         if (navigator.share) await navigator.share({ text });
-        else { await navigator.clipboard.writeText(text); toast('Copiado'); }
-      } catch (e) { if (e && e.name !== 'AbortError') toast('No se ha podido copiar'); }
+        else { await navigator.clipboard.writeText(text); toast(T('Copiado')); }
+      } catch (e) { if (e && e.name !== 'AbortError') toast(T('No se ha podido copiar')); }
     };
     $('#diag-again').onclick = () => { $('#diag-text').textContent = diagnostic(); };
   }

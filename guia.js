@@ -15,27 +15,28 @@ Reglas:
 - "compra": productos o ingredientes que haya que comprar.
 - "platos": nombres de platos o recetas.
 - Deja en [] lo que no aparezca.
-- No incluyas datos personales (DNI, teléfonos, números de historia clínica…).`;
+- No incluyas datos personales (DNI, teléfonos, números de historia clínica…).` + (IDIOMA && IDIOMA !== 'es' ? `
+- Write all the texts (titles, products, dishes) in ${IDIOMAS[IDIOMA].nombre}.` : '');
 
 function abrirGuia() {
   try { localStorage.setItem(GUIA_VISTA, '1'); } catch (e) { /* da igual */ }
   const pasos = [
-    ['📖 Tus platos', 'En «Mis platos» escribe los que soléis comer (o pega una lista entera). La app adivina el tipo y les pone color. ¿Sin ideas? Prueba con los ejemplos.'],
-    ['📅 La semana en un toque', 'En «Semana» toca «Hacer el menú»: monta comidas y cenas variando pescado, carne, legumbres… Toca cualquier plato para cambiarlo.'],
-    ['🛒 La compra sola', 'Desde la semana, «Pasar a la lista de la compra» saca los ingredientes. En «Compra» tachas lo que coges; si compartís, lo veis todos.'],
-    ['📌 Citas con aviso', 'Médico, colegio, reuniones… Te avisamos una semana antes y el día de antes.'],
-    ['📷 Desde foto o PDF', 'Una carta del cole, una cita, una receta o una lista: con «Desde foto o PDF» se la pasas a tu app de IA y pegas aquí lo que te diga.'],
-    ['👨‍👩‍👧 Compartir con la familia', 'En «Familia» crea un código y pásalo: platos, menú, compra y citas iguales en todos los móviles, cifrados.'],
+    ['📖 ' + T('Tus platos'), T('En «Mis platos» escribe los que soléis comer (o pega una lista entera). La app adivina el tipo y les pone color. ¿Sin ideas? Prueba con los ejemplos.')],
+    ['📅 ' + T('La semana en un toque'), T('En «Semana» toca «Hacer el menú»: monta comidas y cenas variando pescado, carne, legumbres… Toca cualquier plato para cambiarlo.')],
+    ['🛒 ' + T('La compra sola'), T('Desde la semana, «Pasar a la lista de la compra» saca los ingredientes. En «Compra» tachas lo que coges; si compartís, lo veis todos.')],
+    ['📌 ' + T('Citas con aviso'), T('Médico, colegio, reuniones… Te avisamos una semana antes y el día de antes.')],
+    ['📷 ' + T('Desde foto o PDF'), T('Una carta del cole, una cita, una receta o una lista: con «Desde foto o PDF» se la pasas a tu app de IA y pegas aquí lo que te diga.')],
+    ['👨‍👩‍👧 ' + T('Compartir con la familia'), T('En «Familia» crea un código y pásalo: platos, menú, compra y citas iguales en todos los móviles, cifrados.')],
   ];
   openSheet(`
-    <div class="sheet-head"><h3>Cómo funciona</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-    <p class="muted small">Tus datos se guardan solo en tu móvil. Nada de registros.</p>
+    <div class="sheet-head"><h3>${T('Cómo funciona')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+    <p class="muted small">${T('Tus datos se guardan solo en tu móvil. Nada de registros.')}</p>
     <ol class="guia-pasos">${pasos.map(([t, d]) => `<li><strong>${t}</strong><span>${d}</span></li>`).join('')}</ol>
     <div class="stack">
-      ${state.dishes.length ? '' : '<button type="button" class="btn primary" id="g-ejemplos">Empezar con platos de ejemplo</button>'}
-      <button type="button" class="btn" id="g-foto">📷 Añadir desde foto o PDF</button>
-      <a class="btn" href="guia.pdf" download="Guia-Menu-familiar.pdf">📄 Descargar esta guía en PDF</a>
-      <button type="button" class="btn" data-close>Entendido</button>
+      ${state.dishes.length ? '' : `<button type="button" class="btn primary" id="g-ejemplos">${T('Empezar con platos de ejemplo')}</button>`}
+      <button type="button" class="btn" id="g-foto">📷 ${T('Añadir desde foto o PDF')}</button>
+      ${IDIOMA === 'es' ? '<a class="btn" href="guia.pdf" download="Guia-Menu-familiar.pdf">📄 Descargar esta guía en PDF</a>' : ''}
+      <button type="button" class="btn" data-close>${T('Entendido')}</button>
     </div>`);
   $('#g-ejemplos')?.addEventListener('click', () => { loadExamples(); closeSheet(); go('platos'); });
   $('#g-foto').onclick = () => { closeSheet(); setTimeout(abrirImportar, 250); };
@@ -76,7 +77,7 @@ function leerPegado(texto) {
   const fecha = fechaISO(texto);
   if (fecha) {
     const hora = (/\b(\d{1,2})[:.h](\d{2})\b/.exec(texto) || []).slice(1, 3);
-    out.citas.push({ titulo: limpio(lineas.find((l) => /[a-záéíóúñ]{3,}/i.test(l)) || 'Cita'), fecha, hora: hora.length === 2 ? `${hora[0].padStart(2, '0')}:${hora[1]}` : '', lugar: '', tipo: 'otra' });
+    out.citas.push({ titulo: limpio(lineas.find((l) => /\p{L}{3,}/u.test(l)) || T('Cita')), fecha, hora: hora.length === 2 ? `${hora[0].padStart(2, '0')}:${hora[1]}` : '', lugar: '', tipo: 'otra' });
   } else {
     for (const l of lineas) if (l.length <= 40) out.compra.push(limpio(l, 60));
   }
@@ -87,37 +88,37 @@ function leerPegado(texto) {
 
 function abrirImportar() {
   openSheet(`
-    <div class="sheet-head"><h3>📷 Añadir desde foto o PDF</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+    <div class="sheet-head"><h3>📷 ${T('Añadir desde foto o PDF')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
     <ol class="guia-pasos">
-      <li><strong>Copia las instrucciones</strong><button type="button" class="btn small" id="imp-copiar">Copiar instrucciones</button></li>
-      <li><strong>Abre tu app de IA</strong><span>ChatGPT, Claude, Gemini… (la versión gratis vale). Adjunta la foto, la captura o el PDF y pega las instrucciones.</span></li>
-      <li><strong>Pega aquí su respuesta</strong><span>También vale el texto de un correo, o el de una foto (en iPhone, mantén el dedo sobre el texto y «Copiar»).</span></li>
+      <li><strong>${T('Copia las instrucciones')}</strong><button type="button" class="btn small" id="imp-copiar">${T('Copiar instrucciones')}</button></li>
+      <li><strong>${T('Abre tu app de IA')}</strong><span>${T('ChatGPT, Claude, Gemini… (la versión gratis vale). Adjunta la foto, la captura o el PDF y pega las instrucciones.')}</span></li>
+      <li><strong>${T('Pega aquí su respuesta')}</strong><span>${T('También vale el texto de un correo, o el de una foto (en iPhone, mantén el dedo sobre el texto y «Copiar»).')}</span></li>
     </ol>
-    <textarea id="imp-texto" rows="6" placeholder="Pega aquí…"></textarea>
-    <p class="muted small">La app no envía nada: la foto solo la ve la IA que tú elijas, con tu cuenta.</p>
-    <button type="button" class="btn primary" id="imp-leer">Leer</button>`);
+    <textarea id="imp-texto" rows="6" placeholder="${T('Pega aquí…')}"></textarea>
+    <p class="muted small">${T('La app no envía nada: la foto solo la ve la IA que tú elijas, con tu cuenta.')}</p>
+    <button type="button" class="btn primary" id="imp-leer">${T('Leer')}</button>`);
   $('#imp-copiar').onclick = async () => {
-    try { await navigator.clipboard.writeText(PROMPT_IA); toast('Instrucciones copiadas'); } catch (e) { $('#imp-texto').value = PROMPT_IA; toast('Cópialas del cuadro'); }
+    try { await navigator.clipboard.writeText(PROMPT_IA); toast(T('Instrucciones copiadas')); } catch (e) { $('#imp-texto').value = PROMPT_IA; toast(T('Cópialas del cuadro')); }
   };
   $('#imp-leer').onclick = () => {
     const r = leerPegado($('#imp-texto').value || '');
-    if (!r.citas.length && !r.compra.length && !r.platos.length) { toast('No he encontrado nada. ¿Has pegado la respuesta entera?'); return; }
+    if (!r.citas.length && !r.compra.length && !r.platos.length) { toast(T('No he encontrado nada. ¿Has pegado la respuesta entera?')); return; }
     revisarImportado(r);
   };
 }
 
 function revisarImportado(r) {
-  const fila = (k, i, html) => `<li class="imp-fila"><input type="checkbox" checked data-k="${k}" data-i="${i}" aria-label="Añadir">${html}</li>`;
+  const fila = (k, i, html) => `<li class="imp-fila"><input type="checkbox" checked data-k="${k}" data-i="${i}" aria-label="${T('Añadir')}">${html}</li>`;
   openSheet(`
-    <div class="sheet-head"><h3>Revisa lo encontrado</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-    <p class="muted small">Corrige lo que haga falta y desmarca lo que no quieras añadir.</p>
-    ${r.citas.length ? `<p><strong>📌 Citas</strong></p><ul class="imp-lista">${r.citas.map((c, i) => fila('citas', i, `<div class="stack grow">
+    <div class="sheet-head"><h3>${T('Revisa lo encontrado')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+    <p class="muted small">${T('Corrige lo que haga falta y desmarca lo que no quieras añadir.')}</p>
+    ${r.citas.length ? `<p><strong>📌 ${T('Citas')}</strong></p><ul class="imp-lista">${r.citas.map((c, i) => fila('citas', i, `<div class="stack grow">
       <input type="text" data-c="${i}" data-f="titulo" value="${esc(c.titulo)}">
       <div class="row"><input type="date" data-c="${i}" data-f="fecha" value="${c.fecha}"><input type="time" data-c="${i}" data-f="hora" value="${c.hora}"></div>
       ${c.lugar ? `<span class="muted small">${esc(c.lugar)}</span>` : ''}</div>`)).join('')}</ul>` : ''}
-    ${r.compra.length ? `<p><strong>🛒 A la lista de la compra</strong></p><ul class="imp-lista">${r.compra.map((n, i) => fila('compra', i, `<input type="text" class="grow" data-n="compra-${i}" value="${esc(n)}">`)).join('')}</ul>` : ''}
-    ${r.platos.length ? `<p><strong>📖 A Mis platos</strong></p><ul class="imp-lista">${r.platos.map((n, i) => fila('platos', i, `<input type="text" class="grow" data-n="platos-${i}" value="${esc(n)}">`)).join('')}</ul>` : ''}
-    <button type="button" class="btn primary" id="imp-ok">Añadir</button>`);
+    ${r.compra.length ? `<p><strong>🛒 ${T('A la lista de la compra')}</strong></p><ul class="imp-lista">${r.compra.map((n, i) => fila('compra', i, `<input type="text" class="grow" data-n="compra-${i}" value="${esc(n)}">`)).join('')}</ul>` : ''}
+    ${r.platos.length ? `<p><strong>📖 ${T('A Mis platos')}</strong></p><ul class="imp-lista">${r.platos.map((n, i) => fila('platos', i, `<input type="text" class="grow" data-n="platos-${i}" value="${esc(n)}">`)).join('')}</ul>` : ''}
+    <button type="button" class="btn primary" id="imp-ok">${T('Añadir')}</button>`);
   $('#imp-ok').onclick = () => {
     const sheet = $('#sheet');
     const marcado = (k, i) => sheet.querySelector(`input[data-k="${k}"][data-i="${i}"]`).checked;
@@ -133,9 +134,9 @@ function revisarImportado(r) {
     });
     r.compra.forEach((_, i) => { if (marcado('compra', i)) { const v = sheet.querySelector(`[data-n="compra-${i}"]`).value.trim(); if (v) { addItem(v); n++; } } });
     r.platos.forEach((_, i) => { if (marcado('platos', i)) { const v = sheet.querySelector(`[data-n="platos-${i}"]`).value.trim(); if (v) { addDish(v, guessCat(v)); n++; } } });
-    if (!n) { toast('No has marcado nada'); return; }
+    if (!n) { toast(T('No has marcado nada')); return; }
     save(); closeSheet(); render();
-    toast(`Añadido: ${n}`);
+    toast(T('Añadido: {n}', { n }));
   };
 }
 
@@ -144,7 +145,7 @@ function botonesAyuda(main, tab) {
   if (!['citas', 'compra', 'familia'].includes(tab) || main.querySelector('.ayuda-fila')) return;
   const fila = document.createElement('div');
   fila.className = 'row ayuda-fila';
-  fila.innerHTML = `<button type="button" class="btn small grow" data-ayuda="foto">📷 Desde foto o PDF</button>${tab === 'familia' ? '<button type="button" class="btn small grow" data-ayuda="guia">❓ Cómo funciona</button>' : ''}`;
+  fila.innerHTML = `<button type="button" class="btn small grow" data-ayuda="foto">📷 ${T('Desde foto o PDF')}</button>${tab === 'familia' ? `<button type="button" class="btn small grow" data-ayuda="guia">❓ ${T('Cómo funciona')}</button>` : ''}`;
   main.prepend(fila);
   fila.querySelector('[data-ayuda="foto"]').onclick = abrirImportar;
   fila.querySelector('[data-ayuda="guia"]')?.addEventListener('click', abrirGuia);

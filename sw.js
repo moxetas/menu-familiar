@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya cobertura.
 // Cambia el número de CACHE cada vez que se publique una versión nueva.
-const CACHE = 'menu-familiar-v25';
+const CACHE = 'menu-familiar-v26';
 const FILES = [
   './',
   'index.html',
@@ -13,6 +13,14 @@ const FILES = [
   'dibujos.js',
   'miembros.js',
   'citas.js',
+  'i18n.js',
+  'lang/de.js',
+  'lang/en.js',
+  'lang/pl.js',
+  'lang/ro.js',
+  'lang/ru.js',
+  'lang/fr.js',
+  'lang/ar.js',
   'ajustes.js',
   'temas/tema1.webp',
   'temas/tema2.webp',
@@ -67,13 +75,13 @@ self.addEventListener('fetch', (event) => {
 // Llegan cifrados ({ v: 1, p }) y se abren con la clave que la app guardó en IndexedDB (avisos.js): el servidor nunca ve el texto.
 const TIPOS_AVISO = { medica: '🩺', reunion: '💼', colegio: '🏫', otra: '📌' };
 
-function claveAvisos() {
+function claveAvisos(cual = 'clave') {
   return new Promise((resolve, reject) => {
     const open = indexedDB.open('menu-familiar-avisos', 1);
     open.onupgradeneeded = () => open.result.createObjectStore('kv');
     open.onerror = () => reject(open.error);
     open.onsuccess = () => {
-      const r = open.result.transaction('kv', 'readonly').objectStore('kv').get('clave');
+      const r = open.result.transaction('kv', 'readonly').objectStore('kv').get(cual);
       r.onsuccess = () => resolve(r.result);
       r.onerror = () => reject(r.error);
     };
@@ -88,17 +96,29 @@ async function abrirAviso(p) {
   return JSON.parse(new TextDecoder().decode(plain));
 }
 
+// Las palabras del aviso en cada idioma (el idioma lo deja la app en IndexedDB, i18n.js)
+const PALABRAS_AVISO = {
+  es: { tag: 'es-ES', hoy: 'hoy', manana: 'mañana', semana: 'dentro de una semana', dias: 'dentro de {n} días', a: ' a las {h}', sin: '📌 Tienes una cita', abre: 'Abre Menú familiar para verla.' },
+  de: { tag: 'de-DE', hoy: 'heute', manana: 'morgen', semana: 'in einer Woche', dias: 'in {n} Tagen', a: ' um {h}', sin: '📌 Du hast einen Termin', abre: 'Öffne Familienmenü, um ihn zu sehen.' },
+  en: { tag: 'en-GB', hoy: 'today', manana: 'tomorrow', semana: 'in a week', dias: 'in {n} days', a: ' at {h}', sin: '📌 You have an appointment', abre: 'Open Family Menu to see it.' },
+  pl: { tag: 'pl-PL', hoy: 'dziś', manana: 'jutro', semana: 'za tydzień', dias: 'za {n} dni', a: ' o {h}', sin: '📌 Masz wizytę', abre: 'Otwórz Rodzinne menu, aby ją zobaczyć.' },
+  ro: { tag: 'ro-RO', hoy: 'azi', manana: 'mâine', semana: 'peste o săptămână', dias: 'peste {n} zile', a: ' la {h}', sin: '📌 Ai o programare', abre: 'Deschide Meniul familiei ca s-o vezi.' },
+  ru: { tag: 'ru-RU', hoy: 'сегодня', manana: 'завтра', semana: 'через неделю', dias: 'через {n} дн.', a: ' в {h}', sin: '📌 У вас встреча', abre: 'Откройте «Семейное меню», чтобы посмотреть.' },
+  fr: { tag: 'fr-FR', hoy: 'aujourd’hui', manana: 'demain', semana: 'dans une semaine', dias: 'dans {n} jours', a: ' à {h}', sin: '📌 Vous avez un rendez-vous', abre: 'Ouvrez Menu familial pour le voir.' },
+  ar: { tag: 'ar-u-nu-latn', hoy: 'اليوم', manana: 'غدًا', semana: 'بعد أسبوع', dias: 'بعد {n} أيام', a: ' الساعة {h}', sin: '📌 لديك موعد', abre: 'افتح قائمة العائلة لرؤيته.' },
+};
+
 // Mismo texto que la app: «Mañana, viernes 14 de noviembre a las 10:30 · Centro de salud · Lucía»
-function textoAviso(c) {
+function textoAviso(c, w = PALABRAS_AVISO.es) {
   const zona = c.zona || 'Europe/Madrid';
   const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: zona }).format(new Date());
   const dias = Math.round((Date.UTC(...c.fecha.split('-').map((n, i) => (i === 1 ? n - 1 : +n))) - Date.UTC(...hoy.split('-').map((n, i) => (i === 1 ? n - 1 : +n)))) / 864e5);
-  const cuando = dias <= 0 ? 'hoy' : dias === 1 ? 'mañana' : dias === 7 ? 'dentro de una semana' : `dentro de ${dias} días`;
+  const cuando = dias <= 0 ? w.hoy : dias === 1 ? w.manana : dias === 7 ? w.semana : w.dias.replace('{n}', dias);
   const [y, m, d] = c.fecha.split('-').map(Number);
-  const dia = new Intl.DateTimeFormat('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+  const dia = new Intl.DateTimeFormat(w.tag, { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(Date.UTC(y, m - 1, d, 12)));
   return {
     title: `${TIPOS_AVISO[c.tipo] || '📌'} ${c.titulo}`,
-    body: `${cuando[0].toUpperCase()}${cuando.slice(1)}, ${dia}${c.hora ? ` a las ${c.hora}` : ''}${c.lugar ? ` · ${c.lugar}` : ''}${c.quien ? ` · ${c.quien}` : ''}`,
+    body: `${cuando[0].toUpperCase()}${cuando.slice(1)}, ${dia}${c.hora ? w.a.replace('{h}', c.hora) : ''}${c.lugar ? ` · ${c.lugar}` : ''}${c.quien ? ` · ${c.quien}` : ''}`,
     tag: `cita-${c.id || ''}-${c.aviso || ''}`,
   };
 }
@@ -114,9 +134,12 @@ self.addEventListener('push', (event) => {
     data: { url: './#citas' },
   });
   event.waitUntil(
-    abrirAviso(data.p).then((c) => mostrar(textoAviso(c)))
-      // Sin la clave (por ejemplo, tras borrar los datos del navegador): un aviso sin detalles
-      .catch(() => mostrar({ title: data.title || '📌 Tienes una cita', body: data.body || 'Abre Menú familiar para verla.' })),
+    claveAvisos('idioma').catch(() => 'es').then((l) => {
+      const w = PALABRAS_AVISO[l] || PALABRAS_AVISO.es;
+      return abrirAviso(data.p).then((c) => mostrar(textoAviso(c, w)))
+        // Sin la clave (por ejemplo, tras borrar los datos del navegador): un aviso sin detalles
+        .catch(() => mostrar({ title: data.title || w.sin, body: data.body || w.abre }));
+    }),
   );
 });
 

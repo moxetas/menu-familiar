@@ -11,34 +11,34 @@
 // - Dentro de la app: al abrirla sale un recordatorio con las citas que tocan.
 
 const TIPOS_CITA = {
-  medica: { nombre: 'Médica', emoji: '🩺' },
-  reunion: { nombre: 'Reunión', emoji: '💼' },
-  colegio: { nombre: 'Colegio', emoji: '🏫' },
-  otra: { nombre: 'Otra', emoji: '📌' },
+  medica: { nombre: T('Médica'), emoji: '🩺' },
+  reunion: { nombre: T('Reunión'), emoji: '💼' },
+  colegio: { nombre: T('Colegio'), emoji: '🏫' },
+  otra: { nombre: T('Otra'), emoji: '📌' },
 };
 const DIA_MS = 864e5;
-const AVISOS = { semana: { ms: 7 * DIA_MS, label: 'Una semana antes' }, dia: { ms: DIA_MS, label: 'Un día antes' } };
+const AVISOS = { semana: { ms: 7 * DIA_MS, label: T('Una semana antes') }, dia: { ms: DIA_MS, label: T('Un día antes') } };
 
 const citaFecha = (c) => new Date(`${c.fecha}T${c.hora || '09:00'}:00`);
-const fmtCitaDia = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-const fmtMes = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
-const fmtDiaSemana = new Intl.DateTimeFormat('es-ES', { weekday: 'short' });
+const fmtCitaDia = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' });
+const fmtMes = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' });
+const fmtDiaSemana = new Intl.DateTimeFormat(LOCALE, { weekday: 'short' });
 
 function cuandoFalta(c) {
   const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
   const dia = new Date(`${c.fecha}T00:00:00`);
   const d = Math.round((dia - hoy) / DIA_MS);
-  if (d === 0) return 'hoy';
-  if (d === 1) return 'mañana';
-  if (d === -1) return 'ayer';
-  if (d > 1 && d < 14) return `dentro de ${d} días`;
-  if (d >= 14 && d < 60) return `dentro de ${Math.round(d / 7)} semanas`;
-  if (d < 0) return `hace ${-d} días`;
+  if (d === 0) return T('hoy');
+  if (d === 1) return T('mañana');
+  if (d === -1) return T('ayer');
+  if (d > 1 && d < 14) return T('dentro de {n} días', { n: d });
+  if (d >= 14 && d < 60) return T('dentro de {n} semanas', { n: Math.round(d / 7) });
+  if (d < 0) return T('hace {n} días', { n: -d });
   return '';
 }
 
 const quienCita = (c) => {
-  if (!c.para) return 'Toda la familia';
+  if (!c.para) return T('Toda la familia');
   const m = (state.members || []).find((x) => x.id === c.para);
   return m ? `${avatarOf(m)} ${m.name}` : '';
 };
@@ -62,14 +62,14 @@ function renderCitas(main) {
 
   main.innerHTML = `
     <div id="avisos-card">${avisosCard()}</div>
-    <button type="button" class="btn primary" id="new-cita">➕ Nueva cita</button>
+    <button type="button" class="btn primary" id="new-cita">➕ ${T('Nueva cita')}</button>
     ${proximas.length ? porMes.map(([mes, list]) => `
       <h2>${esc(mes)}</h2>
       <div class="citas">${list.map(citaCard).join('')}</div>`).join('')
-    : `<div class="card empty-state"><div class="big">📌</div><p><strong>No hay citas apuntadas</strong></p>
-        <p class="muted">Apunta citas médicas, reuniones o lo que sea. Os avisará una semana antes y un día antes.</p></div>`}
+    : `<div class="card empty-state"><div class="big">📌</div><p><strong>${T('No hay citas apuntadas')}</strong></p>
+        <p class="muted">${T('Apunta citas médicas, reuniones o lo que sea. Os avisará una semana antes y un día antes.')}</p></div>`}
     ${pasadas.length ? `
-      <button type="button" class="btn small" id="toggle-pasadas">${citasView.pasadas ? 'Ocultar' : 'Ver'} las pasadas (${pasadas.length})</button>
+      <button type="button" class="btn small" id="toggle-pasadas">${citasView.pasadas ? T('Ocultar las pasadas ({n})', { n: pasadas.length }) : T('Ver las pasadas ({n})', { n: pasadas.length })}</button>
       ${citasView.pasadas ? `<div class="citas pasadas">${pasadas.map(citaCard).join('')}</div>` : ''}` : ''}
   `;
   $('#new-cita').onclick = () => openCita(null);
@@ -86,10 +86,10 @@ function citaCard(c) {
     <span class="cita-fecha"><strong>${d.getDate()}</strong><span>${esc(fmtDiaSemana.format(d))}</span></span>
     <span class="cita-text">
       <strong>${t.emoji} ${esc(c.titulo)}</strong>
-      <span class="muted small">${[c.hora ? `🕐 ${c.hora}` : 'Sin hora', c.lugar ? `📍 ${esc(c.lugar)}` : '', esc(quienCita(c))].filter(Boolean).join(' · ')}</span>
+      <span class="muted small">${[c.hora ? `🕐 ${c.hora}` : T('Sin hora'), c.lugar ? `📍 ${esc(c.lugar)}` : '', esc(quienCita(c))].filter(Boolean).join(' · ')}</span>
       ${falta ? `<span class="cita-falta">${esc(falta)}</span>` : ''}
     </span>
-    <span class="cita-bell" aria-label="Avisos">${c.avisos?.semana === false && c.avisos?.dia === false ? '🔕' : '🔔'}</span>
+    <span class="cita-bell" aria-label="${T('Avisos')}">${c.avisos?.semana === false && c.avisos?.dia === false ? '🔕' : '🔔'}</span>
   </button>`;
 }
 
@@ -118,23 +118,23 @@ function openCita(id, fecha) {
   };
   const draw = () => {
     openSheet(`
-      <div class="sheet-head"><h3>${old ? 'Cita' : 'Nueva cita'}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <label class="field">Qué<input type="text" id="ct-titulo" value="${esc(c.titulo)}" placeholder="Ej.: Nefrología, reunión del colegio…" autocomplete="off"></label>
+      <div class="sheet-head"><h3>${old ? T('Cita') : T('Nueva cita')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <label class="field">${T('Qué')}<input type="text" id="ct-titulo" value="${esc(c.titulo)}" placeholder="${T('Ej.: Nefrología, reunión del colegio…')}" autocomplete="off"></label>
       <div class="chips" id="ct-tipo">${Object.entries(TIPOS_CITA).map(([k, t]) => chip(k, `${t.emoji} ${t.nombre}`, c.tipo)).join('')}</div>
       <div class="row">
-        <label class="field grow">Día<input type="date" id="ct-fecha" value="${c.fecha}"></label>
-        <label class="field grow">Hora<input type="time" id="ct-hora" value="${c.hora || ''}"></label>
+        <label class="field grow">${T('Día')}<input type="date" id="ct-fecha" value="${c.fecha}"></label>
+        <label class="field grow">${T('Hora')}<input type="time" id="ct-hora" value="${c.hora || ''}"></label>
       </div>
-      <label class="field">Dónde<input type="text" id="ct-lugar" value="${esc(c.lugar || '')}" placeholder="Ej.: Hospital, consulta 12" autocomplete="off"></label>
-      <label class="field">Para quién</label>
-      <div class="chips" id="ct-para">${chip('', '👨‍👩‍👧 Toda la familia', c.para || '')}${(state.members || []).map((m) => chip(m.id, `${avatarOf(m)} ${m.name}`, c.para || '')).join('')}</div>
-      <label class="field">Notas<textarea id="ct-notas" class="short" placeholder="Ej.: ir en ayunas, llevar análisis…">${esc(c.notas || '')}</textarea></label>
-      <label class="field">Avisos</label>
+      <label class="field">${T('Dónde')}<input type="text" id="ct-lugar" value="${esc(c.lugar || '')}" placeholder="${T('Ej.: Hospital, consulta 12')}" autocomplete="off"></label>
+      <label class="field">${T('Para quién')}</label>
+      <div class="chips" id="ct-para">${chip('', '👨‍👩‍👧 ' + T('Toda la familia'), c.para || '')}${(state.members || []).map((m) => chip(m.id, `${avatarOf(m)} ${m.name}`, c.para || '')).join('')}</div>
+      <label class="field">${T('Notas')}<textarea id="ct-notas" class="short" placeholder="${T('Ej.: ir en ayunas, llevar análisis…')}">${esc(c.notas || '')}</textarea></label>
+      <label class="field">${T('Avisos')}</label>
       <div class="chips" id="ct-avisos">${Object.entries(AVISOS).map(([k, a]) => `<button type="button" class="chip" data-aviso="${k}" aria-pressed="${c.avisos[k] !== false}">🔔 ${a.label}</button>`).join('')}</div>
-      <p class="muted small">Sin hora, el aviso llega a las 9 de la mañana.</p>
+      <p class="muted small">${T('Sin hora, el aviso llega a las 9 de la mañana.')}</p>
       <div class="row">
-        <button type="button" class="btn primary grow" id="ct-ok">Guardar</button>
-        ${old ? '<button type="button" class="btn danger" id="ct-del">Borrar</button>' : ''}
+        <button type="button" class="btn primary grow" id="ct-ok">${T('Guardar')}</button>
+        ${old ? `<button type="button" class="btn danger" id="ct-del">${T('Borrar')}</button>` : ''}
       </div>
     `);
     const sheet = $('#sheet');
@@ -143,18 +143,18 @@ function openCita(id, fecha) {
     sheet.querySelectorAll('[data-aviso]').forEach((b) => b.onclick = () => { keep(); c.avisos[b.dataset.aviso] = c.avisos[b.dataset.aviso] === false; draw(); });
     $('#ct-ok').onclick = () => {
       keep();
-      if (!c.titulo) { toast('Escribe qué es la cita'); return; }
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(c.fecha)) { toast('Pon el día'); return; }
+      if (!c.titulo) { toast(T('Escribe qué es la cita')); return; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(c.fecha)) { toast(T('Pon el día')); return; }
       c.zona = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
       if (!c.hora) delete c.hora;
       state.citas ||= [];
       const i = state.citas.findIndex((x) => x.id === c.id);
       if (i >= 0) state.citas[i] = c; else state.citas.push(c);
       save(); closeSheet(); render();
-      toast(old ? 'Cita guardada' : 'Cita apuntada');
+      toast(old ? T('Cita guardada') : T('Cita apuntada'));
     };
     $('#ct-del')?.addEventListener('click', () => {
-      if (!confirm(`¿Borrar «${old.titulo}»?`)) return;
+      if (!confirm(T('¿Borrar «{nombre}»?', { nombre: old.titulo }))) return;
       state.citas = state.citas.filter((x) => x.id !== c.id);
       save(); closeSheet(); render();
     });
@@ -191,9 +191,9 @@ function comprobarAvisos() {
   const list = avisosPendientes();
   if (!list.length) return;
   openSheet(`
-    <div class="sheet-head"><h3>🔔 Recordatorio</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+    <div class="sheet-head"><h3>🔔 ${T('Recordatorio')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
     <div class="citas">${list.map(({ c }) => citaCard(c)).join('')}</div>
-    <button type="button" class="btn primary" id="avisos-ok">Entendido</button>
+    <button type="button" class="btn primary" id="avisos-ok">${T('Entendido')}</button>
   `);
   const marcar = () => {
     let vistos = {};
@@ -219,7 +219,7 @@ const deviceId = () => {
 const pushInfo = () => { try { return JSON.parse(localStorage.getItem(PUSH_LS)) || null; } catch (e) { return null; } };
 const esIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const enPantallaDeInicio = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
-const nombreDispositivo = () => (/iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iPad' : /iPhone/.test(navigator.userAgent) ? 'iPhone' : /Android/.test(navigator.userAgent) ? 'Android' : 'Ordenador');
+const nombreDispositivo = () => (/iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iPad' : /iPhone/.test(navigator.userAgent) ? 'iPhone' : /Android/.test(navigator.userAgent) ? 'Android' : T('Ordenador'));
 
 function avisosCard() {
   const soporta = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
@@ -227,25 +227,25 @@ function avisosCard() {
   let body;
   if (!soporta) {
     body = esIOS() && !enPantallaDeInicio()
-      ? '<p class="small">Para que los avisos salten en este móvil, abre la app desde su <strong>icono de la pantalla de inicio</strong>, no desde Safari.</p>'
-      : '<p class="small">Este navegador no permite avisos. En iPhone y iPad hace falta iOS 16.4 o posterior y abrir la app desde la pantalla de inicio.</p>';
+      ? `<p class="small">${T('Para que los avisos salten en este móvil, abre la app desde su <strong>icono de la pantalla de inicio</strong>, no desde Safari.')}</p>`
+      : `<p class="small">${T('Este navegador no permite avisos. En iPhone y iPad hace falta iOS 16.4 o posterior y abrir la app desde la pantalla de inicio.')}</p>`;
   } else if (!Familia.active) {
-    body = '<p class="small">Para recibir avisos, primero conecta la familia en la pestaña <strong>Familia</strong>: los avisos salen de las citas compartidas.</p>';
+    body = `<p class="small">${T('Para recibir avisos, primero conecta la familia en la pestaña <strong>Familia</strong>: los avisos salen de las citas compartidas.')}</p>`;
   } else if (Notification.permission === 'denied') {
-    body = '<p class="small">Los avisos están bloqueados en este móvil. Actívalos en <strong>Ajustes → Notificaciones → Menú familiar</strong>.</p>';
+    body = `<p class="small">${T('Los avisos están bloqueados en este móvil. Actívalos en <strong>Ajustes → Notificaciones → Menú familiar</strong>.')}</p>`;
   } else if (info && Notification.permission === 'granted') {
     const members = state.members || [];
-    body = `<p class="small">✅ <strong>Avisos activados en este ${esc(info.dispositivo || 'móvil')}.</strong> Saltarán una semana antes y un día antes de cada cita, aunque la app esté cerrada.</p>
-      ${members.length ? `<label class="field">Avisarme de</label>
-      <div class="chips" id="push-solo">${chip('', 'Todas las citas', info.soloDe || '')}${members.map((m) => chip(m.id, `Solo las de ${m.name}`, info.soloDe || '')).join('')}</div>` : ''}
-      <p class="muted small" id="push-servidor">Comprobando el servicio de avisos…</p>
+    body = `<p class="small">✅ <strong>${T('Avisos activados en este {aparato}.', { aparato: esc(info.dispositivo || T('móvil')) })}</strong> ${T('Saltarán una semana antes y un día antes de cada cita, aunque la app esté cerrada.')}</p>
+      ${members.length ? `<label class="field">${T('Avisarme de')}</label>
+      <div class="chips" id="push-solo">${chip('', T('Todas las citas'), info.soloDe || '')}${members.map((m) => chip(m.id, T('Solo las de {nombre}', { nombre: m.name }), info.soloDe || '')).join('')}</div>` : ''}
+      <p class="muted small" id="push-servidor">${T('Comprobando el servicio de avisos…')}</p>
       <div class="row">
-        <button type="button" class="btn small grow" id="push-test">Probar un aviso</button>
-        <button type="button" class="btn small" id="push-off">Desactivar</button>
+        <button type="button" class="btn small grow" id="push-test">${T('Probar un aviso')}</button>
+        <button type="button" class="btn small" id="push-off">${T('Desactivar')}</button>
       </div>`;
   } else {
-    body = `<p class="small">Activa los avisos para que salten en este móvil una semana antes y un día antes de cada cita, aunque la app esté cerrada. Hay que activarlos en cada móvil.</p>
-      <button type="button" class="btn primary" id="push-on">🔔 Activar avisos en este móvil</button>`;
+    body = `<p class="small">${T('Activa los avisos para que salten en este móvil una semana antes y un día antes de cada cita, aunque la app esté cerrada. Hay que activarlos en cada móvil.')}</p>
+      <button type="button" class="btn primary" id="push-on">🔔 ${T('Activar avisos en este móvil')}</button>`;
   }
   return `<div class="card avisos">${body}</div>`;
 }
@@ -256,8 +256,8 @@ function bindAvisos() {
   $('#push-test')?.addEventListener('click', async () => {
     try {
       const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification('📌 Así te avisaré', { body: 'Las citas te avisarán una semana antes y un día antes.', icon: 'icons/icon-192.png', tag: 'prueba' });
-    } catch (e) { toast('No se ha podido mostrar el aviso'); }
+      await reg.showNotification('📌 ' + T('Así te avisaré'), { body: T('Las citas te avisarán una semana antes y un día antes.'), icon: 'icons/icon-192.png', tag: 'prueba' });
+    } catch (e) { toast(T('No se ha podido mostrar el aviso')); }
   });
   document.querySelectorAll('#push-solo .chip').forEach((b) => b.onclick = async () => {
     const info = pushInfo();
@@ -266,7 +266,7 @@ function bindAvisos() {
     try {
       await apuntarMovil(info);
       render();
-    } catch (e) { toast('No se ha podido guardar. ¿Hay conexión?'); }
+    } catch (e) { toast(T('No se ha podido guardar. ¿Hay conexión?')); }
   });
   // Cuándo pasó por última vez el servicio que envía los avisos
   const el = $('#push-servidor');
@@ -275,9 +275,9 @@ function bindAvisos() {
       if (!document.body.contains(el)) return;
       if (s?.ultimaVez) {
         const min = Math.round((Date.now() - s.ultimaVez) / 60000);
-        el.textContent = `El servicio de avisos pasó por última vez ${min < 2 ? 'hace un momento' : min < 120 ? `hace ${min} minutos` : `hace ${Math.round(min / 60)} horas`}.${min > 180 ? ' Debería pasar cada hora: algo no va bien.' : ''}`;
+        el.textContent = T('El servicio de avisos pasó por última vez {cuando}.', { cuando: min < 2 ? T('hace un momento') : min < 120 ? T('hace {n} minutos', { n: min }) : T('hace {n} horas', { n: Math.round(min / 60) }) }) + (min > 180 ? ' ' + T('Debería pasar cada hora: algo no va bien.') : '');
       } else {
-        el.textContent = 'El servicio de avisos todavía no ha pasado. Debería pasar cada hora: si dentro de una hora sigue así, algo no va bien.';
+        el.textContent = T('El servicio de avisos todavía no ha pasado. Debería pasar cada hora: si dentro de una hora sigue así, algo no va bien.');
       }
     }).catch(() => { el.textContent = ''; });
   }
@@ -308,16 +308,16 @@ async function apuntarMovil(info) {
 async function activarAvisos() {
   try {
     const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { toast('Sin permiso no puedo avisarte'); render(); return; }
+    if (perm !== 'granted') { toast(T('Sin permiso no puedo avisarte')); render(); return; }
     const info = { id: deviceId(), dispositivo: nombreDispositivo(), soloDe: '' };
     await apuntarMovil(info);
     await Avisos.actualizar(true, 0);   // se ponen ya en la cola los avisos de las próximas citas
     render();
-    toast('Avisos activados');
+    toast(T('Avisos activados'));
     const reg = await navigator.serviceWorker.ready;
-    reg.showNotification('🔔 Avisos activados', { body: 'Te avisaré una semana antes y un día antes de cada cita.', icon: 'icons/icon-192.png', tag: 'prueba' }).catch(() => {});
+    reg.showNotification('🔔 ' + T('Avisos activados'), { body: T('Te avisaré una semana antes y un día antes de cada cita.'), icon: 'icons/icon-192.png', tag: 'prueba' }).catch(() => {});
   } catch (e) {
-    toast(`No se han podido activar los avisos${e && e.message ? `: ${e.message}` : ''}`);
+    toast(T('No se han podido activar los avisos') + (e && e.message ? `: ${e.message}` : ''));
   }
 }
 
@@ -342,5 +342,5 @@ async function desactivarAvisos() {
   } catch (e) { /* aunque falle, se olvida en este móvil */ }
   try { localStorage.removeItem(PUSH_LS); } catch (e) { /* nada */ }
   render();
-  toast('Avisos desactivados en este móvil');
+  toast(T('Avisos desactivados en este móvil'));
 }

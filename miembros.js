@@ -10,9 +10,9 @@ const RACION_BASE = 2000;
 const COMIDA_Y_CENA = 0.6;   // comida y cena suelen ser el 60 % de lo que se come en el día
 
 const ACTIVIDAD = {
-  baja: { f: 1.4, label: 'Poca', help: 'Casi todo el día sentado' },
-  media: { f: 1.6, label: 'Normal', help: 'Camina a diario o hace algo de ejercicio' },
-  alta: { f: 1.85, label: 'Mucha', help: 'Trabajo físico o deporte casi a diario' },
+  baja: { f: 1.4, label: T('Poca'), help: T('Casi todo el día sentado') },
+  media: { f: 1.6, label: T('Normal'), help: T('Camina a diario o hace algo de ejercicio') },
+  alta: { f: 1.85, label: T('Mucha'), help: T('Trabajo físico o deporte casi a diario') },
 };
 
 // Niños y adolescentes: kcal al día con actividad normal (EFSA, aproximado). [desde la edad, niño, niña]
@@ -57,7 +57,7 @@ function avatarOf(m) {
 }
 
 const fmtFactor = (f) => `×${String(Math.round(f * 100) / 100).replace('.', ',')}`;
-const fmtInt = (n) => Math.round(n).toLocaleString('es-ES');
+const fmtInt = (n) => Math.round(n).toLocaleString(LOCALE);
 
 // ---------- Quién come cada plato ----------
 
@@ -76,28 +76,28 @@ function dinersOf(dish) {
 
 function whoText(dish) {
   const { people, extra, raciones } = dinersOf(dish);
-  if (!(state.members || []).length) return `${extra} ${extra === 1 ? 'persona' : 'personas'}`;
-  if (!people.length && !extra) return 'Nadie';
+  if (!(state.members || []).length) return extra === 1 ? T('1 persona') : T('{n} personas', { n: extra });
+  if (!people.length && !extra) return T('Nadie');
   const all = people.length === state.members.length;
-  const names = all ? 'Todos' : people.map((x) => x.m.name).join(', ');
-  return `${names}${extra ? ` + ${extra} ${extra === 1 ? 'invitado' : 'invitados'}` : ''} · ${fmtNum(raciones)} raciones`;
+  const names = all ? T('Todos') : people.map((x) => x.m.name).join(', ');
+  return `${names}${extra ? ` + ${extra === 1 ? T('1 invitado') : T('{n} invitados', { n: extra })}` : ''} · ${T('{n} raciones', { n: fmtNum(raciones) })}`;
 }
 
 // Selector de quién come: botones con cada miembro y un contador de invitados (o de personas, si no hay miembros)
 function whoPicker(dish, prefix) {
   const members = state.members || [];
   if (!members.length) {
-    return `<div class="servings"><span>Personas</span>
-      <button type="button" class="round" data-${prefix}="less" aria-label="Menos personas">−</button>
+    return `<div class="servings"><span>${T('Personas')}</span>
+      <button type="button" class="round" data-${prefix}="less" aria-label="${T('Menos personas')}">−</button>
       <strong>${+dish.n || 4}</strong>
-      <button type="button" class="round" data-${prefix}="more" aria-label="Más personas">+</button></div>`;
+      <button type="button" class="round" data-${prefix}="more" aria-label="${T('Más personas')}">+</button></div>`;
   }
   const ids = Array.isArray(dish.para) ? dish.para : members.map((m) => m.id);
   return `<div class="chips">${members.map((m) => `<button type="button" class="chip" data-${prefix}-m="${m.id}" aria-pressed="${ids.includes(m.id)}">${avatarOf(m)} ${esc(m.name)}</button>`).join('')}</div>
-    <div class="servings"><span>Invitados</span>
-      <button type="button" class="round" data-${prefix}="less" aria-label="Menos invitados">−</button>
+    <div class="servings"><span>${T('Invitados')}</span>
+      <button type="button" class="round" data-${prefix}="less" aria-label="${T('Menos invitados')}">−</button>
       <strong>${+dish.inv || 0}</strong>
-      <button type="button" class="round" data-${prefix}="more" aria-label="Más invitados">+</button></div>`;
+      <button type="button" class="round" data-${prefix}="more" aria-label="${T('Más invitados')}">+</button></div>`;
 }
 
 // Conecta los botones de whoPicker. change() se llama tras cada cambio.
@@ -155,7 +155,7 @@ function perRacion(name) {
 // ---------- Plan de salud de cada miembro ----------
 // m.salud = { activo, nombre, sal (g/día), agua (l/día), protMin, protMax (g/día), satBaja, urico, rojaMax (veces/semana), procesados, ieca, nota }
 
-const PLAN_RENAL = { activo: true, nombre: 'Poliquistosis renal', sal: 5, agua: 3, protMin: 65, protMax: 80, satBaja: true, urico: true, rojaMax: 2, procesados: true, ieca: true };
+const PLAN_RENAL = { activo: true, nombre: T('Poliquistosis renal'), sal: 5, agua: 3, protMin: 65, protMax: 80, satBaja: true, urico: true, rojaMax: 2, procesados: true, ieca: true };
 const healthMembers = () => (state.members || []).filter((m) => m.salud?.activo);
 const fmt1 = (n) => String(Math.round(n * 10) / 10).replace('.', ',');
 
@@ -165,30 +165,30 @@ function healthNotes(m, name, f) {
   const t = perRacion(name);
   if (!s?.activo || !t) return [];
   const notes = [];
-  if (t.potasio.length) notes.push({ lvl: 'stop', icon: '⛔', short: 'sal de régimen', text: `Lleva ${t.potasio.join(', ')}: es cloruro potásico${s.ieca ? ' y, con su IECA, puede subir el potasio peligrosamente' : ''}. No usar.` });
+  if (t.potasio.length) notes.push({ lvl: 'stop', icon: '⛔', short: T('sal de régimen'), text: (s.ieca ? T('Lleva {cosa}: es cloruro potásico y, con su IECA, puede subir el potasio peligrosamente. No usar.', { cosa: t.potasio.join(', ') }) : T('Lleva {cosa}: es cloruro potásico. No usar.', { cosa: t.potasio.join(', ') })) });
   const sal = t.sal * f;
   const muchaSal = s.sal && sal > s.sal * 0.3;
   if (muchaSal) {
     const tips = salTips(t, f);
-    notes.push({ lvl: 'warn', icon: '🧂', short: `${fmt1(sal)} g sal`, text: `Mucha sal: ${fmt1(sal)} g, de sus ${s.sal} g al día${t.salados.length ? `, sobre todo por ${t.salados.slice(0, 3).join(', ').toLowerCase()}` : ''}.${tips.length ? ` Para bajarla: ${tips.join('; ')}.` : ''}` });
+    notes.push({ lvl: 'warn', icon: '🧂', short: T('{n} g sal', { n: fmt1(sal) }), text: T('Mucha sal: {n} g, de sus {max} g al día', { n: fmt1(sal), max: s.sal }) + (t.salados.length ? T(', sobre todo por {cosas}', { cosas: t.salados.slice(0, 3).join(', ').toLowerCase() }) : '') + '.' + (tips.length ? ' ' + T('Para bajarla: {consejos}.', { consejos: tips.join('; ') }) : '') });
   }
   const sat = t.sat * f;
   if (s.satBaja && sat > 7) {
     const tips = satTips(t);
-    notes.push({ lvl: 'warn', icon: '🧈', short: 'grasa saturada', text: `Bastante grasa saturada: ${fmt1(sat)} g sin contar el aceite de oliva${t.grasos.length ? `, sobre todo de ${t.grasos.slice(0, 3).join(', ').toLowerCase()}` : ''}.${tips.length ? ` Para bajarla: ${tips.join('; ')}.` : ''}` });
+    notes.push({ lvl: 'warn', icon: '🧈', short: T('grasa saturada'), text: T('Bastante grasa saturada: {n} g sin contar el aceite de oliva', { n: fmt1(sat) }) + (t.grasos.length ? T(', sobre todo de {cosas}', { cosas: t.grasos.slice(0, 3).join(', ').toLowerCase() }) : '') + '.' + (tips.length ? ' ' + T('Para bajarla: {consejos}.', { consejos: tips.join('; ') }) : '') });
   }
-  if (s.urico && t.purinas.length) notes.push({ lvl: 'warn', icon: '🦐', short: 'purinas', text: `Purinas altas (${t.purinas.slice(0, 3).join(', ').toLowerCase()}): mejor de vez en cuando, por el ácido úrico.` });
+  if (s.urico && t.purinas.length) notes.push({ lvl: 'warn', icon: '🦐', short: T('purinas'), text: T('Purinas altas ({cosas}): mejor de vez en cuando, por el ácido úrico.', { cosas: t.purinas.slice(0, 3).join(', ').toLowerCase() }) });
   // La proteína depende de cuánto se sirva: se da como consejo de cantidad, no como aviso del plato
   const p = t.p * f;
   const porComida = s.protMax ? Math.round(s.protMax * 0.4) : 0;
   if (porComida && p > porComida * 1.15) {
     const r = porComida / p;
-    const parte = r >= 0.6 ? 'algo menos de lo normal' : r >= 0.4 ? 'la mitad' : 'un tercio';
-    notes.push({ lvl: 'info', icon: '🍖', short: `${fmtInt(p)} g proteína`, text: `Proteína: ${fmtInt(p)} g en su ración. Para quedarse en ${s.protMin || 0}–${s.protMax} g al día (unos ${porComida} g por comida), que tome ${parte} de la carne, el pescado o el huevo y complete con verdura, ensalada, arroz, pasta o pan.` });
+    const parte = r >= 0.6 ? T('algo menos de lo normal') : r >= 0.4 ? T('la mitad') : T('un tercio');
+    notes.push({ lvl: 'info', icon: '🍖', short: T('{n} g proteína', { n: fmtInt(p) }), text: T('Proteína: {n} g en su ración. Para quedarse en {min}–{max} g al día (unos {comida} g por comida), que tome {parte} de la carne, el pescado o el huevo y complete con verdura, ensalada, arroz, pasta o pan.', { n: fmtInt(p), min: s.protMin || 0, max: s.protMax, comida: porComida, parte }) });
   }
-  if ((s.sal || s.satBaja) && t.embutidos.length && !muchaSal) notes.push({ lvl: 'warn', icon: '🥓', short: 'embutido', text: `Lleva embutido o curado (${t.embutidos.slice(0, 3).join(', ').toLowerCase()}): sal y grasa.` });
-  if (s.rojaMax != null && t.roja) notes.push({ lvl: 'info', icon: '🥩', short: 'carne roja', text: `Carne roja: cuenta para su máximo de ${s.rojaMax} a la semana.` });
-  if (s.procesados && t.procesados.length) notes.push({ lvl: 'info', icon: '🏭', short: 'ultraprocesado', text: `Ultraprocesados: ${t.procesados.slice(0, 3).join(', ').toLowerCase()}. Mejor la versión casera o la que no lleve fosfatos (E-338 a E-452).` });
+  if ((s.sal || s.satBaja) && t.embutidos.length && !muchaSal) notes.push({ lvl: 'warn', icon: '🥓', short: T('embutido'), text: T('Lleva embutido o curado ({cosas}): sal y grasa.', { cosas: t.embutidos.slice(0, 3).join(', ').toLowerCase() }) });
+  if (s.rojaMax != null && t.roja) notes.push({ lvl: 'info', icon: '🥩', short: T('carne roja'), text: T('Carne roja: cuenta para su máximo de {n} a la semana.', { n: s.rojaMax }) });
+  if (s.procesados && t.procesados.length) notes.push({ lvl: 'info', icon: '🏭', short: T('ultraprocesado'), text: T('Ultraprocesados: {cosas}. Mejor la versión casera o la que no lleve fosfatos (E-338 a E-452).', { cosas: t.procesados.slice(0, 3).join(', ').toLowerCase() }) });
   return notes;
 }
 
@@ -228,8 +228,8 @@ function healthLines(name, dish) {
     const t = perRacion(name);
     const body = notes.length
       ? notes.map((n) => `${n.icon} ${n.short}`).join(' · ')
-      : `✅ bien${t ? ` (${fmt1(t.sal * f)} g de sal)` : ''}`;
-    return `<p class="health-line"><strong>Para ${esc(m.name)}:</strong> ${body}</p>`;
+      : `✅ ${T('bien')}${t ? ` (${T('{n} g de sal', { n: fmt1(t.sal * f) })})` : ''}`;
+    return `<p class="health-line"><strong>${T('Para {nombre}:', { nombre: esc(m.name) })}</strong> ${body}</p>`;
   }).join('');
 }
 
@@ -237,28 +237,28 @@ function healthLines(name, dish) {
 function salTips(t, f) {
   const n = t.salados.map(norm).join(' | ');
   const tips = [];
-  if (/caldo/.test(n)) tips.push(`caldo casero sin sal o agua${t.salConCaldoCasero != null ? ` (se quedaría en ${fmt1(t.salConCaldoCasero * f)} g; si ya lo hacéis así, activadlo en Mis platos → Ajustes)` : ''}`);
-  if (/jamon|chorizo|morcilla|panceta|tocino|bacon|lacon|salchicha/.test(n)) tips.push('la mitad de embutido, o nada');
-  if (/queso|parmesano|quesito/.test(n)) tips.push('menos queso, o queso fresco');
-  if (/bacalao/.test(n)) tips.push('desalar bien el bacalao (48 h cambiando el agua)');
-  if (/garbanzo|lenteja|atun|maiz/.test(n)) tips.push('enjuagar las conservas o usar legumbre seca');
-  if (/anchoa|aceituna|caviar|soja|mostaza|tinta/.test(n)) tips.push('usarlo solo como detalle');
-  if (/tomate frito/.test(n)) tips.push('tomate triturado natural en vez de tomate frito');
-  if (/\bpan\b|pan de|pan rallado/.test(n)) tips.push('pan sin sal');
+  if (/caldo/.test(n)) tips.push(T('caldo casero sin sal o agua') + (t.salConCaldoCasero != null ? ' ' + T('(se quedaría en {n} g; si ya lo hacéis así, activadlo en Ajustes)', { n: fmt1(t.salConCaldoCasero * f) }) : ''));
+  if (/jamon|chorizo|morcilla|panceta|tocino|bacon|lacon|salchicha/.test(n)) tips.push(T('la mitad de embutido, o nada'));
+  if (/queso|parmesano|quesito/.test(n)) tips.push(T('menos queso, o queso fresco'));
+  if (/bacalao/.test(n)) tips.push(T('desalar bien el bacalao (48 h cambiando el agua)'));
+  if (/garbanzo|lenteja|atun|maiz/.test(n)) tips.push(T('enjuagar las conservas o usar legumbre seca'));
+  if (/anchoa|aceituna|caviar|soja|mostaza|tinta/.test(n)) tips.push(T('usarlo solo como detalle'));
+  if (/tomate frito/.test(n)) tips.push(T('tomate triturado natural en vez de tomate frito'));
+  if (/\bpan\b|pan de|pan rallado/.test(n)) tips.push(T('pan sin sal'));
   return tips;
 }
 function satTips(t) {
   const n = t.grasos.map(norm).join(' | ');
   const tips = [];
-  if (/nata/.test(n)) tips.push('nata ligera o leche evaporada');
-  if (/mantequilla|bechamel/.test(n)) tips.push('aceite de oliva en vez de mantequilla');
-  if (/pollo|muslo|alita|gallina/.test(n)) tips.push('quitar la piel del pollo');
-  if (/queso|parmesano|mozzarella|quesito/.test(n)) tips.push('menos queso');
-  if (/chorizo|morcilla|panceta|tocino|bacon|jamon|lacon|salchicha/.test(n)) tips.push('menos embutido');
-  if (/carne picada/.test(n)) tips.push('carne picada magra, o mitad de pavo');
-  if (/secreto|costilla|carriller/.test(n)) tips.push('un corte más magro, como lomo o solomillo');
-  if (/coco/.test(n)) tips.push('leche de coco ligera');
-  if (/masa/.test(n)) tips.push('masa casera con aceite de oliva');
+  if (/nata/.test(n)) tips.push(T('nata ligera o leche evaporada'));
+  if (/mantequilla|bechamel/.test(n)) tips.push(T('aceite de oliva en vez de mantequilla'));
+  if (/pollo|muslo|alita|gallina/.test(n)) tips.push(T('quitar la piel del pollo'));
+  if (/queso|parmesano|mozzarella|quesito/.test(n)) tips.push(T('menos queso'));
+  if (/chorizo|morcilla|panceta|tocino|bacon|jamon|lacon|salchicha/.test(n)) tips.push(T('menos embutido'));
+  if (/carne picada/.test(n)) tips.push(T('carne picada magra, o mitad de pavo'));
+  if (/secreto|costilla|carriller/.test(n)) tips.push(T('un corte más magro, como lomo o solomillo'));
+  if (/coco/.test(n)) tips.push(T('leche de coco ligera'));
+  if (/masa/.test(n)) tips.push(T('masa casera con aceite de oliva'));
   return tips;
 }
 
@@ -326,20 +326,20 @@ function consumo(from, to) {
   return { res, sinReceta: [...sinReceta] };
 }
 
-const PERIODOS = { dia: 'Día', semana: 'Semana', mes: 'Mes', ano: 'Año' };
-const fmtMonth = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
-const fmtLong = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+const PERIODOS = { dia: T('Día'), semana: T('Semana'), mes: T('Mes'), ano: T('Año') };
+const fmtMonth = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' });
+const fmtLong = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', day: 'numeric', month: 'short' });
 
 function periodRange(kind, off) {
   const t = new Date(); t.setHours(12, 0, 0, 0);
   if (kind === 'dia') {
     const d = new Date(t); d.setDate(d.getDate() + off);
-    const label = off === 0 ? 'Hoy' : off === -1 ? 'Ayer' : off === 1 ? 'Mañana' : cap(fmtLong.format(d));
+    const label = off === 0 ? T('Hoy') : off === -1 ? T('Ayer') : off === 1 ? T('Mañana') : cap(fmtLong.format(d));
     return { from: d, to: new Date(d), label, days: 1 };
   }
   if (kind === 'semana') {
     const from = monday(off); const to = new Date(from); to.setDate(to.getDate() + 6);
-    const label = off === 0 ? 'Esta semana' : off === -1 ? 'La semana pasada' : off === 1 ? 'La semana que viene' : `Semana del ${fmtShort.format(from)}`;
+    const label = off === 0 ? T('Esta semana') : off === -1 ? T('La semana pasada') : off === 1 ? T('La semana que viene') : T('Semana del {d}', { d: fmtShort.format(from) });
     return { from, to, label, days: 7 };
   }
   if (kind === 'mes') {
@@ -359,12 +359,12 @@ const famView = { periodo: 'semana', off: 0, open: null, nut: 'kcal', dish: null
 // Nutrientes del desglose: [nombre, cómo se escribe el valor]
 const fmtG = (v) => `${v >= 10 ? fmtInt(v) : fmt1(v)} g`;
 const NUTRIENTES = {
-  kcal: ['Calorías', (v) => `${fmtInt(v)} kcal`],
-  p: ['Proteína', fmtG],
-  g: ['Grasas', fmtG],
-  h: ['Hidratos', fmtG],
-  sal: ['Sal', (v) => `${v < 0.1 && v > 0 ? '<0,1' : fmt1(v)} g`],
-  sat: ['Grasa saturada', fmtG],
+  kcal: [T('Calorías'), (v) => `${fmtInt(v)} kcal`],
+  p: [T('Proteína'), fmtG],
+  g: [T('Grasas'), fmtG],
+  h: [T('Hidratos'), fmtG],
+  sal: [T('Sal'), (v) => `${v < 0.1 && v > 0 ? '<0,1' : fmt1(v)} g`],
+  sat: [T('Grasa saturada'), fmtG],
 };
 
 // De dónde sale cada nutriente: por plato y, al tocar uno, por ingrediente
@@ -375,10 +375,10 @@ function breakdown(m, r, range) {
   const total = r[nut];
   const max = Math.max(...dishes.map(([, e]) => e[nut]), 0.0001);
   const one = range.days === 1;
-  const where = (e) => one ? [...e.comidas].map((c) => COMIDAS[c] || c).join(' y ') : `${e.veces} ${e.veces === 1 ? 'vez' : 'veces'}`;
+  const where = (e) => one ? [...e.comidas].map((c) => COMIDAS[c] || c).join(T(' y ')) : (e.veces === 1 ? T('1 vez') : T('{n} veces', { n: e.veces }));
   return `<div class="breakdown">
     <div class="chips" data-nut-row>${Object.entries(NUTRIENTES).map(([k, [l]]) => chip(k, l, nut)).join('')}</div>
-    <p class="small"><strong>${fmt(total)}</strong> de ${label.toLowerCase()} ${one ? 'este día' : 'en total'}, en ${r.dishes.size} ${r.dishes.size === 1 ? 'plato' : 'platos'}.${nut === 'sal' ? ' Sin contar la sal que se añada al cocinar.' : ''}${nut === 'sat' ? ' Sin contar el aceite de oliva.' : ''}</p>
+    <p class="small">${T(one ? '{total} de {nutriente} este día, en {platos}.' : '{total} de {nutriente} en total, en {platos}.', { total: `<strong>${fmt(total)}</strong>`, nutriente: minus(label), platos: r.dishes.size === 1 ? T('1 plato') : T('{n} platos', { n: r.dishes.size }) })}${nut === 'sal' ? ' ' + T('Sin contar la sal que se añada al cocinar.') : ''}${nut === 'sat' ? ' ' + T('Sin contar el aceite de oliva.') : ''}</p>
     <div class="bd-list">${dishes.map(([dk, e]) => {
       const pct = total ? Math.round((e[nut] / total) * 100) : 0;
       const open = famView.dish === dk;
@@ -391,7 +391,7 @@ function breakdown(m, r, range) {
         ${open ? ingredientBreakdown(e, nut, fmt) : ''}
       </div>`;
     }).join('')}</div>
-    <p class="muted small">Toca un plato para ver qué ingredientes lo aportan y cuánto ha comido de cada uno.</p>
+    <p class="muted small">${T('Toca un plato para ver qué ingredientes lo aportan y cuánto ha comido de cada uno.')}</p>
   </div>`;
 }
 
@@ -403,14 +403,14 @@ function ingredientBreakdown(e, nut, fmt) {
     .sort((a, b) => b.v - a.v);
   const total = rows.reduce((t, x) => t + x.v, 0);
   return `<table class="bd-ing">
-    <thead><tr><th>Ingrediente</th><th>Comido</th><th>${esc(NUTRIENTES[nut][0])}</th></tr></thead>
+    <thead><tr><th>${T('Ingrediente')}</th><th>${T('Comido')}</th><th>${esc(NUTRIENTES[nut][0])}</th></tr></thead>
     <tbody>${rows.map((x) => `<tr>
       <td>${esc(x.name)}</td>
       <td>${x.peso >= 1000 ? `${fmt1(x.peso / 1000)} kg` : `${fmtInt(x.peso)} g`}</td>
       <td>${fmt(x.v)} <span class="muted">${total ? Math.round((x.v / total) * 100) : 0} %</span></td>
-    </tr>`).join('') || '<tr><td colspan="3" class="muted">No lleva.</td></tr>'}</tbody>
+    </tr>`).join('') || `<tr><td colspan="3" class="muted">${T('No lleva.')}</td></tr>`}</tbody>
   </table>
-  <p class="muted small">${fmt1(e.raciones)} ${e.raciones === 1 ? 'ración' : 'raciones'} en total${e.veces > 1 ? `, en ${e.veces} veces` : ''}.</p>`;
+  <p class="muted small">${T('{n} raciones en total', { n: fmt1(e.raciones) })}${e.veces > 1 ? T(', en {n} veces', { n: e.veces }) : ''}.</p>`;
 }
 
 function renderFamily(main) {
@@ -419,49 +419,49 @@ function renderFamily(main) {
   const { res, sinReceta } = members.length ? consumo(range.from, range.to) : { res: {}, sinReceta: [] };
 
   main.innerHTML = `
-    <h2>¿Quién come en casa?</h2>
+    <h2>${T('¿Quién come en casa?')}</h2>
     ${members.length ? `<div class="members">${members.map((m) => `
       <button type="button" class="member" data-member="${m.id}">
         <span class="avatar" aria-hidden="true">${avatarOf(m)}</span>
         <span class="member-text">
           <strong>${esc(m.name)}</strong>
-          <span class="muted small">${[m.edad ? `${m.edad} años` : '', ACTIVIDAD[m.actividad] ? `actividad ${ACTIVIDAD[m.actividad].label.toLowerCase()}` : ''].filter(Boolean).join(' · ')}</span>
-          ${m.salud?.activo ? `<span class="health-tag">🩺 ${esc(m.salud.nombre || 'Plan de salud')}</span>` : ''}
+          <span class="muted small">${[m.edad ? T('{n} años', { n: m.edad }) : '', ACTIVIDAD[m.actividad] ? T('actividad {nivel}', { nivel: minus(ACTIVIDAD[m.actividad].label) }) : ''].filter(Boolean).join(' · ')}</span>
+          ${m.salud?.activo ? `<span class="health-tag">🩺 ${esc(m.salud.nombre || T('Plan de salud'))}</span>` : ''}
         </span>
-        <span class="member-factor"><strong>${fmtFactor(factorOf(m))}</strong><span>ración</span></span>
+        <span class="member-factor"><strong>${fmtFactor(factorOf(m))}</strong><span>${T('ración')}</span></span>
       </button>`).join('')}</div>`
-    : `<div class="card"><p>Añade a cada persona de casa con su edad, peso, altura y actividad. Así las recetas se ajustan a lo que come cada uno y podrás ver cuánto come cada persona.</p></div>`}
-    <button type="button" class="btn" id="add-member">➕ Añadir a alguien</button>
+    : `<div class="card"><p>${T('Añade a cada persona de casa con su edad, peso, altura y actividad. Así las recetas se ajustan a lo que come cada uno y podrás ver cuánto come cada persona.')}</p></div>`}
+    <button type="button" class="btn" id="add-member">➕ ${T('Añadir a alguien')}</button>
     ${healthMembers().filter((m) => m.salud.agua).map((m) => {
       const ml = aguaDe(m);
       const goal = m.salud.agua * 1000;
       return `<div class="card water">
-        <p><strong>💧 Agua de ${esc(m.name)} hoy</strong></p>
-        <div class="hero"><strong>${fmt1(ml / 1000)} l</strong><span>de ${fmt1(m.salud.agua)} l</span></div>
-        <div class="meter" role="img" aria-label="${Math.round((ml / goal) * 100)} % del agua de hoy"><span style="width:${Math.min(100, (ml / goal) * 100)}%"></span></div>
+        <p><strong>💧 ${T('Agua de {nombre} hoy', { nombre: esc(m.name) })}</strong></p>
+        <div class="hero"><strong>${fmt1(ml / 1000)} l</strong><span>${T('de {n} l', { n: fmt1(m.salud.agua) })}</span></div>
+        <div class="meter" role="img" aria-label="${T('{n} % del agua de hoy', { n: Math.round((ml / goal) * 100) })}"><span style="width:${Math.min(100, (ml / goal) * 100)}%"></span></div>
         <div class="row">
-          <button type="button" class="btn small grow" data-agua="${m.id}" data-ml="250">+ Vaso (250 ml)</button>
-          <button type="button" class="btn small grow" data-agua="${m.id}" data-ml="500">+ Botella (500 ml)</button>
-          <button type="button" class="btn small" data-agua="${m.id}" data-ml="-250" aria-label="Quitar un vaso">−</button>
+          <button type="button" class="btn small grow" data-agua="${m.id}" data-ml="250">+ ${T('Vaso (250 ml)')}</button>
+          <button type="button" class="btn small grow" data-agua="${m.id}" data-ml="500">+ ${T('Botella (500 ml)')}</button>
+          <button type="button" class="btn small" data-agua="${m.id}" data-ml="-250" aria-label="${T('Quitar un vaso')}">−</button>
         </div>
       </div>`;
     }).join('')}
-    ${healthMembers().some((m) => m.salud.ieca) ? `<div class="notice danger-note"><p class="small"><strong>⛔ Nunca sal de régimen ni «sal dietética»</strong> (Diätsalz, sal baja en sodio, sustitutos de sal): son cloruro potásico y, con ${esc(healthMembers().filter((m) => m.salud.ieca).map((m) => m.name).join(' y '))} tomando un IECA, pueden subir el potasio peligrosamente.</p></div>` : ''}
+    ${healthMembers().some((m) => m.salud.ieca) ? `<div class="notice danger-note"><p class="small"><strong>⛔ ${T('Nunca sal de régimen ni «sal dietética»')}</strong> ${T('(Diätsalz, sal baja en sodio, sustitutos de sal): son cloruro potásico y, con {quien} tomando un IECA, pueden subir el potasio peligrosamente.', { quien: esc(healthMembers().filter((m) => m.salud.ieca).map((m) => m.name).join(T(' y '))) })}</p></div>` : ''}
 
     ${members.length ? `
-      <h2>¿Cómo comemos?</h2>
+      <h2>${T('¿Cómo comemos?')}</h2>
       <div class="chips" id="per-kind">${Object.entries(PERIODOS).map(([k, l]) => chip(k, l, famView.periodo)).join('')}</div>
       <div class="week-nav">
-        <button type="button" class="round" id="per-prev" aria-label="Anterior">‹</button>
+        <button type="button" class="round" id="per-prev" aria-label="${T('Anterior')}">‹</button>
         <strong style="text-align:center">${esc(range.label)}</strong>
-        <button type="button" class="round" id="per-next" aria-label="Siguiente">›</button>
+        <button type="button" class="round" id="per-next" aria-label="${T('Siguiente')}">›</button>
       </div>
       ${variedadCard(range)}
       <div class="intake">${members.map((m) => intakeCard(m, res[m.id], range)).join('')}</div>
-      ${sinReceta.length ? `<p class="muted small">Sin receta no se pueden contar la sal ni la proteína de: ${esc(sinReceta.slice(0, 6).join(', '))}${sinReceta.length > 6 ? '…' : ''}.</p>` : ''}
+      ${sinReceta.length ? `<p class="muted small">${T('Sin receta no se pueden contar la sal ni la proteína de: {platos}.', { platos: esc(sinReceta.slice(0, 6).join(', ')) + (sinReceta.length > 6 ? '…' : '') })}</p>` : ''}
     ` : ''}
 
-    <h2>Compartir entre móviles</h2>
+    <h2>${T('Compartir entre móviles')}</h2>
     ${Familia.card()}
   `;
 
@@ -497,22 +497,22 @@ function kcalText(m, avg, one) {
   const need = needKcal(m);
   const rec = need * COMIDA_Y_CENA;
   const resto = need - rec;
-  const pre = one ? '' : 'De media al día: ';
-  const base = `le tocan unas <strong>${fmtInt(rec)} kcal</strong> entre comida y cena, que son el 60 % de sus ${fmtInt(need)} kcal de todo el día; el resto, unas ${fmtInt(resto)}, es para desayuno y merienda.`;
-  if (avg > rec * 1.05) return `${pre}<strong>se pasa en unas ${fmtInt(avg - rec)} kcal</strong>: ${base} Con un desayuno y una merienda normales, el día acabaría en unas ${fmtInt(avg + resto)} kcal.`;
-  if (avg < rec * 0.85) return `${pre}<strong>le faltan unas ${fmtInt(rec - avg)} kcal</strong>: ${base} Puede servirse algo más o tomar un desayuno o una merienda más completos.`;
-  return `${pre}<strong>va bien</strong>: ${base}`;
+  const pre = one ? '' : T('De media al día:') + ' ';
+  const base = T('le tocan unas {rec} kcal entre comida y cena, que son el 60 % de sus {need} kcal de todo el día; el resto, unas {resto}, es para desayuno y merienda.', { rec: `<strong>${fmtInt(rec)}</strong>`, need: fmtInt(need), resto: fmtInt(resto) });
+  if (avg > rec * 1.05) return `${pre}<strong>${T('se pasa en unas {n} kcal', { n: fmtInt(avg - rec) })}</strong>: ${base} ${T('Con un desayuno y una merienda normales, el día acabaría en unas {n} kcal.', { n: fmtInt(avg + resto) })}`;
+  if (avg < rec * 0.85) return `${pre}<strong>${T('le faltan unas {n} kcal', { n: fmtInt(rec - avg) })}</strong>: ${base} ${T('Puede servirse algo más o tomar un desayuno o una merienda más completos.')}`;
+  return `${pre}<strong>${T('va bien')}</strong>: ${base}`;
 }
 
 // ---------- Variedad del menú (para toda la familia) ----------
 // Raciones a la semana entre comida y cena, según las guías de alimentación habituales
 const VARIEDAD = [
-  { id: 'pescado', icon: '🐟', nombre: 'Pescado', cats: ['pescado'], min: 3, txt: '3 o 4 a la semana' },
-  { id: 'legumbres', icon: '🫘', nombre: 'Legumbres', cats: ['legumbres'], min: 2, txt: '2 a 4 a la semana' },
-  { id: 'verdura', icon: '🥦', nombre: 'Verdura de plato', cats: ['verdura'], min: 3, txt: 'al menos 3; además de la guarnición' },
-  { id: 'blanca', icon: '🍗', nombre: 'Pollo, pavo y conejo', cats: ['ave', 'conejo'], max: 4, txt: 'hasta 3 o 4' },
-  { id: 'roja', icon: '🥩', nombre: 'Ternera, cerdo y cordero', cats: ['carne', 'cerdo', 'cordero'], max: 2, txt: 'no más de 2' },
-  { id: 'huevos', icon: '🥚', nombre: 'Huevos', cats: ['huevos'], max: 4, txt: 'hasta 3 o 4' },
+  { id: 'pescado', icon: '🐟', nombre: T('Pescado'), cats: ['pescado'], min: 3, txt: T('3 o 4 a la semana') },
+  { id: 'legumbres', icon: '🫘', nombre: T('Legumbres'), cats: ['legumbres'], min: 2, txt: T('2 a 4 a la semana') },
+  { id: 'verdura', icon: '🥦', nombre: T('Verdura de plato'), cats: ['verdura'], min: 3, txt: T('al menos 3; además de la guarnición') },
+  { id: 'blanca', icon: '🍗', nombre: T('Pollo, pavo y conejo'), cats: ['ave', 'conejo'], max: 4, txt: T('hasta 3 o 4') },
+  { id: 'roja', icon: '🥩', nombre: T('Ternera, cerdo y cordero'), cats: ['carne', 'cerdo', 'cordero'], max: 2, txt: T('no más de 2') },
+  { id: 'huevos', icon: '🥚', nombre: T('Huevos'), cats: ['huevos'], max: 4, txt: T('hasta 3 o 4') },
 ];
 
 function variedad(from, to) {
@@ -544,33 +544,33 @@ function filaSemaforo(lvl, icon, label, frase, detalle) {
 
 function variedadCard(range) {
   const { n, days } = variedad(range.from, range.to);
-  if (!days) return '<div class="card"><p class="muted small">No hay menú en estas fechas.</p></div>';
+  if (!days) return `<div class="card"><p class="muted small">${T('No hay menú en estas fechas.')}</p></div>`;
   if (range.days === 1) {
-    const hoy = VARIEDAD.filter((v) => n[v.id]).map((v) => `${v.icon} ${v.nombre.toLowerCase()}`);
-    return `<div class="card variedad"><p><strong>🍽️ En el menú de este día</strong></p><p class="small">${hoy.length ? esc(hoy.join(' · ')) : 'Platos de «otros».'}</p>
-      <p class="muted small">El equilibrio se ve mejor por semanas.</p></div>`;
+    const hoy = VARIEDAD.filter((v) => n[v.id]).map((v) => `${v.icon} ${minus(v.nombre)}`);
+    return `<div class="card variedad"><p><strong>🍽️ ${T('En el menú de este día')}</strong></p><p class="small">${hoy.length ? esc(hoy.join(' · ')) : T('Platos de «otros».')}</p>
+      <p class="muted small">${T('El equilibrio se ve mejor por semanas.')}</p></div>`;
   }
   const sem = days / 7;   // semanas con menú
   const porSem = (x) => x / sem;
-  const cuenta = (x) => (range.days > 7 ? `${fmt1(porSem(x))} a la semana` : `${x} ${x === 1 ? 'vez' : 'veces'}`);
+  const cuenta = (x) => (range.days > 7 ? T('{n} a la semana', { n: fmt1(porSem(x)) }) : x === 1 ? T('1 vez') : T('{n} veces', { n: x }));
   const rows = VARIEDAD.map((v) => {
     const x = n[v.id]; const w = porSem(x);
     let lvl; let frase;
     if (v.min) {
       lvl = w >= v.min - 0.01 ? 'ok' : w >= v.min * 0.6 ? 'casi' : 'mal';
-      frase = lvl === 'ok' ? 'bien' : lvl === 'casi' ? 'un poco escaso' : 'falta';
+      frase = lvl === 'ok' ? T('bien') : lvl === 'casi' ? T('un poco escaso') : T('falta');
     } else {
       lvl = w <= v.max + 0.01 ? 'ok' : w <= v.max + 1.01 ? 'casi' : 'mal';
-      frase = lvl === 'ok' ? 'bien' : lvl === 'casi' ? 'algo de más' : 'demasiado';
+      frase = lvl === 'ok' ? T('bien') : lvl === 'casi' ? T('algo de más') : T('demasiado');
     }
-    return filaSemaforo(lvl, v.icon, v.nombre, `${cuenta(x)} · ${frase}`, `Lo recomendado: ${v.txt}.`);
+    return filaSemaforo(lvl, v.icon, v.nombre, `${cuenta(x)} · ${frase}`, T('Lo recomendado: {txt}.', { txt: v.txt }));
   }).join('');
-  const faltan = VARIEDAD.filter((v) => v.min && porSem(n[v.id]) < v.min - 0.01).map((v) => v.nombre.toLowerCase());
-  const sobran = VARIEDAD.filter((v) => v.max && porSem(n[v.id]) > v.max + 0.01).map((v) => v.nombre.toLowerCase());
-  const consejo = !faltan.length && !sobran.length ? '¡Menú muy equilibrado! 👏'
-    : [faltan.length ? `Pon más ${faltan.join(' y ')}` : '', sobran.length ? `${faltan.length ? 'y' : 'Pon'} menos ${sobran.join(' y ')}` : ''].filter(Boolean).join(' ') + '.';
+  const faltan = VARIEDAD.filter((v) => v.min && porSem(n[v.id]) < v.min - 0.01).map((v) => minus(v.nombre));
+  const sobran = VARIEDAD.filter((v) => v.max && porSem(n[v.id]) > v.max + 0.01).map((v) => minus(v.nombre));
+  const consejo = !faltan.length && !sobran.length ? T('¡Menú muy equilibrado!') + ' 👏'
+    : [faltan.length ? T('Pon más: {cosas}.', { cosas: faltan.join(', ') }) : '', sobran.length ? T('Pon menos: {cosas}.', { cosas: sobran.join(', ') }) : ''].filter(Boolean).join(' ');
   return `<div class="card variedad">
-    <p><strong>🥗 ¿Es variado el menú?</strong> <span class="muted small">${days < range.days ? `${days} de ${range.days} días con menú` : ''}</span></p>
+    <p><strong>🥗 ${T('¿Es variado el menú?')}</strong> <span class="muted small">${days < range.days ? T('{n} de {total} días con menú', { n: days, total: range.days }) : ''}</span></p>
     <div class="sem">${rows}</div>
     <p class="small"><strong>${esc(consejo)}</strong></p>
   </div>`;
@@ -583,28 +583,28 @@ function intakeCard(m, r, range) {
   const nums = famView.nums === m.id;
   return `<div class="intake-card">
     <div class="intake-head"><span class="avatar small" aria-hidden="true">${avatarOf(m)}</span><strong>${esc(m.name)}</strong>
-      <span class="muted small">${daysWith ? `${r.comidas} ${r.comidas === 1 ? 'plato' : 'platos'} · ración ${fmtFactor(factorOf(m))}` : ''}</span></div>
+      <span class="muted small">${daysWith ? `${r.comidas === 1 ? T('1 plato') : T('{n} platos', { n: r.comidas })} · ${T('ración')} ${fmtFactor(factorOf(m))}` : ''}</span></div>
     ${daysWith ? `
       ${m.salud?.activo ? healthIntake(m, r, range, daysWith) : ''}
-      <button type="button" class="btn small" data-nums="${m.id}" aria-expanded="${nums}">${nums ? 'Ocultar los números' : '🔢 Ver números (aproximados)'}</button>
+      <button type="button" class="btn small" data-nums="${m.id}" aria-expanded="${nums}">${nums ? T('Ocultar los números') : '🔢 ' + T('Ver números (aproximados)')}</button>
       ${nums ? numerosCard(m, r, range, daysWith, one) : ''}`
-    : '<p class="muted small">No hay comidas suyas en el menú de estas fechas.</p>'}
+    : `<p class="muted small">${T('No hay comidas suyas en el menú de estas fechas.')}</p>`}
   </div>`;
 }
 
 function numerosCard(m, r, range, daysWith, one) {
   const avg = r.kcal / daysWith;
   return `<div class="numeros">
-    <p class="notice small">Son <strong>orientativos</strong>: salen de las recetas con raciones medias. Lo que de verdad se sirve en el plato puede variar bastante, y no cuentan desayunos ni meriendas.</p>
+    <p class="notice small">${T('Son orientativos: salen de las recetas con raciones medias. Lo que de verdad se sirve en el plato puede variar bastante, y no cuentan desayunos ni meriendas.')}</p>
     <div class="macros small-macros">
-      <div><strong>≈ ${fmtInt(Math.round(avg / 50) * 50)}</strong><span>kcal${one ? '' : ' al día'}</span></div>
-      <div><strong>${fmtInt(r.p / daysWith)} g</strong><span>proteínas</span></div>
-      <div><strong>${fmtInt(r.g / daysWith)} g</strong><span>grasas</span></div>
-      <div><strong>${fmtInt(r.h / daysWith)} g</strong><span>hidratos</span></div>
+      <div><strong>≈ ${fmtInt(Math.round(avg / 50) * 50)}</strong><span>${one ? 'kcal' : T('kcal al día')}</span></div>
+      <div><strong>${fmtInt(r.p / daysWith)} g</strong><span>${T('proteínas')}</span></div>
+      <div><strong>${fmtInt(r.g / daysWith)} g</strong><span>${T('grasas')}</span></div>
+      <div><strong>${fmtInt(r.h / daysWith)} g</strong><span>${T('hidratos')}</span></div>
     </div>
-    <p class="muted small" style="text-align:center">${one ? 'comida y cena de este día' : `media por día de comida y cena, en ${daysWith} ${daysWith === 1 ? 'día' : 'días'}`}</p>
+    <p class="muted small" style="text-align:center">${one ? T('comida y cena de este día') : daysWith === 1 ? T('media por día de comida y cena, en 1 día') : T('media por día de comida y cena, en {n} días', { n: daysWith })}</p>
     <p class="small">${kcalText(m, avg, one)}</p>
-    <button type="button" class="btn small" data-desglose="${m.id}" aria-expanded="${famView.open === m.id}">${famView.open === m.id ? 'Ocultar el desglose' : '📊 Ver de dónde sale'}</button>
+    <button type="button" class="btn small" data-desglose="${m.id}" aria-expanded="${famView.open === m.id}">${famView.open === m.id ? T('Ocultar el desglose') : '📊 ' + T('Ver de dónde sale')}</button>
     ${famView.open === m.id ? breakdown(m, r, range) : ''}
   </div>`;
 }
@@ -618,45 +618,45 @@ function healthIntake(m, r, range, daysWith) {
   const sat = r.sat / daysWith;
   const sem = range.days === 1 ? 1 : daysWith / 7;
   const one = range.days === 1;
-  const vez = (x) => `${fmt1(x)} ${x === 1 ? 'vez' : 'veces'}`;
-  const porSem = (x) => (one ? `${x} hoy` : range.days > 7 ? `${fmt1(x / sem)} a la semana` : vez(x));
+  const vez = (x) => (x === 1 ? T('1 vez') : T('{n} veces', { n: fmt1(x) }));
+  const porSem = (x) => (one ? T('{n} hoy', { n: x }) : range.days > 7 ? T('{n} a la semana', { n: fmt1(x / sem) }) : vez(x));
   const rows = [];
   if (s.sal) {
     const lvl = sal <= s.sal * 0.6 ? 'ok' : sal <= s.sal * 0.8 ? 'casi' : 'mal';
-    const frase = { ok: 'bien', casi: 'justito: poca sal al cocinar', mal: 'demasiada: el día se pasará de ' + s.sal + ' g' }[lvl];
-    rows.push(filaSemaforo(lvl, '🧂', 'Sal', frase, `≈ ${fmt1(sal)} g ${one ? '' : 'al día '}en comida y cena, sin la del salero. Su máximo: ${s.sal} g en todo el día.`));
+    const frase = { ok: T('bien'), casi: T('justito: poca sal al cocinar'), mal: T('demasiada: el día se pasará de {n} g', { n: s.sal }) }[lvl];
+    rows.push(filaSemaforo(lvl, '🧂', T('Sal'), frase, '≈ ' + T(one ? '{n} g en comida y cena, sin la del salero. Su máximo: {max} g en todo el día.' : '{n} g al día en comida y cena, sin la del salero. Su máximo: {max} g en todo el día.', { n: fmt1(sal), max: s.sal })));
   }
   if (s.protMax) {
     const lo = Math.max(0, (s.protMin || 0) - 20); const hi = s.protMax - 15;
     const lvl = prot > s.protMax ? 'mal' : prot > hi ? 'casi' : prot < lo * 0.8 ? 'casi' : 'ok';
-    const frase = prot > s.protMax ? 'demasiada: menos carne o pescado en el plato' : prot > hi ? 'algo alta: un poco menos de carne o pescado' : prot < lo * 0.8 ? 'algo baja' : 'bien';
-    rows.push(filaSemaforo(lvl, '🍖', 'Proteína', frase, `≈ ${fmtInt(prot)} g ${one ? '' : 'al día '}en comida y cena; con desayuno y merienda, unos ${fmtInt(prot + 15)}–${fmtInt(prot + 20)} g. Su objetivo: ${s.protMin || 0}–${s.protMax} g en todo el día.`));
+    const frase = prot > s.protMax ? T('demasiada: menos carne o pescado en el plato') : prot > hi ? T('algo alta: un poco menos de carne o pescado') : prot < lo * 0.8 ? T('algo baja') : T('bien');
+    rows.push(filaSemaforo(lvl, '🍖', T('Proteína'), frase, '≈ ' + T(one ? '{n} g en comida y cena; con desayuno y merienda, unos {a}–{b} g. Su objetivo: {min}–{max} g en todo el día.' : '{n} g al día en comida y cena; con desayuno y merienda, unos {a}–{b} g. Su objetivo: {min}–{max} g en todo el día.', { n: fmtInt(prot), a: fmtInt(prot + 15), b: fmtInt(prot + 20), min: s.protMin || 0, max: s.protMax })));
   }
   if (s.rojaMax != null) {
     const w = r.roja / sem;
     const lvl = one ? (r.roja ? 'info' : 'ok') : w <= s.rojaMax + 0.01 ? 'ok' : w <= s.rojaMax + 1.01 ? 'casi' : 'mal';
-    const frase = one ? (r.roja ? 'hoy toca: cuenta para la semana' : 'nada hoy') : { ok: 'bien', casi: 'una de más', mal: 'demasiada' }[lvl];
-    rows.push(filaSemaforo(lvl, '🥩', 'Carne roja', frase, `${porSem(r.roja)}. Su máximo: ${s.rojaMax} a la semana.`));
+    const frase = one ? (r.roja ? T('hoy toca: cuenta para la semana') : T('nada hoy')) : { ok: T('bien'), casi: T('una de más'), mal: T('demasiada') }[lvl];
+    rows.push(filaSemaforo(lvl, '🥩', T('Carne roja'), frase, `${porSem(r.roja)}. ${T('Su máximo: {n} a la semana.', { n: s.rojaMax })}`));
   }
   if (s.procesados) {
     const w = r.procesados / sem;
     const lvl = one ? (r.procesados ? 'casi' : 'ok') : w <= 1.01 ? 'ok' : w <= 3.01 ? 'casi' : 'mal';
-    rows.push(filaSemaforo(lvl, '🏭', 'Ultraprocesados', { ok: 'bien', casi: 'mejor caseros', mal: 'demasiados' }[lvl], `Platos con embutido, salchichas o similares: ${porSem(r.procesados)}.`));
+    rows.push(filaSemaforo(lvl, '🏭', T('Ultraprocesados'), { ok: T('bien'), casi: T('mejor caseros'), mal: T('demasiados') }[lvl], T('Platos con embutido, salchichas o similares: {n}.', { n: porSem(r.procesados) })));
   }
   if (s.urico) {
     const w = r.purinas / sem;
     const lvl = one ? (r.purinas ? 'info' : 'ok') : w <= 2.01 ? 'ok' : w <= 4.01 ? 'casi' : 'mal';
-    rows.push(filaSemaforo(lvl, '🦐', 'Purinas', { ok: 'bien', casi: 'con moderación', mal: 'demasiadas', info: 'hoy hay alguno' }[lvl], `Platos con purinas altas (marisco, vísceras, sardinas…): ${porSem(r.purinas)}.`));
+    rows.push(filaSemaforo(lvl, '🦐', T('Purinas'), { ok: T('bien'), casi: T('con moderación'), mal: T('demasiadas'), info: T('hoy hay alguno') }[lvl], T('Platos con purinas altas (marisco, vísceras, sardinas…): {n}.', { n: porSem(r.purinas) })));
   }
   if (s.satBaja) {
     const lvl = sat <= 13 ? 'ok' : sat <= 18 ? 'casi' : 'mal';
-    rows.push(filaSemaforo(lvl, '🧈', 'Grasa saturada', { ok: 'bien', casi: 'algo alta', mal: 'alta' }[lvl], `≈ ${fmt1(sat)} g ${one ? '' : 'al día '}en comida y cena, sin contar el aceite de oliva.`));
+    rows.push(filaSemaforo(lvl, '🧈', T('Grasa saturada'), { ok: T('bien'), casi: T('algo alta'), mal: T('alta') }[lvl], '≈ ' + T(one ? '{n} g en comida y cena, sin contar el aceite de oliva.' : '{n} g al día en comida y cena, sin contar el aceite de oliva.', { n: fmt1(sat) })));
   }
   const malos = (rows.join('').match(/sem-mal/g) || []).length;
   const casi = (rows.join('').match(/sem-casi/g) || []).length;
-  const resumen = malos ? `Hay ${malos} ${malos === 1 ? 'cosa' : 'cosas'} que cambiar` : casi ? 'Casi todo bien' : 'Todo bien 👏';
+  const resumen = malos ? (malos === 1 ? T('Hay 1 cosa que cambiar') : T('Hay {n} cosas que cambiar', { n: malos })) : casi ? T('Casi todo bien') : T('Todo bien') + ' 👏';
   return `<div class="health-intake">
-    <p class="small"><strong>🩺 ${esc(s.nombre || 'Su plan')}: ${resumen}</strong></p>
+    <p class="small"><strong>🩺 ${esc(s.nombre || T('Su plan'))}: ${resumen}</strong></p>
     <div class="sem">${rows.join('')}</div>
   </div>`;
 }
@@ -669,50 +669,50 @@ function openMember(id) {
   // Cada botón guarda primero lo escrito en los campos (keep) y luego cambia lo suyo y redibuja
   const draw = () => {
     openSheet(`
-      <div class="sheet-head"><h3>${old ? esc(old.name) : 'Nueva persona'}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <label class="field">Nombre<input type="text" id="mb-name" value="${esc(m.name || '')}" placeholder="Ej.: Ana" autocomplete="off"></label>
-      <div class="chips" id="mb-sexo">${chip('h', 'Hombre / niño', m.sexo)}${chip('m', 'Mujer / niña', m.sexo)}</div>
+      <div class="sheet-head"><h3>${old ? esc(old.name) : T('Nueva persona')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <label class="field">${T('Nombre')}<input type="text" id="mb-name" value="${esc(m.name || '')}" placeholder="${T('Ej.: Ana')}" autocomplete="off"></label>
+      <div class="chips" id="mb-sexo">${chip('h', T('Hombre / niño'), m.sexo)}${chip('m', T('Mujer / niña'), m.sexo)}</div>
       <div class="row">
-        <label class="field grow">Edad<input type="number" id="mb-edad" value="${m.edad || ''}" min="0" max="110" inputmode="numeric" placeholder="años"></label>
-        <label class="field grow">Peso<input type="number" id="mb-peso" value="${m.peso || ''}" min="2" max="250" inputmode="decimal" placeholder="kg"></label>
-        <label class="field grow">Altura<input type="number" id="mb-alt" value="${m.altura || ''}" min="40" max="230" inputmode="numeric" placeholder="cm"></label>
+        <label class="field grow">${T('Edad')}<input type="number" id="mb-edad" value="${m.edad || ''}" min="0" max="110" inputmode="numeric" placeholder="${T('años')}"></label>
+        <label class="field grow">${T('Peso')}<input type="number" id="mb-peso" value="${m.peso || ''}" min="2" max="250" inputmode="decimal" placeholder="kg"></label>
+        <label class="field grow">${T('Altura')}<input type="number" id="mb-alt" value="${m.altura || ''}" min="40" max="230" inputmode="numeric" placeholder="cm"></label>
       </div>
-      <label class="field">Actividad física</label>
+      <label class="field">${T('Actividad física')}</label>
       <div class="chips" id="mb-act">${Object.entries(ACTIVIDAD).map(([k, a]) => chip(k, a.label, m.actividad || 'media')).join('')}</div>
       <p class="muted small">${esc((ACTIVIDAD[m.actividad] || ACTIVIDAD.media).help)}.</p>
-      <label class="field">Calorías al día<input type="number" id="mb-kcal" value="${m.kcal || ''}" min="500" max="6000" step="50" inputmode="numeric" placeholder="Calculadas: ${fmtInt(calcKcal(m))}"></label>
-      <p class="muted small">Déjalo vacío para calcularlas con la edad, el peso, la altura y la actividad. Escribe un número si su médico o nutricionista le ha marcado unas calorías.</p>
+      <label class="field">${T('Calorías al día')}<input type="number" id="mb-kcal" value="${m.kcal || ''}" min="500" max="6000" step="50" inputmode="numeric" placeholder="${T('Calculadas: {n}', { n: fmtInt(calcKcal(m)) })}"></label>
+      <p class="muted small">${T('Déjalo vacío para calcularlas con la edad, el peso, la altura y la actividad. Escribe un número si su médico o nutricionista le ha marcado unas calorías.')}</p>
       <div class="notice" id="mb-sum">${summary()}</div>
-      <label class="field">Ración</label>
-      <div class="chips" id="mb-rac">${[['auto', `Automática (${autoFactor()})`], ['0.5', '½'], ['0.75', '¾'], ['1', '1'], ['1.25', '1¼'], ['1.5', '1½'], ['2', '2']].map(([v, l]) => chip(v, l, String(m.racion || 'auto'))).join('')}</div>
-      <label class="field">Dibujo</label>
-      <div class="chips" id="mb-av">${chip('', 'Automático', m.avatar || '')}${['👨', '👩', '👦', '👧', '🧒', '👶', '👴', '👵', '🧑'].map((a) => chip(a, a, m.avatar || '')).join('')}</div>
-      <label class="field">🩺 Salud</label>
-      <div class="chips"><button type="button" class="chip" id="mb-salud" aria-pressed="${!!m.salud?.activo}">Tiene indicaciones de su médico</button></div>
+      <label class="field">${T('Ración')}</label>
+      <div class="chips" id="mb-rac">${[['auto', T('Automática ({n})', { n: autoFactor() })], ['0.5', '½'], ['0.75', '¾'], ['1', '1'], ['1.25', '1¼'], ['1.5', '1½'], ['2', '2']].map(([v, l]) => chip(v, l, String(m.racion || 'auto'))).join('')}</div>
+      <label class="field">${T('Dibujo')}</label>
+      <div class="chips" id="mb-av">${chip('', T('Automático'), m.avatar || '')}${['👨', '👩', '👦', '👧', '🧒', '👶', '👴', '👵', '🧑'].map((a) => chip(a, a, m.avatar || '')).join('')}</div>
+      <label class="field">🩺 ${T('Salud')}</label>
+      <div class="chips"><button type="button" class="chip" id="mb-salud" aria-pressed="${!!m.salud?.activo}">${T('Tiene indicaciones de su médico')}</button></div>
       ${m.salud?.activo ? `
-        <button type="button" class="btn small" id="mb-renal">Rellenar con el plan de poliquistosis renal</button>
-        <label class="field">Enfermedad o plan<input type="text" id="sl-nombre" value="${esc(m.salud.nombre || '')}" placeholder="Ej.: Poliquistosis renal"></label>
+        <button type="button" class="btn small" id="mb-renal">${T('Rellenar con el plan de poliquistosis renal')}</button>
+        <label class="field">${T('Enfermedad o plan')}<input type="text" id="sl-nombre" value="${esc(m.salud.nombre || '')}" placeholder="${T('Ej.: Poliquistosis renal')}"></label>
         <div class="row">
-          <label class="field grow">Sal máx. (g/día)<input type="number" id="sl-sal" value="${m.salud.sal ?? ''}" min="0" max="15" step="0.5" inputmode="decimal"></label>
-          <label class="field grow">Agua (l/día)<input type="number" id="sl-agua" value="${m.salud.agua ?? ''}" min="0" max="6" step="0.5" inputmode="decimal"></label>
+          <label class="field grow">${T('Sal máx. (g/día)')}<input type="number" id="sl-sal" value="${m.salud.sal ?? ''}" min="0" max="15" step="0.5" inputmode="decimal"></label>
+          <label class="field grow">${T('Agua (l/día)')}<input type="number" id="sl-agua" value="${m.salud.agua ?? ''}" min="0" max="6" step="0.5" inputmode="decimal"></label>
         </div>
         <div class="row">
-          <label class="field grow">Proteína mín. (g/día)<input type="number" id="sl-pmin" value="${m.salud.protMin ?? ''}" min="0" max="250" inputmode="numeric"></label>
-          <label class="field grow">Proteína máx. (g/día)<input type="number" id="sl-pmax" value="${m.salud.protMax ?? ''}" min="0" max="250" inputmode="numeric"></label>
+          <label class="field grow">${T('Proteína mín. (g/día)')}<input type="number" id="sl-pmin" value="${m.salud.protMin ?? ''}" min="0" max="250" inputmode="numeric"></label>
+          <label class="field grow">${T('Proteína máx. (g/día)')}<input type="number" id="sl-pmax" value="${m.salud.protMax ?? ''}" min="0" max="250" inputmode="numeric"></label>
         </div>
-        <label class="field">Carne roja, máximo de veces a la semana<input type="number" id="sl-roja" value="${m.salud.rojaMax ?? ''}" min="0" max="14" inputmode="numeric" placeholder="Sin límite"></label>
+        <label class="field">${T('Carne roja, máximo de veces a la semana')}<input type="number" id="sl-roja" value="${m.salud.rojaMax ?? ''}" min="0" max="14" inputmode="numeric" placeholder="${T('Sin límite')}"></label>
         <div class="chips" id="sl-flags">
-          <button type="button" class="chip" data-flag="satBaja" aria-pressed="${!!m.salud.satBaja}">🧈 Poca grasa saturada (colesterol)</button>
-          <button type="button" class="chip" data-flag="urico" aria-pressed="${!!m.salud.urico}">🦐 Pocas purinas (ácido úrico)</button>
-          <button type="button" class="chip" data-flag="procesados" aria-pressed="${!!m.salud.procesados}">🏭 Pocos ultraprocesados</button>
-          <button type="button" class="chip" data-flag="ieca" aria-pressed="${!!m.salud.ieca}">💊 Toma IECA o ARA-II</button>
+          <button type="button" class="chip" data-flag="satBaja" aria-pressed="${!!m.salud.satBaja}">🧈 ${T('Poca grasa saturada (colesterol)')}</button>
+          <button type="button" class="chip" data-flag="urico" aria-pressed="${!!m.salud.urico}">🦐 ${T('Pocas purinas (ácido úrico)')}</button>
+          <button type="button" class="chip" data-flag="procesados" aria-pressed="${!!m.salud.procesados}">🏭 ${T('Pocos ultraprocesados')}</button>
+          <button type="button" class="chip" data-flag="ieca" aria-pressed="${!!m.salud.ieca}">💊 ${T('Toma IECA o ARA-II')}</button>
         </div>
-        ${m.salud.ieca ? '<p class="small danger-text">⛔ Con IECA o ARA-II, nunca sal de régimen ni sustitutos de sal: son cloruro potásico. La app avisará si aparecen.</p>' : ''}
-        <label class="field">Notas<input type="text" id="sl-nota" value="${esc(m.salud.nota || '')}" placeholder="Ej.: medicación, revisiones…"></label>
-        <p class="muted small">Estos límites son los de su médico. La app solo los usa para avisar y para ayudar a planificar.</p>` : ''}
+        ${m.salud.ieca ? `<p class="small danger-text">⛔ ${T('Con IECA o ARA-II, nunca sal de régimen ni sustitutos de sal: son cloruro potásico. La app avisará si aparecen.')}</p>` : ''}
+        <label class="field">${T('Notas')}<input type="text" id="sl-nota" value="${esc(m.salud.nota || '')}" placeholder="${T('Ej.: medicación, revisiones…')}"></label>
+        <p class="muted small">${T('Estos límites son los de su médico. La app solo los usa para avisar y para ayudar a planificar.')}</p>` : ''}
       <div class="row">
-        <button type="button" class="btn primary grow" id="mb-ok">Guardar</button>
-        ${old ? '<button type="button" class="btn danger" id="mb-del">Quitar</button>' : ''}
+        <button type="button" class="btn primary grow" id="mb-ok">${T('Guardar')}</button>
+        ${old ? `<button type="button" class="btn danger" id="mb-del">${T('Quitar')}</button>` : ''}
       </div>
     `);
     const sheet = $('#sheet');
@@ -721,26 +721,26 @@ function openMember(id) {
     sheet.querySelectorAll('#mb-rac .chip').forEach((b) => b.onclick = () => { keep(); m.racion = b.dataset.v === 'auto' ? 'auto' : +b.dataset.v; draw(); });
     sheet.querySelectorAll('#mb-av .chip').forEach((b) => b.onclick = () => { keep(); if (b.dataset.v) m.avatar = b.dataset.v; else delete m.avatar; draw(); });
     $('#mb-salud').onclick = () => { keep(); if (m.salud?.activo) m.salud = { ...m.salud, activo: false }; else m.salud = { ...(m.salud || {}), activo: true }; draw(); };
-    $('#mb-renal')?.addEventListener('click', () => { keep(); m.salud = { ...PLAN_RENAL, nota: m.salud?.nota || '' }; draw(); toast('Plan de poliquistosis renal puesto. Revisa que coincide con lo de su médico.'); });
+    $('#mb-renal')?.addEventListener('click', () => { keep(); m.salud = { ...PLAN_RENAL, nota: m.salud?.nota || '' }; draw(); toast(T('Plan de poliquistosis renal puesto. Revisa que coincide con lo de su médico.')); });
     sheet.querySelectorAll('#sl-flags .chip').forEach((b) => b.onclick = () => { keep(); m.salud[b.dataset.flag] = !m.salud[b.dataset.flag]; draw(); });
     // Al escribir no se redibuja la hoja (se perdería el siguiente toque): solo se actualiza el cálculo
     ['#mb-edad', '#mb-peso', '#mb-alt', '#mb-kcal'].forEach((s) => { $(s).oninput = () => {
       keep();
       $('#mb-sum').innerHTML = summary();
       const auto = $('#mb-rac .chip[data-v="auto"]');
-      if (auto) auto.textContent = `Automática (${autoFactor()})`;
+      if (auto) auto.textContent = T('Automática ({n})', { n: autoFactor() });
     }; });
     $('#mb-ok').onclick = () => {
       keep();
-      if (!m.name) { toast('Ponle un nombre'); return; }
+      if (!m.name) { toast(T('Ponle un nombre')); return; }
       state.members ||= [];
       const i = state.members.findIndex((x) => x.id === m.id);
       if (i >= 0) state.members[i] = m; else state.members.push(m);
       save(); closeSheet(); render();
-      toast(old ? 'Guardado' : `${m.name} añadido a la familia`);
+      toast(old ? T('Guardado') : T('{nombre} añadido a la familia', { nombre: m.name }));
     };
     $('#mb-del')?.addEventListener('click', () => {
-      if (!confirm(`¿Quitar a ${old.name}? Los menús ya hechos se quedan como están.`)) return;
+      if (!confirm(T('¿Quitar a {nombre}? Los menús ya hechos se quedan como están.', { nombre: old.name }))) return;
       state.members = state.members.filter((x) => x.id !== m.id);
       save(); closeSheet(); render();
     });
@@ -748,8 +748,8 @@ function openMember(id) {
   function autoFactor() { return fmtFactor(Math.min(1.8, Math.max(0.35, Math.round((needKcal(m) / RACION_BASE) * 20) / 20))); }
   function summary() {
     const f = factorOf(m);
-    const cmp = Math.abs(f - 1) < 0.05 ? 'lo mismo' : f > 1 ? 'algo más' : 'algo menos';
-    return `<p>Necesita unas <strong>${fmtInt(needKcal(m))} kcal al día</strong>${+m.kcal > 0 ? ' (puestas a mano)' : ''}. Come <strong>${fmtFactor(f)}</strong> ración${m.racion && m.racion !== 'auto' ? ' (puesta a mano)' : ''}: ${cmp} que la ración estándar de las recetas.</p>`;
+    const cmp = Math.abs(f - 1) < 0.05 ? T('lo mismo que la ración estándar de las recetas') : f > 1 ? T('algo más que la ración estándar de las recetas') : T('algo menos que la ración estándar de las recetas');
+    return `<p>${T('Necesita unas {n} kcal al día', { n: `<strong>${fmtInt(needKcal(m))}</strong>` })}${+m.kcal > 0 ? ' ' + T('(puestas a mano)') : ''}. ${T('Come {f} ración', { f: `<strong>${fmtFactor(f)}</strong>` })}${m.racion && m.racion !== 'auto' ? ' ' + T('(puesta a mano)') : ''}: ${cmp}.</p>`;
   }
   // Guarda lo escrito en los campos antes de redibujar
   function keep() {
@@ -758,7 +758,7 @@ function openMember(id) {
     const num = (s, key) => { const x = parseFloat(String(v(s) || '').replace(',', '.')); if (x > 0) m[key] = x; else delete m[key]; };
     if ($('#mb-edad')) { num('#mb-edad', 'edad'); num('#mb-peso', 'peso'); num('#mb-alt', 'altura'); num('#mb-kcal', 'kcal'); }
     const kc = $('#mb-kcal');
-    if (kc) kc.placeholder = `Calculadas: ${fmtInt(calcKcal(m))}`;
+    if (kc) kc.placeholder = T('Calculadas: {n}', { n: fmtInt(calcKcal(m)) });
     if ($('#sl-sal') && m.salud) {
       const n = (s) => { const x = parseFloat(String(v(s) || '').replace(',', '.')); return Number.isFinite(x) && x >= 0 ? x : null; };
       const set = (key, val) => { if (val == null) delete m.salud[key]; else m.salud[key] = val; };

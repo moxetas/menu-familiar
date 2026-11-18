@@ -673,7 +673,7 @@ function fmtNum(n) {
 }
 
 function fmtQty(r, factor) {
-  if (r.qty == null) return 'al gusto';
+  if (r.qty == null) return T('al gusto');
   const q = r.qty * factor;
   const weight = ['g', 'ml', 'kg', 'l', 'cl'].includes(r.unit);
   let n = weight ? roundNice(q) : Math.max(0.25, Math.round(q * 4) / 4);
@@ -771,20 +771,20 @@ function openRecipe(name, opts = {}) {
   const dish = state.dishes.find((d) => norm(d.name) === norm(name));
   const recipe = recipeFor(name);
   const cat = dish?.cat || opts.dish?.cat || CATALOGO.find((c) => norm(c[0]) === norm(name))?.[1] || 'otros';
-  const back = opts.back ? '<button type="button" class="close" id="rc-back" aria-label="Volver">‹</button>' : '';
-  const head = `<div class="sheet-head">${back}<h3>${esc(dish?.name || name)}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>`;
+  const back = opts.back ? `<button type="button" class="close" id="rc-back" aria-label="${T('Volver')}">‹</button>` : '';
+  const head = `<div class="sheet-head">${back}<h3>${esc(dish?.name || name)}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>`;
   const bindBack = () => $('#rc-back')?.addEventListener('click', opts.back);
 
   if (!recipe) {
     const base = similarRecipe(name);
     openSheet(`${head}
       <div class="notice">
-        <p><strong>Este plato todavía no tiene receta.</strong></p>
-        <p class="small">Escríbela una vez, con las cantidades para 4 personas, y la app calculará las calorías y ajustará las cantidades a quien coma.</p>
-        ${dish && base ? `<button type="button" class="btn primary" id="rc-base">📋 Empezar con la de «${esc(base)}»</button>` : ''}
-        ${dish ? `<button type="button" class="btn ${base ? '' : 'primary'}" id="rc-write">✍️ Escribirla desde cero</button>` : ''}
+        <p><strong>${T('Este plato todavía no tiene receta.')}</strong></p>
+        <p class="small">${T('Escríbela una vez, con las cantidades para 4 personas, y la app calculará las calorías y ajustará las cantidades a quien coma.')}</p>
+        ${dish && base ? `<button type="button" class="btn primary" id="rc-base">📋 ${T('Empezar con la de «{nombre}»', { nombre: esc(base) })}</button>` : ''}
+        ${dish ? `<button type="button" class="btn ${base ? '' : 'primary'}" id="rc-write">✍️ ${T('Escribirla desde cero')}</button>` : ''}
       </div>
-      ${dish ? '<button type="button" class="btn" id="rc-dish">Editar el plato</button>' : ''}
+      ${dish ? `<button type="button" class="btn" id="rc-dish">${T('Editar el plato')}</button>` : ''}
     `);
     bindBack();
     $('#rc-base')?.addEventListener('click', () => openRecipeEditor(dish.id, base));
@@ -806,47 +806,47 @@ function openRecipe(name, opts = {}) {
     const t = perRacion(name);
     const lvl = notes.some((n) => n.lvl === 'stop') ? 'stop' : notes.some((n) => n.lvl === 'warn') ? 'warn' : 'ok';
     return `<div class="health-box ${lvl}">
-      <p><strong>🩺 Para ${esc(m.name)}</strong> <span class="muted small">(su ración ${fmtFactor(f)})</span></p>
-      <p class="small">🧂 ${fmt1(t.sal * f)} g de sal · 🍖 ${fmtInt(t.p * f)} g de proteína · 🧈 ${fmt1(t.sat * f)} g de grasa saturada (sin el aceite de oliva)</p>
-      ${notes.length ? `<ul class="health-notes">${notes.map((n) => `<li>${n.icon} ${esc(n.text)}</li>`).join('')}</ul>` : '<p class="small">✅ Sin avisos para su plan.</p>'}
+      <p><strong>🩺 ${T('Para {nombre}', { nombre: esc(m.name) })}</strong> <span class="muted small">(${T('su ración {f}', { f: fmtFactor(f) })})</span></p>
+      <p class="small">🧂 ${T('{n} g de sal', { n: fmt1(t.sal * f) })} · 🍖 ${T('{n} g de proteína', { n: fmtInt(t.p * f) })} · 🧈 ${T('{n} g de grasa saturada (sin el aceite de oliva)', { n: fmt1(t.sat * f) })}</p>
+      ${notes.length ? `<ul class="health-notes">${notes.map((n) => `<li>${n.icon} ${esc(n.text)}</li>`).join('')}</ul>` : `<p class="small">✅ ${T('Sin avisos para su plan.')}</p>`}
     </div>`;
   }).join('');
   openSheet(`${head}
     <div class="recipe-meta c-${cat}">
       <span class="dot"></span>${esc(CAT[cat]?.nombre || '')}
       ${recipe.tiempo ? `<span>⏱ ${esc(recipe.tiempo)}</span>` : ''}
-      <span>🔥 ${Math.round(porRacion)} kcal por ración</span>
+      <span>🔥 ${T('{n} kcal por ración', { n: Math.round(porRacion) })}</span>
     </div>
-    <p class="muted small">Receta base para ${recipe.personas || 4} personas. ${members.length ? 'Elige quién come y las cantidades se ajustan a la ración de cada uno.' : 'Cambia el número de personas y se ajustan las cantidades.'}</p>
+    <p class="muted small">${T('Receta base para {n} personas.', { n: recipe.personas || 4 })} ${members.length ? T('Elige quién come y las cantidades se ajustan a la ración de cada uno.') : T('Cambia el número de personas y se ajustan las cantidades.')}</p>
     ${whoPicker(who, 'rw')}
-    ${members.length ? `<div class="per-person">${people.map(({ m, f }) => `<span>${avatarOf(m)} ${esc(m.name)} <strong>${fmtInt(porRacion * f)} kcal</strong> <span class="muted">(${fmtFactor(f)})</span></span>`).join('')}${extra ? `<span>🙂 ${extra} ${extra === 1 ? 'invitado' : 'invitados'} <strong>${fmtInt(porRacion)} kcal</strong> <span class="muted">cada uno</span></span>` : ''}</div>` : ''}
+    ${members.length ? `<div class="per-person">${people.map(({ m, f }) => `<span>${avatarOf(m)} ${esc(m.name)} <strong>${fmtInt(porRacion * f)} kcal</strong> <span class="muted">(${fmtFactor(f)})</span></span>`).join('')}${extra ? `<span>🙂 ${extra === 1 ? T('1 invitado') : T('{n} invitados', { n: extra })} <strong>${fmtInt(porRacion)} kcal</strong> <span class="muted">${T('cada uno')}</span></span>` : ''}</div>` : ''}
     ${saludBox}
-    ${sinSal ? '<div class="notice"><p class="small">🧂 <strong>Cocinar sin sal añadida.</strong> Sazona con hierbas, ajo, limón, pimienta, pimentón u otras especias. La sal que se cuenta es la que ya traen los ingredientes. Y nunca sal de régimen.</p></div>' : ''}
+    ${sinSal ? `<div class="notice"><p class="small">🧂 <strong>${T('Cocinar sin sal añadida.')}</strong> ${T('Sazona con hierbas, ajo, limón, pimienta, pimentón u otras especias. La sal que se cuenta es la que ya traen los ingredientes. Y nunca sal de régimen.')}</p></div>` : ''}
     ${raciones > 0 ? `
     <table class="ing-table">
-      <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>kcal</th></tr></thead>
+      <thead><tr><th>${T('Ingrediente')}</th><th>${T('Cantidad')}</th><th>kcal</th></tr></thead>
       <tbody>${nut.rows.map((r) => `<tr>
         <td>${r.food?.flags.includes('k') ? '⛔ ' : ''}${esc(cleanName(r.name))}</td>
-        <td>${esc(sinSal && r.qty == null && r.food?.key === 'sal' ? 'sin sal añadida' : r.qtyText)}</td>
+        <td>${esc(sinSal && r.qty == null && r.food?.key === 'sal' ? T('sin sal añadida') : r.qtyText)}</td>
         <td>${r.qty == null ? '' : !r.eaten ? '—' : r.kcal == null ? '?' : Math.round(r.kcal)}</td>
       </tr>`).join('')}</tbody>
       <tfoot>
-        <tr><td>Total</td><td>${fmtNum(raciones)} raciones</td><td>${Math.round(nut.total)}</td></tr>
-        <tr><td>Por ración</td><td></td><td>${Math.round(porRacion)}</td></tr>
+        <tr><td>${T('Total')}</td><td>${T('{n} raciones', { n: fmtNum(raciones) })}</td><td>${Math.round(nut.total)}</td></tr>
+        <tr><td>${T('Por ración')}</td><td></td><td>${Math.round(porRacion)}</td></tr>
       </tfoot>
     </table>
     <div class="macros">
-      <div><strong>${Math.round(nut.p / raciones)} g</strong><span>proteínas</span></div>
-      <div><strong>${Math.round(nut.g / raciones)} g</strong><span>grasas</span></div>
-      <div><strong>${Math.round(nut.h / raciones)} g</strong><span>hidratos</span></div>
+      <div><strong>${Math.round(nut.p / raciones)} g</strong><span>${T('proteínas')}</span></div>
+      <div><strong>${Math.round(nut.g / raciones)} g</strong><span>${T('grasas')}</span></div>
+      <div><strong>${Math.round(nut.h / raciones)} g</strong><span>${T('hidratos')}</span></div>
     </div>
-    <p class="muted small">Por ración estándar. Calorías aproximadas, calculadas con los ingredientes tal como se compran.${nut.unknown.length ? ` No sé las calorías de: ${esc(nut.unknown.join(', '))}.` : ''}</p>` : '<p class="muted">No come nadie: elige a alguien.</p>'}
-    <h4 class="steps-title">Preparación</h4>
+    <p class="muted small">${T('Por ración estándar. Calorías aproximadas, calculadas con los ingredientes tal como se compran.')}${nut.unknown.length ? ' ' + T('No sé las calorías de: {cosas}.', { cosas: esc(nut.unknown.join(', ')) }) : ''}</p>` : `<p class="muted">${T('No come nadie: elige a alguien.')}</p>`}
+    <h4 class="steps-title">${T('Preparación')}</h4>
     <ol class="steps">${recipe.pasos.filter(Boolean).map((p) => `<li>${esc(p)}</li>`).join('')}</ol>
-    ${recipe.mine ? '<p class="muted small">Esta es vuestra receta.</p>' : ''}
+    ${recipe.mine ? `<p class="muted small">${T('Esta es vuestra receta.')}</p>` : ''}
     <div class="row">
-      ${dish ? `<button type="button" class="btn grow" id="rc-edit">✏️ ${recipe.mine ? 'Cambiar la receta' : 'Hacerla a nuestra manera'}</button>` : ''}
-      ${dish ? '<button type="button" class="btn grow" id="rc-dish">Editar el plato</button>' : ''}
+      ${dish ? `<button type="button" class="btn grow" id="rc-edit">✏️ ${recipe.mine ? T('Cambiar la receta') : T('Hacerla a nuestra manera')}</button>` : ''}
+      ${dish ? `<button type="button" class="btn grow" id="rc-dish">${T('Editar el plato')}</button>` : ''}
     </div>
   `);
   bindBack();
@@ -862,27 +862,27 @@ function openRecipeEditor(id, baseName, blank) {
   const base = dish.recipe || (blank ? empty : catalogRecipe(baseName || dish.name)) || empty;
   const original = catalogRecipe(dish.name);
   openSheet(`
-    <div class="sheet-head"><h3>Receta: ${esc(dish.name)}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+    <div class="sheet-head"><h3>${T('Receta: {nombre}', { nombre: esc(dish.name) })}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
     <div class="row">
-      <label class="field grow">Personas<input type="number" id="re-pers" min="1" max="20" value="${base.personas || 4}" inputmode="numeric"></label>
-      <label class="field grow">Tiempo<input type="text" id="re-time" value="${esc(base.tiempo || '')}" placeholder="Ej.: 45 min"></label>
+      <label class="field grow">${T('Personas')}<input type="number" id="re-pers" min="1" max="20" value="${base.personas || 4}" inputmode="numeric"></label>
+      <label class="field grow">${T('Tiempo')}<input type="text" id="re-time" value="${esc(base.tiempo || '')}" placeholder="${T('Ej.: 45 min')}"></label>
     </div>
-    <label class="field">Ingredientes, uno por línea, con su cantidad
+    <label class="field">${T('Ingredientes, uno por línea, con su cantidad')}
       <textarea id="re-ing" placeholder="400 g lentejas&#10;2 zanahorias&#10;1 cebolla&#10;3 dientes ajo&#10;2 cdas aceite de oliva&#10;sal">${esc(base.ing.join('\n'))}</textarea>
     </label>
-    <p class="muted small">Así entiende las cantidades: «400 g», «1 l», «2 cdas», «1 cdta», «3 dientes», «2 cebollas», «1 lata», «sal» (sin cantidad = al gusto).</p>
-    <label class="field">Preparación, un paso por línea
-      <textarea id="re-steps" placeholder="Pocha la cebolla…&#10;Añade las lentejas…">${esc(base.pasos.join('\n'))}</textarea>
+    <p class="muted small">${T('Así entiende las cantidades: «400 g», «1 l», «2 cdas», «1 cdta», «3 dientes», «2 cebollas», «1 lata», «sal» (sin cantidad = al gusto).')}</p>
+    <label class="field">${T('Preparación, un paso por línea')}
+      <textarea id="re-steps" placeholder="${esc(T('Pocha la cebolla…\nAñade las lentejas…')).replace(/\n/g, '&#10;')}">${esc(base.pasos.join('\n'))}</textarea>
     </label>
     <div class="row">
-      <button type="button" class="btn primary grow" id="re-ok">Guardar receta</button>
-      ${dish.recipe ? `<button type="button" class="btn danger" id="re-del">${original ? 'Volver a la original' : 'Borrar receta'}</button>` : ''}
+      <button type="button" class="btn primary grow" id="re-ok">${T('Guardar receta')}</button>
+      ${dish.recipe ? `<button type="button" class="btn danger" id="re-del">${original ? T('Volver a la original') : T('Borrar receta')}</button>` : ''}
     </div>
   `);
   const lines = (t) => t.split('\n').map((l) => l.replace(/^\s*(\d+[.)-]|[-•*·])\s*/, '').trim()).filter(Boolean);
   $('#re-ok').onclick = () => {
     const ing = lines($('#re-ing').value);
-    if (!ing.length) { toast('Escribe al menos un ingrediente'); return; }
+    if (!ing.length) { toast(T('Escribe al menos un ingrediente')); return; }
     dish.recipe = {
       personas: Math.min(20, Math.max(1, parseInt($('#re-pers').value, 10) || 4)),
       tiempo: $('#re-time').value.trim(),
@@ -892,10 +892,10 @@ function openRecipeEditor(id, baseName, blank) {
     save();
     render();
     openRecipe(dish.name);
-    toast('Receta guardada');
+    toast(T('Receta guardada'));
   };
   $('#re-del')?.addEventListener('click', () => {
-    if (!confirm(original ? '¿Volver a la receta original?' : '¿Borrar la receta?')) return;
+    if (!confirm(original ? T('¿Volver a la receta original?') : T('¿Borrar la receta?'))) return;
     delete dish.recipe;
     save();
     render();

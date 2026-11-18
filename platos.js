@@ -3,17 +3,17 @@
 // El tercer dato dice cuándo encaja: 'comida', 'cena' o '' (cualquiera de las dos).
 
 const CATEGORIAS = [
-  { id: 'pescado',   nombre: 'Pescado',        emoji: '🐟' },
-  { id: 'carne',     nombre: 'Ternera',        emoji: '🐄' },
-  { id: 'cerdo',     nombre: 'Cerdo',          emoji: '🐖' },
-  { id: 'cordero',   nombre: 'Cordero',        emoji: '🐑' },
-  { id: 'conejo',    nombre: 'Conejo',         emoji: '🐇' },
-  { id: 'ave',       nombre: 'Pollo y pavo',   emoji: '🍗' },
-  { id: 'verdura',   nombre: 'Verdura',        emoji: '🥦' },
-  { id: 'legumbres', nombre: 'Legumbres',      emoji: '🫘' },
-  { id: 'pasta',     nombre: 'Pasta y arroz',  emoji: '🍝' },
-  { id: 'huevos',    nombre: 'Huevos',         emoji: '🥚' },
-  { id: 'otros',     nombre: 'Otros',          emoji: '🍽️' },
+  { id: 'pescado',   nombre: T('Pescado'),        emoji: '🐟' },
+  { id: 'carne',     nombre: T('Ternera'),        emoji: '🐄' },
+  { id: 'cerdo',     nombre: T('Cerdo'),          emoji: '🐖' },
+  { id: 'cordero',   nombre: T('Cordero'),        emoji: '🐑' },
+  { id: 'conejo',    nombre: T('Conejo'),         emoji: '🐇' },
+  { id: 'ave',       nombre: T('Pollo y pavo'),   emoji: '🍗' },
+  { id: 'verdura',   nombre: T('Verdura'),        emoji: '🥦' },
+  { id: 'legumbres', nombre: T('Legumbres'),      emoji: '🫘' },
+  { id: 'pasta',     nombre: T('Pasta y arroz'),  emoji: '🍝' },
+  { id: 'huevos',    nombre: T('Huevos'),         emoji: '🥚' },
+  { id: 'otros',     nombre: T('Otros'),          emoji: '🍽️' },
 ];
 
 // Cuántas veces a la semana conviene cada tipo, contando comida y cena (14 platos).
@@ -159,15 +159,15 @@ const CATALOGO = [
 
 // Secciones del súper, en el orden en que salen en la lista
 const SECCIONES = [
-  { id: 'fruta',      nombre: 'Fruta y verdura',  emoji: '🥬' },
-  { id: 'carne',      nombre: 'Carne y pescado',  emoji: '🥩' },
-  { id: 'lacteos',    nombre: 'Lácteos y huevos', emoji: '🥛' },
-  { id: 'pan',        nombre: 'Panadería',        emoji: '🥖' },
-  { id: 'despensa',   nombre: 'Despensa',         emoji: '🥫' },
-  { id: 'congelados', nombre: 'Congelados',       emoji: '🧊' },
-  { id: 'bebidas',    nombre: 'Bebidas',          emoji: '🥤' },
-  { id: 'casa',       nombre: 'Limpieza y casa',  emoji: '🧴' },
-  { id: 'otros',      nombre: 'Otros',            emoji: '🛒' },
+  { id: 'fruta',      nombre: T('Fruta y verdura'),  emoji: '🥬' },
+  { id: 'carne',      nombre: T('Carne y pescado'),  emoji: '🥩' },
+  { id: 'lacteos',    nombre: T('Lácteos y huevos'), emoji: '🥛' },
+  { id: 'pan',        nombre: T('Panadería'),        emoji: '🥖' },
+  { id: 'despensa',   nombre: T('Despensa'),         emoji: '🥫' },
+  { id: 'congelados', nombre: T('Congelados'),       emoji: '🧊' },
+  { id: 'bebidas',    nombre: T('Bebidas'),          emoji: '🥤' },
+  { id: 'casa',       nombre: T('Limpieza y casa'),  emoji: '🧴' },
+  { id: 'otros',      nombre: T('Otros'),            emoji: '🛒' },
 ];
 
 // Palabras para adivinar la sección de cada cosa. Se miran en este orden y gana la primera que encaje.

@@ -52,24 +52,24 @@ function addItem(name, from) {
   return it;
 }
 
-const byName = (a, b) => a.name.localeCompare(b.name, 'es');
+const byName = (a, b) => a.name.localeCompare(b.name, LOCALE);
 
 function renderShopping(main, actions, same) {
   const pending = state.shopping.filter((i) => !i.done);
   const done = state.shopping.filter((i) => i.done).sort(byName);
-  if (pending.length) actions.innerHTML = '<button type="button" class="pill-btn" id="share-list">Compartir</button>';
+  if (pending.length) actions.innerHTML = `<button type="button" class="pill-btn" id="share-list">${T('Compartir')}</button>`;
   $('#share-list')?.addEventListener('click', shareList);
 
   // El campo de arriba solo se dibuja al entrar en la pestaña, para no borrar lo que se escribe
   if (!same || !$('#shop-add')) {
     main.innerHTML = `
       <form class="card" id="shop-add">
-        <label class="field">Añadir a la lista
-          <input type="text" id="shop-name" placeholder="Ej.: leche, pan, tomates" autocomplete="off" enterkeyhint="done">
+        <label class="field">${T('Añadir a la lista')}
+          <input type="text" id="shop-name" placeholder="${T('Ej.: leche, pan, tomates')}" autocomplete="off" enterkeyhint="done">
         </label>
         <div class="row">
-          <button type="submit" class="btn primary grow">Añadir</button>
-          <button type="button" class="btn grow" id="from-menu">🍽️ Sacar del menú</button>
+          <button type="submit" class="btn primary grow">${T('Añadir')}</button>
+          <button type="button" class="btn grow" id="from-menu">🍽️ ${T('Sacar del menú')}</button>
         </div>
       </form>
       <div class="region" id="shop-list"></div>`;
@@ -79,13 +79,13 @@ function renderShopping(main, actions, same) {
       if (!names.length) return;
       const potasio = names.filter((n) => findFood(n)?.flags.includes('k'));
       const ieca = healthMembers().filter((m) => m.salud.ieca);
-      if (potasio.length && ieca.length && !confirm(`⛔ ${potasio.join(', ')} es cloruro potásico. ${ieca.map((m) => m.name).join(' y ')} toma un IECA y puede subirle el potasio peligrosamente. ¿Apuntarlo igualmente?`)) return;
+      if (potasio.length && ieca.length && !confirm('⛔ ' + T('{cosa} es cloruro potásico. {quien} toma un IECA y puede subirle el potasio peligrosamente. ¿Apuntarlo igualmente?', { cosa: potasio.join(', '), quien: ieca.map((m) => m.name).join(T(' y ')) }))) return;
       names.forEach((n) => addItem(n));
       save();
       $('#shop-name').value = '';
       render();
       $('#shop-name').focus();
-      toast(names.length === 1 ? `${SEC[guessSection(names[0])].emoji} Apuntado` : `Apuntadas ${names.length} cosas`);
+      toast(names.length === 1 ? `${SEC[guessSection(names[0])].emoji} ${T('Apuntado')}` : T('Apuntadas {n} cosas', { n: names.length }));
     };
     $('#from-menu').onclick = () => openFromMenu(view.week);
   }
@@ -98,10 +98,10 @@ function renderShopping(main, actions, same) {
     ${!state.shopping.length ? `
       <div class="card empty-state">
         <div class="big">🛒</div>
-        <p><strong>La lista está vacía</strong></p>
-        <p class="muted">Escribe lo que haga falta, o saca los ingredientes de los platos del menú.</p>
+        <p><strong>${T('La lista está vacía')}</strong></p>
+        <p class="muted">${T('Escribe lo que haga falta, o saca los ingredientes de los platos del menú.')}</p>
       </div>` : ''}
-    ${pending.length ? `<p class="muted small">${pending.length} por comprar. Toca una cosa para tacharla.</p>` : (done.length ? '<p class="muted small">¡Todo comprado! 🎉</p>' : '')}
+    ${pending.length ? `<p class="muted small">${T('{n} por comprar. Toca una cosa para tacharla.', { n: pending.length })}</p>` : (done.length ? `<p class="muted small">${T('¡Todo comprado!')} 🎉</p>` : '')}
     ${groups.map((g) => `
       <section class="group">
         <div class="group-head">${g.s.emoji} ${esc(g.s.nombre)} <span class="count">${g.items.length}</span></div>
@@ -109,9 +109,9 @@ function renderShopping(main, actions, same) {
       </section>`).join('')}
     ${done.length ? `
       <section class="group">
-        <div class="group-head">✅ En el carro <span class="count">${done.length}</span></div>
+        <div class="group-head">✅ ${T('En el carro')} <span class="count">${done.length}</span></div>
         ${done.map(itemRow).join('')}
-        <button type="button" class="btn small" id="clear-done">Quitar lo comprado de la lista</button>
+        <button type="button" class="btn small" id="clear-done">${T('Quitar lo comprado de la lista')}</button>
       </section>` : ''}
   `;
 
@@ -127,7 +127,7 @@ function renderShopping(main, actions, same) {
     state.shopping = state.shopping.filter((i) => !i.done);
     save();
     render();
-    toast('Lista limpia');
+    toast(T('Lista limpia'));
   });
 }
 
@@ -137,10 +137,10 @@ function itemRow(i) {
       <span class="tick" aria-hidden="true">${i.done ? '✓' : ''}</span>
       <span class="item-text">
         <span class="item-name">${findFood(i.name)?.flags.includes('k') ? '⛔ ' : ''}${esc(i.name)}</span>
-        ${i.from?.length && !i.done ? `<span class="item-from">para ${esc(i.from.join(', '))}</span>` : ''}
+        ${i.from?.length && !i.done ? `<span class="item-from">${T('para {platos}', { platos: esc(i.from.join(', ')) })}</span>` : ''}
       </span>
     </button>
-    <button type="button" class="item-edit" data-edit="${i.id}" aria-label="Cambiar ${esc(i.name)}">⋯</button>
+    <button type="button" class="item-edit" data-edit="${i.id}" aria-label="${T('Cambiar')} ${esc(i.name)}">⋯</button>
   </div>`;
 }
 
@@ -151,13 +151,13 @@ function openItem(id) {
   const draw = () => {
     const name = $('#it-name')?.value ?? it.name;
     openSheet(`
-      <div class="sheet-head"><h3>Cambiar</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <label class="field">Nombre<input type="text" id="it-name" value="${esc(name)}" autocomplete="off" placeholder="Ej.: 2 kg de naranjas"></label>
-      <label class="field">Sección del súper</label>
+      <div class="sheet-head"><h3>${T('Cambiar')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <label class="field">${T('Nombre')}<input type="text" id="it-name" value="${esc(name)}" autocomplete="off" placeholder="${T('Ej.: 2 kg de naranjas')}"></label>
+      <label class="field">${T('Sección del súper')}</label>
       <div class="chips" id="it-sec">${SECCIONES.map((s) => chip(s.id, `${s.emoji} ${s.nombre}`, sec)).join('')}</div>
       <div class="row">
-        <button type="button" class="btn primary grow" id="it-ok">Guardar</button>
-        <button type="button" class="btn danger" id="it-del">Borrar</button>
+        <button type="button" class="btn primary grow" id="it-ok">${T('Guardar')}</button>
+        <button type="button" class="btn danger" id="it-del">${T('Borrar')}</button>
       </div>
     `);
     $('#sheet').querySelectorAll('#it-sec .chip').forEach((b) => b.onclick = () => { sec = b.dataset.v; draw(); });
@@ -202,12 +202,12 @@ function openFromMenu(week) {
       if (!ing.length) {
         return `<div class="from-dish c-${e.cat}">${title}
           ${mine
-            ? `<p class="muted small">Todavía no tiene ingredientes. Apúntalos una vez y servirán para siempre:</p>
+            ? `<p class="muted small">${T('Todavía no tiene ingredientes. Apúntalos una vez y servirán para siempre:')}</p>
                <form class="row" data-ingr-form="${mine.id}">
-                 <input type="text" class="grow" placeholder="Ej.: lentejas, chorizo, zanahoria" autocomplete="off">
-                 <button type="submit" class="btn small">Guardar</button>
+                 <input type="text" class="grow" placeholder="${T('Ej.: lentejas, chorizo, zanahoria')}" autocomplete="off">
+                 <button type="submit" class="btn small">${T('Guardar')}</button>
                </form>`
-            : '<p class="muted small">Guarda este plato en «Mis platos» para poder apuntar sus ingredientes.</p>'}
+            : `<p class="muted small">${T('Guarda este plato en «Mis platos» para poder apuntar sus ingredientes.')}</p>`}
         </div>`;
       }
       return `<div class="from-dish c-${e.cat}">${title}
@@ -226,15 +226,15 @@ function openFromMenu(week) {
 
     const weeks = [0, 1];
     if (wk > 1) weeks.push(wk);
-    const label = (w) => (w === 0 ? 'Lo que queda de esta semana' : w === 1 ? 'La semana que viene' : `Semana del ${fmtShort.format(weekDays(w)[0])}`);
+    const label = (w) => (w === 0 ? T('Lo que queda de esta semana') : w === 1 ? T('La semana que viene') : T('Semana del {d}', { d: fmtShort.format(weekDays(w)[0]) }));
 
     openSheet(`
-      <div class="sheet-head"><h3>Sacar del menú</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+      <div class="sheet-head"><h3>${T('Sacar del menú')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
       <div class="chips" id="fm-week">${weeks.map((w) => chip(String(w), label(w), String(wk))).join('')}</div>
       ${dishes.length
-        ? `<p class="muted small">Quita lo que ya tengáis en casa tocándolo. Lo que tiene ✓ ya está en la lista.</p>${body}`
-        : '<p class="muted">No hay platos en el menú para esos días. Haz el menú en la pestaña Semana.</p>'}
-      <button type="button" class="btn primary" id="fm-ok" ${chosen.size ? '' : 'disabled'}>${chosen.size ? `Añadir ${chosen.size} ${chosen.size === 1 ? 'cosa' : 'cosas'} a la lista` : 'Nada que añadir'}</button>
+        ? `<p class="muted small">${T('Quita lo que ya tengáis en casa tocándolo. Lo que tiene ✓ ya está en la lista.')}</p>${body}`
+        : `<p class="muted">${T('No hay platos en el menú para esos días. Haz el menú en la pestaña Semana.')}</p>`}
+      <button type="button" class="btn primary" id="fm-ok" ${chosen.size ? '' : 'disabled'}>${chosen.size ? (chosen.size === 1 ? T('Añadir 1 cosa a la lista') : T('Añadir {n} cosas a la lista', { n: chosen.size })) : T('Nada que añadir')}</button>
     `);
     const sheet = $('#sheet');
     sheet.querySelectorAll('#fm-week .chip').forEach((b) => b.onclick = () => { wk = Number(b.dataset.v); draw(); });
@@ -257,7 +257,7 @@ function openFromMenu(week) {
       save();
       closeSheet();
       go('compra');
-      toast(`Añadidas ${chosen.size} cosas a la lista`);
+      toast(T('Añadidas {n} cosas a la lista', { n: chosen.size }));
     };
   };
   draw();
@@ -265,7 +265,7 @@ function openFromMenu(week) {
 
 async function shareList() {
   const pending = state.shopping.filter((i) => !i.done);
-  const lines = ['🛒 Lista de la compra'];
+  const lines = ['🛒 ' + T('Lista de la compra')];
   for (const s of SECCIONES) {
     const items = pending.filter((i) => (SEC[i.sec] ? i.sec : 'otros') === s.id).sort(byName);
     if (!items.length) continue;
@@ -275,8 +275,8 @@ async function shareList() {
   try {
     if (navigator.share) { await navigator.share({ text }); return; }
     await navigator.clipboard.writeText(text);
-    toast('Lista copiada. Ya puedes pegarla en WhatsApp.');
+    toast(T('Lista copiada. Ya puedes pegarla en WhatsApp.'));
   } catch (e) {
-    if (e && e.name !== 'AbortError') toast('No se ha podido compartir');
+    if (e && e.name !== 'AbortError') toast(T('No se ha podido compartir'));
   }
 }

@@ -3,8 +3,8 @@
 // ---------- Datos guardados en el teléfono ----------
 
 const KEY = 'menu-familiar-v1';
-const APP_VERSION = 25;
-const COMIDAS = { comida: 'Comida', cena: 'Cena' };
+const APP_VERSION = 26;
+const COMIDAS = { comida: T('Comida'), cena: T('Cena') };
 const CAT = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]));
 
 function defaults() {
@@ -33,7 +33,7 @@ function load() {
 
 let state = load();
 function saveLocal() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast('No se ha podido guardar en este teléfono'); }
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast(T('No se ha podido guardar en este teléfono')); }
 }
 // Guarda en el teléfono y, si el móvil comparte con la familia, envía el cambio
 function save() {
@@ -64,8 +64,8 @@ function weekDays(offset) {
   const start = monday(offset);
   return Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d; });
 }
-const fmtDay = new Intl.DateTimeFormat('es-ES', { weekday: 'long' });
-const fmtShort = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' });
+const fmtDay = new Intl.DateTimeFormat(LOCALE, { weekday: 'long' });
+const fmtShort = new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'short' });
 
 // Gana la palabra que sale antes en el nombre; si empiezan igual, la más larga.
 // Dentro de la carne, el tipo (cerdo, cordero, conejo) se mira en todo el nombre: «Solomillo de cerdo» → cerdo.
@@ -272,9 +272,9 @@ function renderWeek(main, actions) {
   const meals = state.settings.meals;
   const todayKey = iso(new Date());
   const first = days[0], last = days[6];
-  const label = view.week === 0 ? 'Esta semana' : view.week === 1 ? 'La semana que viene' : view.week === -1 ? 'La semana pasada' : `Semana del ${fmtShort.format(first)}`;
+  const label = view.week === 0 ? T('Esta semana') : view.week === 1 ? T('La semana que viene') : view.week === -1 ? T('La semana pasada') : T('Semana del {d}', { d: fmtShort.format(first) });
 
-  actions.innerHTML = `<button type="button" class="pill-btn" id="share">Compartir</button>`;
+  actions.innerHTML = `<button type="button" class="pill-btn" id="share">${T('Compartir')}</button>`;
 
   const counts = {};
   let filled = 0;
@@ -286,35 +286,35 @@ function renderWeek(main, actions) {
 
   let html = `
     <div class="week-nav">
-      <button type="button" class="round" id="prev" aria-label="Semana anterior">‹</button>
+      <button type="button" class="round" id="prev" aria-label="${T('Semana anterior')}">‹</button>
       <div style="text-align:center"><strong>${label}</strong><div class="muted small">${fmtShort.format(first)} – ${fmtShort.format(last)}</div></div>
-      <button type="button" class="round" id="next" aria-label="Semana siguiente">›</button>
+      <button type="button" class="round" id="next" aria-label="${T('Semana siguiente')}">›</button>
     </div>`;
 
   if (!state.dishes.length) {
     html += `
       <div class="card empty-state">
         <div class="big">🍽️</div>
-        <p><strong>Primero, vuestros platos de siempre</strong></p>
-        <p class="muted">Apunta lo que coméis normalmente y la app os montará la semana por colores, con alguna idea nueva de vez en cuando.</p>
+        <p><strong>${T('Primero, vuestros platos de siempre')}</strong></p>
+        <p class="muted">${T('Apunta lo que coméis normalmente y la app os montará la semana por colores, con alguna idea nueva de vez en cuando.')}</p>
         <div class="row" style="justify-content:center">
-          <button type="button" class="btn primary" id="go-dishes">Añadir mis platos</button>
-          <button type="button" class="btn" id="examples">Probar con ejemplos</button>
+          <button type="button" class="btn primary" id="go-dishes">${T('Añadir mis platos')}</button>
+          <button type="button" class="btn" id="examples">${T('Probar con ejemplos')}</button>
         </div>
-        ${Familia.active ? '' : `<p class="muted small">¿Alguien de casa ya usa la app?</p>
-        <div class="row" style="justify-content:center"><button type="button" class="btn" id="join-family">👨‍👩‍👧 Tengo un código de familia</button></div>`}
+        ${Familia.active ? '' : `<p class="muted small">${T('¿Alguien de casa ya usa la app?')}</p>
+        <div class="row" style="justify-content:center"><button type="button" class="btn" id="join-family">👨‍👩‍👧 ${T('Tengo un código de familia')}</button></div>`}
       </div>`;
   } else {
     html += `
       <div class="row">
-        <button type="button" class="btn primary grow" id="fill">${filled ? 'Rellenar huecos' : '🎲 Hacer el menú'}</button>
-        ${filled ? '<button type="button" class="btn grow" id="redo">Rehacer semana</button>' : ''}
+        <button type="button" class="btn primary grow" id="fill">${filled ? T('Rellenar huecos') : '🎲 ' + T('Hacer el menú')}</button>
+        ${filled ? `<button type="button" class="btn grow" id="redo">${T('Rehacer semana')}</button>` : ''}
       </div>
       ${filled ? legend(counts) : ''}
-      ${filled && healthMembers().length ? `<p class="muted small">Para ${esc(healthMembers().map((m) => m.name).join(' y '))}: 🧂 mucha sal · 🧈 grasa saturada · 🦐 purinas · 🥓 embutido · ⛔ no apto. Toca la comida para ver cómo arreglarlo.</p>` : ''}
+      ${filled && healthMembers().length ? `<p class="muted small">${T('Para {quien}: 🧂 mucha sal · 🧈 grasa saturada · 🦐 purinas · 🥓 embutido · ⛔ no apto. Toca la comida para ver cómo arreglarlo.', { quien: esc(healthMembers().map((m) => m.name).join(T(' y '))) })}</p>` : ''}
       ${filled ? `<div class="row">
-        <button type="button" class="pill-btn" id="to-shop">🛒 Pasar a la lista de la compra</button>
-        <button type="button" class="pill-btn" id="clear-week">🗑️ Limpiar semana</button>
+        <button type="button" class="pill-btn" id="to-shop">🛒 ${T('Pasar a la lista de la compra')}</button>
+        <button type="button" class="pill-btn" id="clear-week">🗑️ ${T('Limpiar semana')}</button>
       </div>` : ''}`;
   }
 
@@ -326,10 +326,10 @@ function renderWeek(main, actions) {
       ${meals.map((m) => {
         const list = dishesOf(state.plan[key]?.[m]);
         const p = list[0];
-        if (!p) return `<button type="button" class="slot empty" data-key="${key}" data-meal="${m}"><span class="slot-meal">${COMIDAS[m]}</span><span class="slot-name">+ Elegir plato</span><span></span></button>`;
+        if (!p) return `<button type="button" class="slot empty" data-key="${key}" data-meal="${m}"><span class="slot-meal">${COMIDAS[m]}</span><span class="slot-name">+ ${T('Elegir plato')}</span><span></span></button>`;
         return `<button type="button" class="slot c-${p.cat}" data-key="${key}" data-meal="${m}">
           <span class="slot-meal">${COMIDAS[m]}</span>
-          <span class="slot-name"><span class="slot-main">${esc(p.name)}${p.nuevo ? '<span class="tag-new">✨ Nuevo</span>' : ''}${slotHealth(list)}</span>${list.slice(1).map((x) => `<span class="slot-more"><span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}</span>`).join('')}</span>
+          <span class="slot-name"><span class="slot-main">${esc(p.name)}${p.nuevo ? `<span class="tag-new">✨ ${T('Nuevo')}</span>` : ''}${slotHealth(list)}</span>${list.slice(1).map((x) => `<span class="slot-more"><span class="dot c-${x.cat}"></span>${esc(x.name)}${x.nuevo ? ' ✨' : ''}</span>`).join('')}</span>
           <span class="slot-icons ${list.length > 1 ? 'varios' : ''}" aria-hidden="true">${list.slice(0, 3).map((x, i) => `<span class="slot-ico ${i ? 'acomp' : ''}">${dibujo(x.name, x.cat)}</span>`).join('')}</span>
         </button>`;
       }).join('')}
@@ -345,15 +345,15 @@ function renderWeek(main, actions) {
   $('#examples')?.addEventListener('click', loadExamples);
   $('#join-family')?.addEventListener('click', Familia.openJoin);
   $('#to-shop')?.addEventListener('click', () => { const w = view.week; go('compra'); openFromMenu(w); });
-  $('#fill')?.addEventListener('click', () => { fillWeek(days, false); render(); toast('Menú listo. Toca un plato para cambiarlo.'); });
+  $('#fill')?.addEventListener('click', () => { fillWeek(days, false); render(); toast(T('Menú listo. Toca un plato para cambiarlo.')); });
   $('#clear-week')?.addEventListener('click', () => {
-    if (!confirm(`¿Borrar todos los platos del ${fmtShort.format(first)} al ${fmtShort.format(last)}? Se borrarán también en los demás móviles de la familia.`)) return;
+    if (!confirm(T('¿Borrar todos los platos del {a} al {b}? Se borrarán también en los demás móviles de la familia.', { a: fmtShort.format(first), b: fmtShort.format(last) }))) return;
     days.forEach((d) => { delete state.plan[iso(d)]; });
-    save(); render(); toast('Semana limpia');
+    save(); render(); toast(T('Semana limpia'));
   });
   $('#redo')?.addEventListener('click', () => {
-    if (!confirm('¿Rehacer toda la semana? Se cambiarán todos los platos.')) return;
-    fillWeek(days, true); render(); toast('Semana nueva');
+    if (!confirm(T('¿Rehacer toda la semana? Se cambiarán todos los platos.'))) return;
+    fillWeek(days, true); render(); toast(T('Semana nueva'));
   });
   main.querySelectorAll('.slot').forEach((b) => b.addEventListener('click', () => openMeal(b.dataset.key, b.dataset.meal)));
   main.querySelectorAll('[data-cita-sem]').forEach((b) => b.addEventListener('click', () => { go('citas'); openCita(b.dataset.citaSem); }));
@@ -367,13 +367,13 @@ function loadExamples() {
   const byName = Object.fromEntries(CATALOGO.map((c) => [c[0], c]));
   ej.forEach((n) => { const c = byName[n]; addDish(c[0], c[1], c[2] || 'ambos'); });
   save();
-  toast('Cargados 18 platos de ejemplo. Puedes borrarlos cuando quieras.');
+  toast(T('Cargados 18 platos de ejemplo. Puedes borrarlos cuando quieras.'));
   render();
 }
 
 async function shareWeek(days) {
   const meals = state.settings.meals;
-  const lines = [`Menú del ${fmtShort.format(days[0])} al ${fmtShort.format(days[6])}`, ''];
+  const lines = [T('Menú del {a} al {b}', { a: fmtShort.format(days[0]), b: fmtShort.format(days[6]) }), ''];
   for (const d of days) {
     const day = state.plan[iso(d)] || {};
     const parts = meals.map((m) => { const l = dishesOf(day[m]); return l.length ? l.map((x) => `${CAT[x.cat]?.emoji || ''} ${x.name}`).join(' + ') : '—'; });
@@ -383,10 +383,10 @@ async function shareWeek(days) {
   try {
     if (navigator.share) { await navigator.share({ text }); return; }
     await navigator.clipboard.writeText(text);
-    toast('Menú copiado. Ya puedes pegarlo en WhatsApp.');
+    toast(T('Menú copiado. Ya puedes pegarlo en WhatsApp.'));
   } catch (e) {
     if (e && e.name === 'AbortError') return;
-    toast('No se ha podido compartir');
+    toast(T('No se ha podido compartir'));
   }
 }
 
@@ -434,29 +434,29 @@ function openMeal(key, meal) {
   const list = dishesOf(state.plan[key]?.[meal]);
   if (!list.length) { openPicker(key, meal, 0); return; }
   openSheet(`
-    <div class="sheet-head"><h3>${fmtDay.format(d)} · ${COMIDAS[meal]}</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+    <div class="sheet-head"><h3>${fmtDay.format(d)} · ${COMIDAS[meal]}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
     ${list.map((p, i) => `
       <div class="meal-dish c-${p.cat}" data-i="${i}">
         <div class="md-head">
           ${dibujo(p.name, p.cat)}
           <div class="md-title">
-            <strong>${esc(p.name)}</strong>${p.nuevo ? '<span class="tag-new">✨ Nuevo</span>' : ''}
+            <strong>${esc(p.name)}</strong>${p.nuevo ? `<span class="tag-new">✨ ${T('Nuevo')}</span>` : ''}
             <span class="muted small">${esc(whoText(p))}</span>
           </div>
         </div>
         ${healthLines(p.name, p)}
         ${p.nuevo ? `<div class="notice">
-          <p class="small"><strong>Es una idea nueva.</strong> Si os gusta, guárdala con vuestros platos.</p>
-          <div class="row"><button type="button" class="btn primary small" data-keep="${i}">Guardar en mis platos</button><button type="button" class="btn small" data-nope="${i}">No me la sugieras más</button></div>
+          <p class="small"><strong>${T('Es una idea nueva.')}</strong> ${T('Si os gusta, guárdala con vuestros platos.')}</p>
+          <div class="row"><button type="button" class="btn primary small" data-keep="${i}">${T('Guardar en mis platos')}</button><button type="button" class="btn small" data-nope="${i}">${T('No me la sugieras más')}</button></div>
         </div>` : ''}
         <div class="md-who">${whoPicker(p, `w${i}`)}</div>
         <div class="row">
-          <button type="button" class="btn small grow" data-recipe="${i}">📖 Receta</button>
-          <button type="button" class="btn small grow" data-change="${i}">🔄 Cambiar</button>
-          <button type="button" class="btn small danger" data-remove="${i}">Quitar</button>
+          <button type="button" class="btn small grow" data-recipe="${i}">📖 ${T('Receta')}</button>
+          <button type="button" class="btn small grow" data-change="${i}">🔄 ${T('Cambiar')}</button>
+          <button type="button" class="btn small danger" data-remove="${i}">${T('Quitar')}</button>
         </div>
       </div>`).join('')}
-    <button type="button" class="btn" id="add-dish">➕ Añadir otro plato</button>
+    <button type="button" class="btn" id="add-dish">➕ ${T('Añadir otro plato')}</button>
   `);
   const sheet = $('#sheet');
   const commit = () => { state.plan[key] ||= {}; state.plan[key][meal] = slotFrom(list); save(); render(); openMeal(key, meal); };
@@ -476,7 +476,7 @@ function openMeal(key, meal) {
     addDish(p.name, p.cat, CATALOGO.find((c) => c[0] === p.name)?.[2] || 'ambos');
     delete p.nuevo;
     commit();
-    toast('Guardado en tus platos');
+    toast(T('Guardado en tus platos'));
   });
   sheet.querySelectorAll('[data-nope]').forEach((b) => b.onclick = () => {
     const i = +b.dataset.nope;
@@ -486,7 +486,7 @@ function openMeal(key, meal) {
     setDish(key, meal, i, other);
     render();
     if (dishesOf(state.plan[key]?.[meal]).length) openMeal(key, meal); else closeSheet();
-    toast('Vale, no la volveré a sugerir');
+    toast(T('Vale, no la volveré a sugerir'));
   });
   $('#add-dish').onclick = () => openPicker(key, meal, list.length);
 }
@@ -498,31 +498,31 @@ function openPicker(key, meal, i) {
   const cur = current[i];
   let filter = cur?.cat || 'todas';
   const put = (dish) => {
-    if (current.some((x, j) => j !== i && norm(x.name) === norm(dish.name))) { toast('Ese plato ya está en esta comida'); return; }
+    if (current.some((x, j) => j !== i && norm(x.name) === norm(dish.name))) { toast(T('Ese plato ya está en esta comida')); return; }
     setDish(key, meal, i, dish); render(); openMeal(key, meal);
   };
-  const title = cur ? `Cambiar «${cur.name}»` : current.length ? 'Añadir otro plato' : `${cap(fmtDay.format(d))} · ${COMIDAS[meal]}`;
+  const title = cur ? T('Cambiar «{nombre}»', { nombre: cur.name }) : current.length ? T('Añadir otro plato') : `${cap(fmtDay.format(d))} · ${COMIDAS[meal]}`;
 
   const draw = () => {
     const list = state.dishes
       .filter((x) => (filter === 'todas' || x.cat === filter))
-      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+      .sort((a, b) => a.name.localeCompare(b.name, LOCALE));
     openSheet(`
       <div class="sheet-head">
-        ${current.length ? '<button type="button" class="close" id="pk-back" aria-label="Volver">‹</button>' : ''}
+        ${current.length ? '<button type="button" class="close" id="pk-back" aria-label="' + T('Volver') + '">‹</button>' : ''}
         <h3>${esc(title)}</h3>
-        <button type="button" class="close" data-close aria-label="Cerrar">✕</button>
+        <button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button>
       </div>
       <div class="row">
-        <button type="button" class="btn grow" id="random">🎲 Otro mío</button>
-        <button type="button" class="btn grow" id="new">✨ Idea nueva</button>
+        <button type="button" class="btn grow" id="random">🎲 ${T('Otro mío')}</button>
+        <button type="button" class="btn grow" id="new">✨ ${T('Idea nueva')}</button>
       </div>
       <form class="row" id="free">
-        <input type="text" class="grow" id="free-name" placeholder="Escribir otro plato…" autocomplete="off" enterkeyhint="done">
-        <button type="submit" class="btn">Poner</button>
+        <input type="text" class="grow" id="free-name" placeholder="${T('Escribir otro plato…')}" autocomplete="off" enterkeyhint="done">
+        <button type="submit" class="btn">${T('Poner')}</button>
       </form>
-      <div class="chips">${chip('todas', 'Todos', filter)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, filter)).join('')}</div>
-      <div class="pick-list">${list.length ? list.map((x) => `<button type="button" class="dish c-${x.cat}" data-id="${x.id}"><span class="dot"></span><span class="name">${esc(x.name)}</span>${x.fav ? '⭐' : ''}</button>`).join('') : '<p class="muted small">No tienes platos de este tipo todavía.</p>'}</div>
+      <div class="chips">${chip('todas', T('Todos'), filter)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, filter)).join('')}</div>
+      <div class="pick-list">${list.length ? list.map((x) => `<button type="button" class="dish c-${x.cat}" data-id="${x.id}"><span class="dot"></span><span class="name">${esc(x.name)}</span>${x.fav ? '⭐' : ''}</button>`).join('') : `<p class="muted small">${T('No tienes platos de este tipo todavía.')}</p>`}</div>
     `);
     const sheet = $('#sheet');
     $('#pk-back')?.addEventListener('click', () => openMeal(key, meal));
@@ -534,12 +534,12 @@ function openPicker(key, meal, i) {
     $('#random').onclick = () => {
       const { ctx, sameDayCat } = slotContext(key, meal);
       const n = pickMine(meal, ctx, sameDayCat, cur && norm(cur.name));
-      n ? put(n) : toast('Añade más platos para poder variar');
+      n ? put(n) : toast(T('Añade más platos para poder variar'));
     };
     $('#new').onclick = () => {
       const { ctx, sameDayCat } = slotContext(key, meal);
       const n = pickNew(meal, ctx, sameDayCat, cur && norm(cur.name));
-      n ? put(n) : toast('Ya conoces todas las ideas que tengo');
+      n ? put(n) : toast(T('Ya conoces todas las ideas que tengo'));
     };
     $('#free').onsubmit = (e) => {
       e.preventDefault();
@@ -548,7 +548,7 @@ function openPicker(key, meal, i) {
       const existing = state.dishes.find((x) => norm(x.name) === norm(name));
       const dish = existing || addDish(name, guessCat(name), 'ambos');
       put({ name: dish.name, cat: dish.cat });
-      if (!existing) toast(`Añadido a tus platos como ${CAT[dish.cat].nombre.toLowerCase()}`);
+      if (!existing) toast(T('Añadido a tus platos como {tipo}', { tipo: minus(CAT[dish.cat].nombre) }));
     };
   };
   draw();
@@ -576,13 +576,13 @@ function renderDishes(main, same) {
     const cat = view.newCat || 'auto';
     main.innerHTML = `
       <form class="card" id="add">
-        <label class="field">Añadir un plato
-          <input type="text" id="add-name" placeholder="Ej.: Lentejas con chorizo" autocomplete="off" enterkeyhint="done">
+        <label class="field">${T('Añadir un plato')}
+          <input type="text" id="add-name" placeholder="${T('Ej.: Lentejas con chorizo')}" autocomplete="off" enterkeyhint="done">
         </label>
-        <div class="chips" id="add-cats">${chip('auto', '🪄 Adivinar', cat)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, cat)).join('')}</div>
+        <div class="chips" id="add-cats">${chip('auto', '🪄 ' + T('Adivinar'), cat)}${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, cat)).join('')}</div>
         <div class="row">
-          <button type="submit" class="btn primary grow">Añadir</button>
-          <button type="button" class="btn grow" id="bulk">Pegar una lista</button>
+          <button type="submit" class="btn primary grow">${T('Añadir')}</button>
+          <button type="button" class="btn grow" id="bulk">${T('Pegar una lista')}</button>
         </div>
       </form>
       <div class="region" id="dish-region"></div>`;
@@ -592,7 +592,7 @@ function renderDishes(main, same) {
       e.preventDefault();
       const name = $('#add-name').value.trim();
       if (!name) return;
-      if (state.dishes.some((x) => norm(x.name) === norm(name))) { toast('Ese plato ya está'); return; }
+      if (state.dishes.some((x) => norm(x.name) === norm(name))) { toast(T('Ese plato ya está')); return; }
       const c = (view.newCat || 'auto') === 'auto' ? guessCat(name) : view.newCat;
       addDish(name, c, 'ambos');
       save();
@@ -601,17 +601,17 @@ function renderDishes(main, same) {
       $('#add-name').value = '';
       render();
       $('#add-name').focus();
-      toast(`${CAT[c].emoji} Añadido a ${CAT[c].nombre}`);
+      toast(`${CAT[c].emoji} ${T('Añadido a {tipo}', { tipo: CAT[c].nombre })}`);
     };
     $('#bulk').onclick = openBulk;
   }
 
-  const groups = CATEGORIAS.map((c) => ({ c, items: state.dishes.filter((d) => d.cat === c.id).sort((a, b) => a.name.localeCompare(b.name, 'es')) }));
+  const groups = CATEGORIAS.map((c) => ({ c, items: state.dishes.filter((d) => d.cat === c.id).sort((a, b) => a.name.localeCompare(b.name, LOCALE)) }));
   const meals = state.settings.meals.length === 2 ? 'ambas' : state.settings.meals[0];
   const sinReceta = state.dishes.filter((d) => !recipeFor(d.name)).length;
   const region = $('#dish-region');
   region.innerHTML = `
-    <p class="muted small">${state.dishes.length ? `${state.dishes.length} platos. Toca uno para ver su receta.${sinReceta ? ` <strong>${sinReceta} sin receta todavía</strong>: tócalos para escribirla.` : ''}` : 'Todavía no hay platos. Puedes escribirlos uno a uno o pegar una lista entera.'}</p>
+    <p class="muted small">${state.dishes.length ? `${T('{n} platos. Toca uno para ver su receta.', { n: state.dishes.length })}${sinReceta ? ` <strong>${T('{n} sin receta todavía', { n: sinReceta })}</strong>: ${T('tócalos para escribirla.')}` : ''}` : T('Todavía no hay platos. Puedes escribirlos uno a uno o pegar una lista entera.')}</p>
     ${groups.filter((g) => g.items.length).map((g) => `
       <section class="group c-${g.c.id}">
         <div class="group-head"><span class="dot"></span>${g.c.emoji} ${esc(g.c.nombre)} <span class="count">${g.items.length}</span></div>
@@ -619,9 +619,9 @@ function renderDishes(main, same) {
           <button type="button" class="tile c-${d.cat}" data-id="${d.id}">
             ${dibujo(d.name, d.cat)}
             <span class="tile-name">${esc(d.name)}</span>
-            ${d.fav ? '<span class="tile-fav" aria-label="Favorito">⭐</span>' : ''}
-            ${recipeFor(d.name) ? '' : '<span class="tile-badge">sin receta</span>'}
-            ${healthIcons(d.name) ? `<span class="tile-health" aria-label="Con moderación para quien tiene plan de salud">${healthIcons(d.name)}</span>` : ''}
+            ${d.fav ? `<span class="tile-fav" aria-label="${T('Favorito')}">⭐</span>` : ''}
+            ${recipeFor(d.name) ? '' : `<span class="tile-badge">${T('sin receta')}</span>`}
+            ${healthIcons(d.name) ? `<span class="tile-health" aria-label="${T('Con moderación para quien tiene plan de salud')}">${healthIcons(d.name)}</span>` : ''}
           </button>`).join('')}</div>
       </section>`).join('')}`;
 
@@ -633,10 +633,10 @@ function renderDishes(main, same) {
 
 function openBulk() {
   openSheet(`
-    <div class="sheet-head"><h3>Pegar una lista</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-    <p class="muted small">Un plato por línea. La app adivina el color de cada uno; luego puedes corregirlo tocando el plato.</p>
-    <textarea id="bulk-text" placeholder="Lentejas&#10;Tortilla de patatas&#10;Merluza a la plancha&#10;Pollo al horno"></textarea>
-    <button type="button" class="btn primary" id="bulk-ok">Añadir todos</button>
+    <div class="sheet-head"><h3>${T('Pegar una lista')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+    <p class="muted small">${T('Un plato por línea. La app adivina el color de cada uno; luego puedes corregirlo tocando el plato.')}</p>
+    <textarea id="bulk-text" placeholder="${esc(T('Lentejas\nTortilla de patatas\nMerluza a la plancha\nPollo al horno')).replace(/\n/g, '&#10;')}"></textarea>
+    <button type="button" class="btn primary" id="bulk-ok">${T('Añadir todos')}</button>
   `);
   $('#bulk-ok').onclick = () => {
     const lines = $('#bulk-text').value.split(/\n|,(?![^(]*\))/).map((l) => l.replace(/^[\s\-•*·\d.)]+/, '').trim()).filter(Boolean);
@@ -652,7 +652,7 @@ function openBulk() {
     save();
     closeSheet();
     render();
-    toast(added ? `Añadidos ${added} platos. Revisa los colores.` : 'No había platos nuevos');
+    toast(added ? T('Añadidos {n} platos. Revisa los colores.', { n: added }) : T('No había platos nuevos'));
   };
   setTimeout(() => $('#bulk-text')?.focus(), 250);
 }
@@ -662,20 +662,20 @@ function openDish(id) {
   if (!d) return;
   const draw = () => {
     openSheet(`
-      <div class="sheet-head"><h3>Editar plato</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
-      <label class="field">Nombre<input type="text" id="ed-name" value="${esc(d.name)}" autocomplete="off"></label>
-      <label class="field">Tipo</label>
+      <div class="sheet-head"><h3>${T('Editar plato')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
+      <label class="field">${T('Nombre')}<input type="text" id="ed-name" value="${esc(d.name)}" autocomplete="off"></label>
+      <label class="field">${T('Tipo')}</label>
       <div class="chips" id="ed-cat">${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, d.cat)).join('')}</div>
-      <label class="field">Cuándo</label>
-      <div class="chips" id="ed-when">${chip('ambos', 'Comida o cena', d.when)}${chip('comida', 'Solo comida', d.when)}${chip('cena', 'Solo cena', d.when)}</div>
-      <div class="chips"><button type="button" class="chip" id="ed-fav" aria-pressed="${!!d.fav}">⭐ Favorito (sale más a menudo)</button></div>
-      <label class="field">Ingredientes <span class="muted small" style="font-weight:400">para la lista de la compra</span>
-        <textarea id="ed-ing" class="short" placeholder="Uno por línea o separados por comas">${esc((d.ingredients || []).join('\n'))}</textarea>
+      <label class="field">${T('Cuándo')}</label>
+      <div class="chips" id="ed-when">${chip('ambos', T('Comida o cena'), d.when)}${chip('comida', T('Solo comida'), d.when)}${chip('cena', T('Solo cena'), d.when)}</div>
+      <div class="chips"><button type="button" class="chip" id="ed-fav" aria-pressed="${!!d.fav}">⭐ ${T('Favorito (sale más a menudo)')}</button></div>
+      <label class="field">${T('Ingredientes')} <span class="muted small" style="font-weight:400">${T('para la lista de la compra')}</span>
+        <textarea id="ed-ing" class="short" placeholder="${T('Uno por línea o separados por comas')}">${esc((d.ingredients || []).join('\n'))}</textarea>
       </label>
       <div class="row">
-        <button type="button" class="btn primary grow" id="ed-ok">Guardar</button>
-        <button type="button" class="btn" id="ed-recipe">📖 Receta</button>
-        <button type="button" class="btn danger" id="ed-del">Borrar</button>
+        <button type="button" class="btn primary grow" id="ed-ok">${T('Guardar')}</button>
+        <button type="button" class="btn" id="ed-recipe">📖 ${T('Receta')}</button>
+        <button type="button" class="btn danger" id="ed-del">${T('Borrar')}</button>
       </div>
     `);
     const sheet = $('#sheet');
@@ -685,7 +685,7 @@ function openDish(id) {
     $('#ed-ok').onclick = () => { keepName(); save(); closeSheet(); render(); };
     $('#ed-recipe').onclick = () => { keepName(); save(); render(); openRecipe(d.name); };
     $('#ed-del').onclick = () => {
-      if (!confirm(`¿Borrar «${d.name}»?`)) return;
+      if (!confirm(T('¿Borrar «{nombre}»?', { nombre: d.name }))) return;
       state.dishes = state.dishes.filter((x) => x.id !== d.id);
       save(); closeSheet(); render();
     };
@@ -705,15 +705,15 @@ function openDish(id) {
 
 async function exportList() {
   const text = state.dishes
-    .slice().sort((a, b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name, 'es'))
+    .slice().sort((a, b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name, LOCALE))
     .map((d) => `${d.name} · ${CAT[d.cat].nombre}`).join('\n');
-  if (!text) { toast('Todavía no hay platos'); return; }
+  if (!text) { toast(T('Todavía no hay platos')); return; }
   try {
     if (navigator.share) { await navigator.share({ text }); return; }
     await navigator.clipboard.writeText(text);
-    toast('Lista copiada. En otro móvil, pégala en «Pegar una lista».');
+    toast(T('Lista copiada. En otro móvil, pégala en «Pegar una lista».'));
   } catch (e) {
-    if (e && e.name !== 'AbortError') toast('No se ha podido compartir');
+    if (e && e.name !== 'AbortError') toast(T('No se ha podido compartir'));
   }
 }
 
@@ -728,35 +728,35 @@ function renderIdeas(main) {
   const scarce = CATEGORIAS.filter((c) => c.id !== 'otros' && (mineCount[c.id] || 0) < 2);
 
   main.innerHTML = `
-    <p class="muted">Platos caseros que no están en tu lista. Si te gusta alguno, guárdalo o ponlo directamente en el menú.</p>
+    <p class="muted">${T('Platos caseros que no están en tu lista. Si te gusta alguno, guárdalo o ponlo directamente en el menú.')}</p>
     ${i ? `
       <div class="card idea c-${i.cat}">
         <div class="big">${CAT[i.cat].emoji}</div>
         <div class="title">${esc(i.name)}</div>
-        <div class="muted small">${esc(CAT[i.cat].nombre)}${i.when ? ` · mejor para ${i.when}` : ''}</div>
+        <div class="muted small">${esc(CAT[i.cat].nombre)}${i.when ? ` · ${T('mejor para {comida}', { comida: minus(COMIDAS[i.when]) })}` : ''}</div>
         <div class="row" style="justify-content:center">
-          <button type="button" class="btn primary" id="i-save">Me gusta, guardar</button>
-          <button type="button" class="btn" id="i-week">Ponerlo en el menú</button>
+          <button type="button" class="btn primary" id="i-save">${T('Me gusta, guardar')}</button>
+          <button type="button" class="btn" id="i-week">${T('Ponerlo en el menú')}</button>
         </div>
         <div class="row" style="justify-content:center">
-          <button type="button" class="pill-btn" id="i-recipe">📖 Receta</button>
-          <button type="button" class="pill-btn" id="i-next">🎲 Otra idea</button>
-          <button type="button" class="pill-btn" id="i-no">No me gusta</button>
+          <button type="button" class="pill-btn" id="i-recipe">📖 ${T('Receta')}</button>
+          <button type="button" class="pill-btn" id="i-next">🎲 ${T('Otra idea')}</button>
+          <button type="button" class="pill-btn" id="i-no">${T('No me gusta')}</button>
         </div>
-      </div>` : '<div class="card empty-state"><div class="big">🎉</div><p>Ya has visto todas las ideas que tengo.</p></div>'}
-    <h2>Por tipo</h2>
+      </div>` : `<div class="card empty-state"><div class="big">🎉</div><p>${T('Ya has visto todas las ideas que tengo.')}</p></div>`}
+    <h2>${T('Por tipo')}</h2>
     <div class="chips" id="i-cats">${CATEGORIAS.map((c) => chip(c.id, `${c.emoji} ${c.nombre}`, i?.cat)).join('')}</div>
-    ${scarce.length && state.dishes.length ? `<p class="muted small">Tienes pocos platos de: ${scarce.map((c) => c.nombre.toLowerCase()).join(', ')}. Prueba a mirar ideas de esos tipos.</p>` : ''}
+    ${scarce.length && state.dishes.length ? `<p class="muted small">${T('Tienes pocos platos de: {tipos}. Prueba a mirar ideas de esos tipos.', { tipos: scarce.map((c) => minus(c.nombre)).join(', ') })}</p>` : ''}
   `;
   if (!i) return;
   $('#i-recipe').onclick = () => openRecipe(i.name);
   $('#i-next').onclick = () => { view.idea = shuffle(free.filter((c) => c.name !== i.name))[0] || i; render(); };
-  $('#i-no').onclick = () => { state.dismissed.push(i.name); save(); view.idea = null; render(); toast('Vale, no la volveré a sugerir'); };
-  $('#i-save').onclick = () => { addDish(i.name, i.cat, i.when || 'ambos'); save(); view.idea = null; render(); toast('Guardado en tus platos'); };
+  $('#i-no').onclick = () => { state.dismissed.push(i.name); save(); view.idea = null; render(); toast(T('Vale, no la volveré a sugerir')); };
+  $('#i-save').onclick = () => { addDish(i.name, i.cat, i.when || 'ambos'); save(); view.idea = null; render(); toast(T('Guardado en tus platos')); };
   $('#i-week').onclick = () => putInWeek(i);
   main.querySelectorAll('#i-cats .chip').forEach((b) => b.onclick = () => {
     const opts = free.filter((c) => c.cat === b.dataset.v && c.name !== i.name);
-    if (!opts.length) { toast('No me quedan más ideas de ese tipo'); return; }
+    if (!opts.length) { toast(T('No me quedan más ideas de ese tipo')); return; }
     view.idea = shuffle(opts)[0];
     render();
   });
@@ -767,14 +767,14 @@ function putInWeek(i) {
   const today = iso(new Date());
   const meals = state.settings.meals;
   openSheet(`
-    <div class="sheet-head"><h3>¿Cuándo?</h3><button type="button" class="close" data-close aria-label="Cerrar">✕</button></div>
+    <div class="sheet-head"><h3>${T('¿Cuándo?')}</h3><button type="button" class="close" data-close aria-label="${T('Cerrar')}">✕</button></div>
     <p class="muted small">${esc(i.name)}</p>
     <div class="pick-list">
       ${days.filter((d) => iso(d) >= today).flatMap((d) => meals.filter((m) => fits(i.when, m)).map((m) => {
         const l = dishesOf(state.plan[iso(d)]?.[m]);
         const p = l[0];
         return `<button type="button" class="dish ${p ? 'c-' + p.cat : 'c-otros'}" data-key="${iso(d)}" data-meal="${m}">
-          <span class="name">${cap(fmtDay.format(d))} · ${COMIDAS[m]}</span><span class="badge">${p ? `junto a ${esc(l.map((x) => x.name).join(' + '))}` : 'libre'}</span></button>`;
+          <span class="name">${cap(fmtDay.format(d))} · ${COMIDAS[m]}</span><span class="badge">${p ? T('junto a {platos}', { platos: esc(l.map((x) => x.name).join(' + ')) }) : T('libre')}</span></button>`;
       })).join('')}
     </div>
   `);
@@ -785,7 +785,7 @@ function putInWeek(i) {
     closeSheet();
     view.idea = null;
     go('semana');
-    toast('Puesto en el menú');
+    toast(T('Puesto en el menú'));
   });
 }
 
@@ -823,6 +823,16 @@ try { view.tab = localStorage.getItem(KEY + '-tab') || 'semana'; } catch (e) { /
 // Al tocar un aviso de cita, la app se abre en la pestaña Citas
 if (location.hash === '#citas') { view.tab = 'citas'; history.replaceState(null, '', location.pathname); }
 
+// Textos fijos de index.html
+$('#title').textContent = T('Menú familiar');
+document.title = T('Menú familiar');
+document.querySelectorAll('#tabs button').forEach((b) => { b.lastChild.textContent = T(b.lastChild.textContent.trim()); });
+
+if (!IDIOMA) {
+  // La primera vez se pregunta el idioma; al elegirlo, la app se vuelve a abrir ya traducida
+  pantallaIdioma();
+} else {
+idiomaParaAvisos();
 render();
 Familia.start();
 // Avisos con la app cerrada: los móviles con el sistema de antes se pasan al nuevo, y se pone al día la cola
@@ -831,6 +841,7 @@ guiaPrimeraVez();
 // Recordatorio de citas al abrir la app y al volver a ella
 setTimeout(comprobarAvisos, 800);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(comprobarAvisos, 800); });
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
