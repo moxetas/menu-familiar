@@ -496,7 +496,7 @@ I18N.pl = {
  "Ajustes": "Ustawienia",
  "Fondo de {pestana}": "Tło: {pestana}",
  "Idioma": "Język",
- "Se elige en cada móvil. Los nombres que escribís no se traducen, y las recetas y las ideas de platos, de momento, están en español.": "Wybiera się na każdym telefonie. Wpisane przez was nazwy nie są tłumaczone, a przepisy i pomysły na dania są na razie po hiszpańsku.",
+ "Se elige en cada móvil. Los platos y las recetas de la app salen en tu idioma; lo que escribís vosotros se queda como lo escribís.": "Wybiera się na każdym telefonie. Dania i przepisy z aplikacji są w twoim języku; to, co wpiszecie sami, zostaje tak, jak napisaliście.",
  "Fondo de cada pestaña": "Tło każdej karty",
  "Cada pestaña tiene su foto de fondo. Toca una para cambiarla. Se guarda en este móvil.": "Każda karta ma swoje zdjęcie w tle. Dotknij, aby zmienić. Zapisuje się na tym telefonie.",
  "Las fotos de siempre": "Zwykłe zdjęcia",

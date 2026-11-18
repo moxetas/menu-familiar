@@ -496,7 +496,7 @@ I18N.ro = {
  "Ajustes": "Setări",
  "Fondo de {pestana}": "Fundalul pentru {pestana}",
  "Idioma": "Limbă",
- "Se elige en cada móvil. Los nombres que escribís no se traducen, y las recetas y las ideas de platos, de momento, están en español.": "Se alege pe fiecare telefon. Numele scrise de voi nu se traduc, iar rețetele și ideile de feluri sunt deocamdată în spaniolă.",
+ "Se elige en cada móvil. Los platos y las recetas de la app salen en tu idioma; lo que escribís vosotros se queda como lo escribís.": "Se alege pe fiecare telefon. Felurile și rețetele aplicației apar în limba ta; ce scrieți voi rămâne cum ați scris.",
  "Fondo de cada pestaña": "Fundalul fiecărei file",
  "Cada pestaña tiene su foto de fondo. Toca una para cambiarla. Se guarda en este móvil.": "Fiecare filă are poza ei de fundal. Atinge una ca s-o schimbi. Se salvează pe acest telefon.",
  "Las fotos de siempre": "Pozele obișnuite",

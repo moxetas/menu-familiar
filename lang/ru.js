@@ -496,7 +496,7 @@ I18N.ru = {
  "Ajustes": "Настройки",
  "Fondo de {pestana}": "Фон: {pestana}",
  "Idioma": "Язык",
- "Se elige en cada móvil. Los nombres que escribís no se traducen, y las recetas y las ideas de platos, de momento, están en español.": "Выбирается на каждом телефоне. Названия, которые вы пишете, не переводятся, а рецепты и идеи блюд пока на испанском.",
+ "Se elige en cada móvil. Los platos y las recetas de la app salen en tu idioma; lo que escribís vosotros se queda como lo escribís.": "Выбирается на каждом телефоне. Блюда и рецепты приложения показываются на вашем языке; то, что вы пишете сами, остаётся как есть.",
  "Fondo de cada pestaña": "Фон каждой вкладки",
  "Cada pestaña tiene su foto de fondo. Toca una para cambiarla. Se guarda en este móvil.": "У каждой вкладки своё фоновое фото. Нажмите, чтобы изменить. Сохраняется на этом телефоне.",
  "Las fotos de siempre": "Обычные фото",

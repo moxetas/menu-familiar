@@ -496,7 +496,7 @@ I18N.en = {
  "Ajustes": "Settings",
  "Fondo de {pestana}": "{pestana} background",
  "Idioma": "Language",
- "Se elige en cada móvil. Los nombres que escribís no se traducen, y las recetas y las ideas de platos, de momento, están en español.": "Chosen on each phone. Names you write aren’t translated, and recipes and dish ideas are in Spanish for now.",
+ "Se elige en cada móvil. Los platos y las recetas de la app salen en tu idioma; lo que escribís vosotros se queda como lo escribís.": "Chosen on each phone. The app’s dishes and recipes appear in your language; what you write yourselves stays as you wrote it.",
  "Fondo de cada pestaña": "Background of each tab",
  "Cada pestaña tiene su foto de fondo. Toca una para cambiarla. Se guarda en este móvil.": "Each tab has its own background photo. Tap one to change it. It’s saved on this phone.",
  "Las fotos de siempre": "The usual photos",

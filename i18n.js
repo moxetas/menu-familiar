@@ -5,7 +5,7 @@
 // Cada idioma tiene su archivo en lang/ (lang/de.js…) con la traducción de cada texto: I18N.de['Semana'] = 'Woche'.
 // Si a un idioma le falta un texto, sale en español. {n}, {nombre}… se sustituyen al usarlo: T('Hace {n} días', { n: 3 }).
 // Solo se carga el archivo del idioma elegido (lo pone index.html antes que el resto).
-// Las recetas y las ideas de platos todavía están solo en español.
+// Los platos de las ideas y sus recetas se traducen aparte, con lang/recetas-<idioma>.js (ver más abajo).
 
 const IDIOMAS = {
   es: { nombre: 'Español', tag: 'es-ES' },

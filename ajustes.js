@@ -79,7 +79,7 @@ function renderAjustes(main) {
     <h2>🌐 ${T('Idioma')}</h2>
     <div class="card">
       <div class="chips" id="set-idioma">${Object.entries(IDIOMAS).map(([k, x]) => `<button type="button" class="chip" lang="${k}" data-v="${k}" aria-pressed="${k === (IDIOMA || 'es')}">${x.nombre}</button>`).join('')}</div>
-      <p class="muted small">${T('Se elige en cada móvil. Los nombres que escribís no se traducen, y las recetas y las ideas de platos, de momento, están en español.')}</p>
+      <p class="muted small">${T('Se elige en cada móvil. Los platos y las recetas de la app salen en tu idioma; lo que escribís vosotros se queda como lo escribís.')}</p>
     </div>
 
     <h2>🎨 ${T('Fondo de cada pestaña')}</h2>

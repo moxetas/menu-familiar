@@ -496,7 +496,7 @@ I18N.ar = {
  "Ajustes": "الإعدادات",
  "Fondo de {pestana}": "خلفية {pestana}",
  "Idioma": "اللغة",
- "Se elige en cada móvil. Los nombres que escribís no se traducen, y las recetas y las ideas de platos, de momento, están en español.": "تُختار على كل هاتف. الأسماء التي تكتبونها لا تُترجم، والوصفات وأفكار الأطباق بالإسبانية حاليًا.",
+ "Se elige en cada móvil. Los platos y las recetas de la app salen en tu idioma; lo que escribís vosotros se queda como lo escribís.": "تُختار على كل هاتف. أطباق التطبيق ووصفاته تظهر بلغتك؛ وما تكتبونه بأنفسكم يبقى كما كتبتموه.",
  "Fondo de cada pestaña": "خلفية كل تبويب",
  "Cada pestaña tiene su foto de fondo. Toca una para cambiarla. Se guarda en este móvil.": "لكل تبويب صورة خلفية. المس واحدًا لتغييرها. تُحفظ على هذا الهاتف.",
  "Las fotos de siempre": "الصور المعتادة",
